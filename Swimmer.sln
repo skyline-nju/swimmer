@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Swimmer", "Swimmer\Swimmer.vcxproj", "{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LB2D", "LB2D\LB2D.vcxproj", "{807DE386-8919-4843-AE52-D45A65725334}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,16 +13,19 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Debug|x64.ActiveCfg = Debug|x64
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Debug|x64.Build.0 = Debug|x64
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Debug|x86.ActiveCfg = Debug|Win32
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Debug|x86.Build.0 = Debug|Win32
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Release|x64.ActiveCfg = Release|x64
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Release|x64.Build.0 = Release|x64
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Release|x86.ActiveCfg = Release|Win32
-		{C6E96275-FEFF-4955-BA7D-D85BA5B200B8}.Release|x86.Build.0 = Release|Win32
+		{807DE386-8919-4843-AE52-D45A65725334}.Debug|x64.ActiveCfg = Debug|x64
+		{807DE386-8919-4843-AE52-D45A65725334}.Debug|x64.Build.0 = Debug|x64
+		{807DE386-8919-4843-AE52-D45A65725334}.Debug|x86.ActiveCfg = Debug|Win32
+		{807DE386-8919-4843-AE52-D45A65725334}.Debug|x86.Build.0 = Debug|Win32
+		{807DE386-8919-4843-AE52-D45A65725334}.Release|x64.ActiveCfg = Release|x64
+		{807DE386-8919-4843-AE52-D45A65725334}.Release|x64.Build.0 = Release|x64
+		{807DE386-8919-4843-AE52-D45A65725334}.Release|x86.ActiveCfg = Release|Win32
+		{807DE386-8919-4843-AE52-D45A65725334}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB5CB299-CF80-4AFD-A0E4-FD9E0D86F5F9}
 	EndGlobalSection
 EndGlobal
