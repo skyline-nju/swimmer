@@ -1,19 +1,19 @@
 #ifndef PARTICLE2D_H
 #define PARTICLE2D_H
 #include <cmath>
-class BP_2d {
+class BP_2 {
 public:
-  BP_2d() {}
-  BP_2d(double x0, double y0) : x(x0), y(y0) {}
+  BP_2() {}
+  BP_2(double x0, double y0) : x(x0), y(y0) {}
 
   double x;
   double y;
 };
 
-class BP_with_ori_2d : public: PB_2d{
+class BP_with_ori_2 : public: PB_2{
 public:
-  BP_with_ori_2d(): BP_2d() {}
-  BP_with_ori_2d(double x0, double y0, double theta) : BP_2d(x0, y0) {
+  BP_with_ori_2(): BP_2() {}
+  BP_with_ori_2(double x0, double y0, double theta) : BP_2(x0, y0) {
     ux = std::cos(theta);
     uy = std::sin(theta);
 }
