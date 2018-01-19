@@ -139,7 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="comn.h" />
+    <ClInclude Include="force2d.h" />
+    <ClInclude Include="integrate2d.h" />
     <ClInclude Include="particle2d.h" />
+    <ClInclude Include="rand.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="comn.cpp" />
+    <ClCompile Include="integrate2d.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="force2d.cpp" />
+    <ClCompile Include="particle2d.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

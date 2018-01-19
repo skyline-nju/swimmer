@@ -1,6 +1,7 @@
 # Brownian motion
 
 ## Brownian motion of a free particle
+
 The fluid surronding the particle is made of small molecules, which collide with the particle, giving randomly fluctuating forces. This effect can be described by the following model equation
 
 $$m\frac{dv}{dt}=-\zeta v + F_r(t),$$
@@ -21,7 +22,7 @@ Ref: M. Doi *Soft Matter Physics*
 ### 2D
 The evolution of Brownian particles is governed by the coupled overdamped Langevin equations,
 
-$$\mathbf{\dot{r}}_i =\beta D \mathbf{F} _ i + \sqrt{2D} \mathbf{\eta}^T _i,$$
+$$\mathbf{\dot{r}}_i =\beta D \mathbf{F} _ i + \sqrt{2D} \mathbf{\eta} _i,$$
 $$\dot{\theta}=\beta D _ r T _ i + \sqrt{2D _ r}\eta^R_i$$
 
 Here, $\mathbf{F}$ is an excluded-volume repulsive force, $\beta=1/k_B T$. $D$ and $D_r$ are translational and rotational diffusion constants, which in the low-Reynolds-number regime are:
@@ -30,7 +31,17 @@ $$D=\frac{k _ B T}{6\pi \eta a},$$
 $$D _ r =\frac{k _ B T}{8\pi \eta a^3},$$
 so $D_r=3D/\sigma^2$, where $\sigma=2 a$ is the diamiter of the particle. The $\eta$ are Gaussian white noise variables with $\langle \eta _ i(t)\rangle=0$ and $\langle\eta _ i(t) \eta _ j(t')\rangle=\delta _ {ij} \delta (t-t')$.
 
+#### Nondimensionalization
+Using $\sigma$ and $\epsilon_0=k_B T$ as basic units of length and energy, and $\tau=\sigma^2 / D$ as the unit of time, we get $x=\sigma x^*$, $t=\tau t^*$, $D=\sigma^2 / \tau$, $D_r = 3/\tau$. The force and torque are nondimensionalized as $F=\frac{\epsilon_0}{\sigma}F^*$ and $T=\epsilon_0 T^*$.
+Note that $\delta(t)=\delta(\tau t^*)=\delta(t^*)/\tau$, then $\eta_i(t)=\eta^*_i(t^*)\tau^{-1/2}$. Substituting the above relations into the coupled overdamped Langevin equations, we get
 
+$$\frac{\partial \mathbf{r}^*_i}{\partial t^*}=\mathbf{F}^*_i+\sqrt{2}\mathbf{\eta}^*_i,$$
+$$\frac{\partial \theta_i}{\partial t^*}=3T^*_i+\sqrt{6}\eta^{R*}_i.$$
+
+Neglecting $^*$, the nondimensionalized equations can be solved numerically by using the Euler Method with a time step $h$,
+
+$$\mathbf{r}_i(t+h)=\mathbf{r}_i(t)+\mathbf{F}_ih+\sqrt{2h}\mathbf{\eta}_i,$$
+$$\theta_i(t+h)=\theta_i(t)+3T_ih+\sqrt{6h}\eta^R_i.$$
 
 ### 3D
 To update the orientation of the particle, Lowen et al. use the following equation:
@@ -42,6 +53,32 @@ $$\sqrt{2D _ r} \mathbf{\hat{u}} _ i \times \mathbf{\eta} _ i,$$
 B. van der Meer et al. 2016 Soft matter *Removing grain boundaries from three-dimensional colloidal crystals using active dopants*. Here I infer that $\mathbf{\eta} _ i$ is a unit vector with random orientation, which need be verified in the future.
 
 Another way is to use quaternion, such as Zhao-Yan Sun et al. 2015 Soft matter *A versatile model for soft patchy particles with various patch arrangements*.
+
+### Self propulsion
+Considering the particle is propelled by a force with constant strength, i.e., $\mathbf{F}_p = F_p\hat{\mathbf{v}}_i$, then the translational overdamped Langiven equation becomes
+
+$$\mathbf{\dot{r}}_i =\beta D \left( \mathbf{F}_i+F_p \hat{\mathbf{v}}_i\right) + \sqrt{2D} \mathbf{\eta}_i.$$
+
+Meanwhile, the nondimensionalized equation becomes
+
+$$\frac{\partial \mathbf{r}^*_i}{\partial t^*}=\mathbf{F}^*_i + \mathrm{Pe}\hat{\mathbf{v}}_i+\sqrt{2}\mathbf{\eta}^*_i,$$
+where $\mathrm{Pe}=\frac{\sigma}{\epsilon_0} F_p$.
+
+# Potential, force and torque
+
+### WCA potential
+
+$$U_{\mathrm{WCA}}(r)=4\epsilon\left [\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon \quad \mathrm{if}\quad r<2^{1/6}\sigma,\quad \mathrm{and\ zero\ otherwise.}$$
+Nondimensionalized with $r=\sigma r^*$, $\epsilon=\epsilon_0 \epsilon^*$, $U_{\mathrm{WCA}}=\epsilon_0 U^*_{\mathrm{WCA}}$,
+
+$$U^*_{\mathrm{WCA}}(r)=4\epsilon^*\left [\left(\frac{1}{r^*}\right)^{12} -\left(\frac{1}{r^*}\right)^6\right ]+\epsilon^* \quad \mathrm{if}\quad r^*<2^{1/6},\quad \mathrm{and\ zero\ otherwise.}$$
+
+Neglecting $^*$, the nondimensional force on particle $i$ exerted by particle $j$ is
+
+$$\mathbf{F}_{ji}=-\nabla_{\mathbf{r_i}} U_{\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r}_j)=24\epsilon \left[2\left(\frac{1}{r}\right)^{12} - \left(\frac{1}{r}\right)^6\right]\frac{\mathbf{r}}{r^2} \quad \mathrm{if}\quad r<2^{1/6},\quad \mathrm{and\ zero\ otherwise},$$
+where $\mathbf{r} =\mathbf{r}_i-\mathbf{r}_j$ and $r=|\mathbf{r}|$.
+
+
 
 # Numerical Integration
 
