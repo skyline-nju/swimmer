@@ -32,13 +32,13 @@ $$D _ r =\frac{k _ B T}{8\pi \eta a^3},$$
 so $D_r=3D/\sigma^2$, where $\sigma=2 a$ is the diamiter of the particle. The $\eta$ are Gaussian white noise variables with $\langle \eta _ i(t)\rangle=0$ and $\langle\eta _ i(t) \eta _ j(t')\rangle=\delta _ {ij} \delta (t-t')$.
 
 #### Nondimensionalization
-Using $\sigma$ and $\epsilon_0=k_B T$ as basic units of length and energy, and $\tau=\sigma^2 / D$ as the unit of time, we get $x=\sigma x^*$, $t=\tau t^*$, $D=\sigma^2 / \tau$, $D_r = 3/\tau$. The force and torque are nondimensionalized as $F=\frac{\epsilon_0}{\sigma}F^*$ and $T=\epsilon_0 T^*$.
-Note that $\delta(t)=\delta(\tau t^*)=\delta(t^*)/\tau$, then $\eta_i(t)=\eta^*_i(t^*)\tau^{-1/2}$. Substituting the above relations into the coupled overdamped Langevin equations, we get
+Using $\sigma$ and $\epsilon_0=k_B T$ as basic units of length and energy, and $\tau=\sigma^2 / D$ as the unit of time, we get $x=\sigma \widetilde{x}$, $t=\tau \widetilde{t}$, $D=\sigma^2 / \tau$, $D_r = 3/\tau$. The force and torque are nondimensionalized as $F=\frac{\epsilon_0}{\sigma}\widetilde{F}$ and $T=\epsilon_0 \widetilde{T}$.
+Note that $\delta(t)=\delta(\tau \widetilde{t})=\delta(\widetilde{t})/\tau$, then $\eta_i(t)=\widetilde{\eta}_i(\widetilde{t})\tau^{-1/2}$. Substituting the above relations into the coupled overdamped Langevin equations, we get
 
-$$\frac{\partial \mathbf{r}^*_i}{\partial t^*}=\mathbf{F}^*_i+\sqrt{2}\mathbf{\eta}^*_i,$$
-$$\frac{\partial \theta_i}{\partial t^*}=3T^*_i+\sqrt{6}\eta^{R*}_i.$$
+$$\frac{\partial \mathbf{\widetilde{r}_i}}{\partial \widetilde{t}}=\mathbf{\widetilde{F}}_i+\sqrt{2}\mathbf{\widetilde{\eta}}_i,$$
+$$\frac{\partial \theta_i}{\partial \widetilde{t}}=3\widetilde{T}_i+\sqrt{6}\widetilde{\eta}^{R}_i.$$
 
-Neglecting $^*$, the nondimensionalized equations can be solved numerically by using the Euler Method with a time step $h$,
+Neglecting $^\sim$, the nondimensionalized equations can be solved numerically by using the Euler Method with a time step $h$,
 
 $$\mathbf{r}_i(t+h)=\mathbf{r}_i(t)+\mathbf{F}_ih+\sqrt{2h}\mathbf{\eta}_i,$$
 $$\theta_i(t+h)=\theta_i(t)+3T_ih+\sqrt{6h}\eta^R_i.$$
@@ -61,7 +61,7 @@ $$\mathbf{\dot{r}}_i =\beta D \left( \mathbf{F}_i+F_p \hat{\mathbf{v}}_i\right) 
 
 Meanwhile, the nondimensionalized equation becomes
 
-$$\frac{\partial \mathbf{r}^*_i}{\partial t^*}=\mathbf{F}^*_i + \mathrm{Pe}\hat{\mathbf{v}}_i+\sqrt{2}\mathbf{\eta}^*_i,$$
+$$\frac{\partial \mathbf{\widetilde{r}}_i}{\partial \widetilde{t}}=\mathbf{\widetilde{F}}_i + \mathrm{Pe}\hat{\mathbf{v}}_i+\sqrt{2}\mathbf{\widetilde{\eta}}_i,$$
 where $\mathrm{Pe}=\frac{\sigma}{\epsilon_0} F_p$.
 
 # Potential, force and torque
@@ -69,11 +69,11 @@ where $\mathrm{Pe}=\frac{\sigma}{\epsilon_0} F_p$.
 ### WCA potential
 
 $$U_{\mathrm{WCA}}(r)=4\epsilon\left [\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon \quad \mathrm{if}\quad r<2^{1/6}\sigma,\quad \mathrm{and\ zero\ otherwise.}$$
-Nondimensionalized with $r=\sigma r^*$, $\epsilon=\epsilon_0 \epsilon^*$, $U_{\mathrm{WCA}}=\epsilon_0 U^*_{\mathrm{WCA}}$,
+Nondimensionalized with $r=\sigma \widetilde{r}$, $\epsilon=\epsilon_0 \widetilde{\epsilon}$, $U_{\mathrm{WCA}}=\epsilon_0 \widetilde{U}_{\mathrm{WCA}}$,
 
-$$U^*_{\mathrm{WCA}}(r)=4\epsilon^*\left [\left(\frac{1}{r^*}\right)^{12} -\left(\frac{1}{r^*}\right)^6\right ]+\epsilon^* \quad \mathrm{if}\quad r^*<2^{1/6},\quad \mathrm{and\ zero\ otherwise.}$$
+$$\widetilde{U}_{\mathrm{WCA}}(r)=4\ \widetilde{\epsilon}\left [\left(\frac{1}{\widetilde{r}}\right)^{12} -\left(\frac{1}{\tilde{r}}\right)^6\right ]+\tilde{\epsilon} \quad \mathrm{if}\quad \tilde{r}<2^{1/6},\quad \mathrm{and\ zero\ otherwise.}$$
 
-Neglecting $^*$, the nondimensional force on particle $i$ exerted by particle $j$ is
+Neglecting $^\sim$, the nondimensional force on particle $i$ exerted by particle $j$ is
 
 $$\mathbf{F}_{ji}=-\nabla_{\mathbf{r_i}} U_{\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r}_j)=24\epsilon \left[2\left(\frac{1}{r}\right)^{12} - \left(\frac{1}{r}\right)^6\right]\frac{\mathbf{r}}{r^2} \quad \mathrm{if}\quad r<2^{1/6},\quad \mathrm{and\ zero\ otherwise},$$
 where $\mathbf{r} =\mathbf{r}_i-\mathbf{r}_j$ and $r=|\mathbf{r}|$.
@@ -88,9 +88,9 @@ $$\dot{x} _ i = f _ i (x) + \sigma _ {ij}(x) \eta _ i (t).$$
 
 ## The Euler Method
 $$x _ i(h) = x _ i(0) + f _ i (x(0))h + \sigma _ {ij}(x(0)) W _ j (h),$$
-where $W _ i(h) = \int^h _ 0 ds\ \eta _ i (s)$ can be replaced by a simple Caussian random variable $\bar{W} _ i (h)$ with variance $h$. Moreover, we can use a uniform random number $R$ on the interval $(0, 1)$ to generate $\bar{W}_i$ through
+where $W _ i(h) = \int^h _ 0 ds\ \eta _ i (s)$ can be replaced by a simple Caussian random variable $\widetilde{W} _ i (h)$ with variance $h$. Moreover, we can use a uniform random number $R$ on the interval $(0, 1)$ to generate $\widetilde{W}_i$ through
 
-$$\bar{W} _ i(h)=\sqrt{12 h}(R-0.5).$$
+$$\widetilde{W} _ i(h)=\sqrt{12 h}(R-0.5).$$
 
 Ref: A. Greiner, W. Strittmatter and J. Honerkamp 1988 J. Stat. Phys. *Numerical Integration of Stochastic Differential Equations*
 

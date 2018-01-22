@@ -1,4 +1,5 @@
 #include "particle2d.h"
+#include "comn.h"
 
 bool overlap_2(double dx, double dy, double sigma, double Lx, double Ly) {
   double half_Lx = 0.5 * Lx;
@@ -20,4 +21,16 @@ bool overlap_2(double dx, double dy, double sigma, double Lx, double Ly) {
   } else {
     return false;
   }
+}
+
+void BP_2::set_data(double x0, double y0, Ran * myran) {
+  x = x0;
+  y = y0;
+}
+
+void BP_with_ori_2::set_data(double x0, double y0, Ran * myran) {
+  x = x0;
+  y = y0;
+  theta = myran->doub() * 2 * PI;
+  std::cout << "theta = " << theta << std::endl;
 }

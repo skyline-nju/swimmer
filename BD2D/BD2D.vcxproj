@@ -49,7 +49,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -89,7 +89,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -139,15 +139,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cell_list.h" />
+    <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
+    <ClInclude Include="dynamic.h" />
     <ClInclude Include="force2d.h" />
     <ClInclude Include="integrate2d.h" />
+    <ClInclude Include="io_data.h" />
     <ClInclude Include="particle2d.h" />
     <ClInclude Include="rand.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp" />
+    <ClCompile Include="dynamic.cpp" />
     <ClCompile Include="integrate2d.cpp" />
+    <ClCompile Include="io_data.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="force2d.cpp" />
     <ClCompile Include="particle2d.cpp" />

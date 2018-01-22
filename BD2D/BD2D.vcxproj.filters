@@ -30,6 +30,18 @@
     <ClInclude Include="integrate2d.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="io_data.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cell_list.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp">
@@ -45,6 +57,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="particle2d.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="io_data.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,27 +1,26 @@
 #include <iostream>
-#include "force2d.h"
-#include "particle2d.h"
-#include "integrate2d.h"
+#include "dynamic.h"
+#include "cmdline.h"
 
-using namespace std;
 
-int main() {
-  int N = 1000;
-  double Lx = 100;
-  double Ly = Lx;
-  double h = 1e-4;
-  double Pe = 10;
+int main(int argc, char* argv[]) {
+  cmdline::parser cmd;
+  cmd.add<double>("Lx", 'L', "System size in the x direction", true);
+  cmd.add<double>("Ly", '\0', "System size in the y direction", false);
+  cmd.add<double>("phi", '\0', "Packing fraction", false, 0);
+  cmd.add<int>("nPar", 'N', "particle number", false, 0);
+  cmd.add<double>("Pe", 'P', "the Peclet number", false, 0);
+  cmd.add<double>("tau", 'T', "external torque", false, 0);
+  cmd.add<double>("h", 'h', "time step to integrate", false, 1e-4);
+  cmd.add<double>("eps", 'E', "epsilon_0", false, 1);
+  cmd.add<double>("sigma", '\0', "particle size", false, 1);
+  cmd.add<int>("nstep", '\0', "total time steps to run", false, 1000);
+  cmd.add<int>("log_dt", '\0', "interval to record log", false, 100);
+  cmd.add<int>("XY_dt", '\0', "interval to record xy information", false, 5000);
+  cmd.add<unsigned long long>("seed", 's', "seed for random number", false, 1);
+  cmd.parse_check(argc, argv);
 
-  BP_with_ori_2 *par = new BP_with_ori_2[N];
-  Ran *myran = new Ran(1);
-  
-  create_rand_2(par, N, 1, Lx, Ly, myran);
-  
-  F_WCA_2 fWCA(Lx, Ly, 1);
-  Int_EM_2 euler(h, Lx, Ly);
+  BD_2 bd(cmd);
+  bd.run();
 
-  for (int i = 0; i <= 1000; i++) {
-    cal_pair_force_simply(par, N, fWCA);
-    euler.int_SP_all(par, N, myran, Pe);
-  }
 }

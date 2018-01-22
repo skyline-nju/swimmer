@@ -53,10 +53,13 @@ public:
   F_WCA_2(double Lx0, double Ly0, double eps);
 
   template <class ParA, class ParB>
-  int eval(ParA &a, ParB &b, double dx, double dy) const;
+  int pair(ParA &a, ParB &b, double dx, double dy) const;
 
   template <class ParA, class ParB>
-  int eval(ParA &a, ParB &b) const;
+  int pair(ParA &a, ParB &b) const;
+
+  template <class ParA, class ParB>
+  int operator() (ParA &a, ParB &b) const { return pair(a, b); }
 
 protected:
   double eps24;
@@ -65,7 +68,7 @@ protected:
 };
 
 template <class ParA, class ParB>
-int F_WCA_2::eval(ParA &a, ParB &b, double dx, double dy) const {
+int F_WCA_2::pair(ParA &a, ParB &b, double dx, double dy) const {
   double dr_square = dx * dx + dy * dy;
   if (dr_square > r_cut_square) {
     return 0;
@@ -84,20 +87,20 @@ int F_WCA_2::eval(ParA &a, ParB &b, double dx, double dy) const {
 }
 
 template <class ParA, class ParB>
-int F_WCA_2::eval(ParA &a, ParB &b) const {
+int F_WCA_2::pair(ParA &a, ParB &b) const {
   double dx, dy;
   cal_dis_w_PBC(a, b, dx, dy);
-  return eval(a, b, dx, dy);
+  return pair(a, b, dx, dy);
 }
 
 /*****************************************************************************
 *                 Calculate all forces by visiting all pairs.                *
 *****************************************************************************/
 template<class Par, class Force>
-void cal_pair_force_simply(Par *p, int n, Force &force) {
+void cal_pair_force_simply(Par *p, int n, const Force *force) {
   for (int i = 0; i < n - 1; i++) {
     for (int j = i + 1; j < n; j++) {
-      force.eval(p[i], p[j]);
+      force->pair(p[i], p[j]);
     }
   }
 }

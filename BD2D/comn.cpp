@@ -34,3 +34,20 @@ vector<string> split(const string &str, const string &delim) {
   }
   return res;
 }
+
+double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma) {
+  double a = sigma * 0.5;
+  return PI * a * a * n / (Lx * Ly);
+}
+
+int cal_particle_number_2(double phi, double Lx, double Ly, double sigma) {
+  double phi_max = PI / (2 * std::sqrt(3.0));
+  if (phi > phi_max) {
+    std::cout << "Input packing fraction phi = " << phi
+      << " is larger than phi_max = " << phi_max << std::endl;
+    exit(1);
+  } else {
+    double a = sigma * 0.5;
+    return int(std::round(phi * Lx * Ly / (PI * a * a)));
+  }
+}

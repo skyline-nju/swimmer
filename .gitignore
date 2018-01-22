@@ -6,6 +6,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+BD2D/log
+BD2D/XY
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

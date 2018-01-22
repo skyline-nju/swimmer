@@ -8,6 +8,8 @@ class BP_2 {
 public:
   BP_2() { x = y = fx = fy = 0; }
   BP_2(double x0, double y0) : x(x0), y(y0), fx(0), fy(0) {}
+
+  virtual void set_data(double x0, double y0, Ran *myran);
   
   double x;
   double y;
@@ -20,6 +22,7 @@ public:
   BP_with_ori_2(): BP_2() { theta = tau = 0; }
   BP_with_ori_2(double X, double Y, double Theta):
     BP_2(X, Y), theta(Theta), tau(0) {}
+  virtual void set_data(double x0, double y0, Ran *myran);
   double theta;
   double tau;
 };
@@ -33,8 +36,8 @@ bool overlap_2(double x, double y, Par *p, int i,
   if (i == 0)
     return false;
   for (int j = 0; j < i; j++) {
-    double dx = x - p[j].x;
-    double dy = y - p[j].y;
+    double dx = x - (p+j)->x;
+    double dy = y - (p+j)->y;
     if (overlap_2(dx, dy, sigma, Lx, Ly))
       return true;
   }
@@ -51,11 +54,8 @@ int add_new_rand_2(int i, Par *p, int n, double sigma,
     double x = myran->doub() * Lx;
     double y = myran->doub() * Ly;
     if (!overlap_2(x, y, p, i, sigma, Lx, Ly)) {
-      p[i].x = x;
-      p[i].y = y;
-      if (typeid(Par) == typeid(BP_with_ori_2)) {
-        p[i].theta = myran->doub() * PI * 2;
-      }
+      p[i].set_data(x, y, myran);
+
       return 1;
     } else {
       count++;
@@ -71,7 +71,7 @@ int create_rand_2(Par *p, int n, double sigma,
   for (int i = 0; i < n; i++) {
     if (!add_new_rand_2(i, p, n, sigma, Lx, Ly, myran)) {
       std::cout << "Failed to add the " << i << "-th particles" << std::endl;
-      return 0;
+      exit(1);
     }
   }
   std::cout << "Create " << n << " particles successfully!" << std::endl;
