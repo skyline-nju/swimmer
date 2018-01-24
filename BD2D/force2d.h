@@ -52,6 +52,10 @@ class F_WCA_2 : public F_base_2 {
 public:
   F_WCA_2(double Lx0, double Ly0, double eps);
 
+  void set_sigma(double sigma0);
+
+  double get_r_cut() { return r_cut; }
+
   template <class ParA, class ParB>
   int pair(ParA &a, ParB &b, double dx, double dy) const;
 
@@ -60,16 +64,18 @@ public:
 
   template <class ParA, class ParB>
   int operator() (ParA &a, ParB &b) const { return pair(a, b); }
-
+                                
 protected:
   double eps24;
   double r_cut;
   double r_cut_square;
+  double sigma;
+  double sigma_inverse_square;
 };
 
 template <class ParA, class ParB>
 int F_WCA_2::pair(ParA &a, ParB &b, double dx, double dy) const {
-  double dr_square = dx * dx + dy * dy;
+  double dr_square = (dx * dx + dy * dy) * sigma_inverse_square;
   if (dr_square > r_cut_square) {
     return 0;
   } else {
@@ -91,18 +97,6 @@ int F_WCA_2::pair(ParA &a, ParB &b) const {
   double dx, dy;
   cal_dis_w_PBC(a, b, dx, dy);
   return pair(a, b, dx, dy);
-}
-
-/*****************************************************************************
-*                 Calculate all forces by visiting all pairs.                *
-*****************************************************************************/
-template<class Par, class Force>
-void cal_pair_force_simply(Par *p, int n, const Force *force) {
-  for (int i = 0; i < n - 1; i++) {
-    for (int j = i + 1; j < n; j++) {
-      force->pair(p[i], p[j]);
-    }
-  }
 }
 
 #endif

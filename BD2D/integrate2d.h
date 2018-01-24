@@ -8,6 +8,7 @@ public:
   Int_base_2(double h0, double Lx0, double Ly0): h(h0), Lx(Lx0), Ly(Ly0) {};
 
   void PBC(double &x, double &y) const;
+  double get_h() const { return h; }
 
 protected:
   double h;
@@ -33,20 +34,15 @@ class Int_EM_2 : public Int_base_2 {
 public:
   Int_EM_2(double h0, double Lx0, double Ly0);
 
-  template <class Par>
-  void int_T(Par &p, Ran *myran) const;
 
   template <class Par>
-  void int_T(Par *p, Ran *myran) const;
+  void int_T(Par &p, Ran *myran) const;
 
   template <class Par>
   void int_R(Par &p, Ran *myran) const;
 
   template <class Par>
   void int_R(Par &p, Ran *myran, double tau) const;
-
-  template <class Par>
-  void int_R(Par *p, Ran *myran, double tau) const;
 
   template <class Par>
   void int_SP(Par &p, Ran *myran, double Pe) const;
@@ -64,15 +60,9 @@ template <class Par>
 inline void Int_EM_2::int_T(Par &p, Ran *myran) const {
   p.x += p.fx * h + (myran->doub() - 0.5) * sqrt_24h;
   p.y += p.fy * h + (myran->doub() - 0.5) * sqrt_24h;
-  p.fx = p.fy = 0;
   PBC(p.x, p.y);
-}
-
-template <class Par>
-inline void Int_EM_2::int_T(Par *p, Ran *myran) const {
-  int_T(*p, myran);
-}
-                                      
+  p.fx = p.fy = 0;
+}                                      
 template <class Par>
 inline void Int_EM_2::int_R(Par &p, Ran *myran) const {
   p.theta += p.tau * trible_h + (myran->doub() - 0.5) * sqrt_72h;
@@ -83,12 +73,6 @@ template <class Par>
 inline void Int_EM_2::int_R(Par &p, Ran *myran, double tau) const {
   p.tau += tau;
   int_R(p, myran);
-}
-
-template<class Par>
-inline void Int_EM_2::int_R(Par * p, Ran * myran, double tau) const {
-  p->tau += tau;
-  int_R(*p, myran);
 }
 
 template <class Par>

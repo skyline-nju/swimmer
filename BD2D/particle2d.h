@@ -36,8 +36,8 @@ bool overlap_2(double x, double y, Par *p, int i,
   if (i == 0)
     return false;
   for (int j = 0; j < i; j++) {
-    double dx = x - (p+j)->x;
-    double dy = y - (p+j)->y;
+    double dx = x - p[j].x;
+    double dy = y - p[j].y;
     if (overlap_2(dx, dy, sigma, Lx, Ly))
       return true;
   }
@@ -74,7 +74,8 @@ int create_rand_2(Par *p, int n, double sigma,
       exit(1);
     }
   }
-  std::cout << "Create " << n << " particles successfully!" << std::endl;
+  std::cout << "Create " << n << " particles with diameter " << sigma 
+            << " and random positions" << std::endl;
   return 1;
 }
 #endif

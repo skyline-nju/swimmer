@@ -150,6 +150,7 @@
     <ClInclude Include="rand.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cell_list.cpp" />
     <ClCompile Include="comn.cpp" />
     <ClCompile Include="dynamic.cpp" />
     <ClCompile Include="integrate2d.cpp" />

@@ -2,7 +2,6 @@
 #include "dynamic.h"
 #include "cmdline.h"
 
-
 int main(int argc, char* argv[]) {
   cmdline::parser cmd;
   cmd.add<double>("Lx", 'L', "System size in the x direction", true);
@@ -20,7 +19,10 @@ int main(int argc, char* argv[]) {
   cmd.add<unsigned long long>("seed", 's', "seed for random number", false, 1);
   cmd.parse_check(argc, argv);
 
-  BD_2 bd(cmd);
-  bd.run();
+  BaseDynamic_2 *simulator;
+  simulator = new BD_2<NodeWrapper<BP_2>>(cmd);
+  //simulator = new BD_2<BP_2>(cmd);
+  simulator->run();
+  delete simulator;
 
 }
