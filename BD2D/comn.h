@@ -52,4 +52,6 @@ double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma);
 // Calculate particle number from packing fraction
 int cal_particle_number_2(double phi, double Lx, double Ly, double sigma);
 
+
+
 #endif

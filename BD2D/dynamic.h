@@ -11,6 +11,7 @@
 #include "io_data.h"
 #include "rand.h"
 #include "cell_list.h"
+#include "neighbor_list.h"
 
 // visting all particles
 template<class Par, class UFunc>
@@ -65,8 +66,8 @@ void BaseDynamic_2::ini_rand(Par *p, double sigma) {
     double sigma0 = sigma;
     sigma = 0.5;
     create_rand_2(p, nPar, sigma, Lx, Ly, myran);
-    auto force = [=](auto &p1, auto &p2) {
-      fwca->pair(p1, p2);
+    auto force = [=](auto i, auto j) {
+      fwca->pair(p, i, j);
     };
     auto integ = [=](auto &p1) {
       euler->int_T(p1, myran);
@@ -76,66 +77,73 @@ void BaseDynamic_2::ini_rand(Par *p, double sigma) {
     int delta_t = int(d / (euler->get_h()));
     std::cout << "The diameter is increased by " << d << " every "
               << delta_t << " time steps" << std::endl;
+
+    CellList_w_list clist(Lx, Ly, fwca->get_r_cut());
+    clist.create(p, nPar);
     for (int i = 0; i < n; i++) {
       sigma += d;
       fwca->set_sigma(sigma);
       for (int t = 0; t < delta_t; t++) {
-        for_each_pair(p, nPar, force);
+        clist.for_each_pair(force);
         for_each_particle(p, nPar, integ);
+        clist.update(p, nPar);
       }
     }
     std::cout << "The diameter is increased to " << sigma << std::endl;
   }
 }
 
-template<class Par>
-class BD_2: public BaseDynamic_2 {
+template<class Par, class List>
+class BrownianDynamic : public BaseDynamic_2 {
 public:
-  BD_2(const cmdline::parser &cmd);
-  ~BD_2() { delete[] par; }
-  void run(int steps);
+  BrownianDynamic(const cmdline::parser &cmd);
+  ~BrownianDynamic();
+  void run(int n_steps);
 
 protected:
-  Par *par;
-  bool cell_list_on;
-  Cell_list_2<Par> *clist;
+  Par * par;
+  List *nlist;
 };
 
-template<class Par>
-BD_2<Par>::BD_2(const cmdline::parser & cmd):
-    BaseDynamic_2(cmd) {
+template<class Par, class List>
+BrownianDynamic<Par,List>::BrownianDynamic(const cmdline::parser & cmd):
+                                      BaseDynamic_2(cmd) {
   par = new Par[nPar];
   double sigma = cmd.get<double>("sigma");
   ini_rand(par, 1);
   std::cout << typeid(Par).name() << std::endl;
-  if (typeid(Par) == typeid(BP_2)) {
-    cell_list_on = false;
-  } else {
-    cell_list_on = true;
-    double r_cut = fwca->get_r_cut();
-    clist = new Cell_list_2<Par>(Lx, Ly, r_cut, r_cut);
-  }
-  if (out_on) 
+  if (out_on)
     (*xy_out)(0, par);
+  double l0 = fwca->get_r_cut();
+  nlist = new List(Lx, Ly, l0);
+  if (typeid(List) == typeid(CellList_w_list)) {
+
+  } else {
+    nlist->set_r_buf(0.4, nPar);
+  }
+  nlist->create(par, nPar);
   std::cout << "Finish initilization." << std::endl;
 }
 
-template<class Par>
-void BD_2<Par>::run(int steps) {
-  auto force = [=](auto &p1, auto &p2) {
-    fwca->pair(p1, p2);
+template<class Par, class List>
+BrownianDynamic<Par, List>::~BrownianDynamic() {
+  delete[] par;
+  delete nlist;
+}
+
+template<class Par, class List>
+void BrownianDynamic<Par, List>::run(int n_steps) {
+  auto force = [=](auto i, auto j) {
+    fwca->pair(par, i, j);
   };
   auto integ = [=](auto &p1) {
     euler->int_T(p1, myran);
   };
-  for (int i = 1; i <= steps; i++) {
-    if (cell_list_on) {
-      clist->refresh(par, nPar);
-      clist->for_each_pair(force);
-    } else {
-      for_each_pair(par, nPar, force);
-    }
+
+  for (int i = 1; i <= n_steps; i++) {
+    nlist->for_each_pair(force);
     for_each_particle(par, nPar, integ);
+    nlist->update(par, nPar);
     if (out_on) {
       (*xy_out)(i, par);
       (*log_out)(i);

@@ -146,6 +146,7 @@
     <ClInclude Include="force2d.h" />
     <ClInclude Include="integrate2d.h" />
     <ClInclude Include="io_data.h" />
+    <ClInclude Include="neighbor_list.h" />
     <ClInclude Include="particle2d.h" />
     <ClInclude Include="rand.h" />
   </ItemGroup>
@@ -157,6 +158,7 @@
     <ClCompile Include="io_data.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="force2d.cpp" />
+    <ClCompile Include="neighbor_list.cpp" />
     <ClCompile Include="particle2d.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

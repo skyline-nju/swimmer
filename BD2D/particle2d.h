@@ -27,6 +27,8 @@ public:
   double tau;
 };
 
+/****************************************************************************/
+
 // Check whether two particles are overlapped
 bool overlap_2(double dx, double dy, double sigma, double Lx, double Ly);
 
@@ -79,3 +81,5 @@ int create_rand_2(Par *p, int n, double sigma,
   return 1;
 }
 #endif
+
+

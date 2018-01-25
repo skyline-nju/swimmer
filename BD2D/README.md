@@ -75,12 +75,12 @@ $$\widetilde{U}_{\mathrm{WCA}}(r)=4\ \widetilde{\epsilon}\left [\left(\frac{1}{\
 
 Neglecting $^\sim$, the nondimensional force on particle $i$ exerted by particle $j$ is
 
-$$\mathbf{F}_{ji} = -\nabla_{\mathbf{r}_i}U_{\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r}_j) = \begin{cases}
+$$
+\mathbf{F}_ {ji} = -\nabla_ {\mathbf{r}_ i}U_ {\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r} _j) = \begin{cases}
 24\epsilon\left [2\left (\frac{1}{r}\right )^{12}-(\frac{1}{r})^6\right ] \frac{\mathbf{r}}{r^2} & \text{if } r < 2 ^{1/6}, \\
 0 & \text{if } r > 2 ^ {1/6},
-\end{cases}$$
-
-<!-- $$\mathbf{F}_{ji}=-\nabla_{\mathbf{r_i}} U_{\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r}_j)=24\epsilon \left[2\left(\frac{1}{r}\right)^{12} - \left(\frac{1}{r}\right)^6\right]\frac{\mathbf{r}}{r^2} \quad \mathrm{if}\quad r<2^{1/6},\quad \mathrm{and\ zero\ otherwise},$$ -->
+\end{cases}
+$$
 
 where $\mathbf{r} =\mathbf{r}_i-\mathbf{r}_j$ and $r=|\mathbf{r}|$.
 

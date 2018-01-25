@@ -62,6 +62,9 @@ public:
   template <class ParA, class ParB>
   int pair(ParA &a, ParB &b) const;
 
+  template <class Par>
+  int pair(Par *p, int i, int j);
+
   template <class ParA, class ParB>
   int operator() (ParA &a, ParB &b) const { return pair(a, b); }
                                 
@@ -97,6 +100,11 @@ int F_WCA_2::pair(ParA &a, ParB &b) const {
   double dx, dy;
   cal_dis_w_PBC(a, b, dx, dy);
   return pair(a, b, dx, dy);
+}
+
+template<class Par>
+inline int F_WCA_2::pair(Par * p, int i, int j) {
+  return pair(p[i], p[j]);
 }
 
 #endif

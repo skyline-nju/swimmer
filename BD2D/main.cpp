@@ -20,8 +20,9 @@ int main(int argc, char* argv[]) {
   cmd.parse_check(argc, argv);
 
   BaseDynamic_2 *simulator;
-  simulator = new BD_2<NodeWrapper<BP_2>>(cmd);
-  //simulator = new BD_2<BP_2>(cmd);
+  simulator = new BrownianDynamic<BP_2, CellList_w_list>(cmd);
+  //simulator = new BrownianDynamic<Par_w_Pre_Pos<BP_2>, NeighborList_2>(cmd);
+
   simulator->run();
   delete simulator;
 

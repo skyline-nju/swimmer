@@ -22,6 +22,7 @@ BaseDynamic_2::BaseDynamic_2(const cmdline::parser & cmd) {
   fwca = new F_WCA_2(Lx, Ly, cmd.get<double>("eps"));
 
   out_on = false;
+  //out_on = true;
   if (out_on) {
     BaseWriter::set_para(cmd);
     fout.emplace_back();
