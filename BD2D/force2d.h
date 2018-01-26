@@ -1,5 +1,6 @@
 #ifndef FORCE2D_H
 #define FORCE2D_H
+#include <vector>
 
 class F_base_2 {
 public:
@@ -65,6 +66,9 @@ public:
   template <class Par>
   int pair(Par *p, int i, int j);
 
+  template <class Par>
+  int pair(std::vector<Par> &p, int i, int j);
+
   template <class ParA, class ParB>
   int operator() (ParA &a, ParB &b) const { return pair(a, b); }
                                 
@@ -104,6 +108,11 @@ int F_WCA_2::pair(ParA &a, ParB &b) const {
 
 template<class Par>
 inline int F_WCA_2::pair(Par * p, int i, int j) {
+  return pair(p[i], p[j]);
+}
+
+template<class Par>
+inline int F_WCA_2::pair(std::vector<Par> &p, int i, int j) {
   return pair(p[i], p[j]);
 }
 

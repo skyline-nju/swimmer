@@ -244,20 +244,25 @@ public:
   void for_each_pair(BiFunc f2, int ic1, int ic2) const;
 
   template <class Par>
-  void create(const Par *par, int nPar);
+  void create(const std::vector<Par> &p);
 
   template <class Par>
-  void recreate(const Par *p, int nPar);
+  void recreate(const std::vector<Par> &p);
 
   template <class Par>
-  void update(const Par *p, int nPar);
+  void update(const std::vector<Par> &par);
 
   bool has_member(int ic) const { return cell[ic].size() > 0; }
+
+  template <class Par, class BiFunc>
+  void cal_force(std::vector<Par> &par, BiFunc pair_force) {
+    update(par, pair_force);
+    for_each_pair(pair_force);
+  }
 
 protected:
   std::vector<std::list <int> > cell;
   std::vector<int> list_len;
-
 };
 
 template <class BiFunc>
@@ -302,7 +307,8 @@ void CellList_w_list::for_each_pair(BiFunc f2, int ic1, int ic2) const {
 }
 
 template<class Par>
-void CellList_w_list::create(const Par * par, int nPar) {
+void CellList_w_list::create(const std::vector<Par> &par) {
+  int nPar = par.size();
   for (int ip = 0; ip < nPar; ip++) {
     int idx_cell = int(par[ip].x / lx) + ncols * int(par[ip].y / ly);
     cell[idx_cell].push_back(ip);
@@ -313,15 +319,15 @@ void CellList_w_list::create(const Par * par, int nPar) {
 }
 
 template<class Par>
-void CellList_w_list::recreate(const Par * p, int nPar) {
+void CellList_w_list::recreate(const std::vector<Par> &p) {
   for (int ic = 0; ic < ncells; ic++) {
     cell[ic].clear();
   }
-  create(p, nPar);
+  create(p);
 }
 
 template<class Par>
-void CellList_w_list::update(const Par * p, int nPar) {
+void CellList_w_list::update(const std::vector<Par> &p) {
   for (int row = 0; row < nrows; row++) {
     int row_times_ncols = row * ncols;
 

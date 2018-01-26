@@ -47,6 +47,7 @@ void NeighborList_2::set_r_buf(double r_buf_ratio, int nPar) {
   if (mat)
     delete[] mat;
   mat = new int[ntot];
+  last_pos.reserve(nPar);
 
   std::cout << "nrows = " << nrows << "\n";
   std::cout << "ncols = " << ncols << "\n";

@@ -12,19 +12,20 @@
 #include "rand.h"
 #include "cell_list.h"
 #include "neighbor_list.h"
-
+#define USE_SPATIAL_SORT
 // visting all particles
 template<class Par, class UFunc>
-void for_each_particle(Par *p, int n, UFunc f1) {
-  for (int i = 0; i < n; i++) {
+void for_each_particle(std::vector<Par> &p, UFunc f1) {
+  for (int i = 0, n = p.size(); i < n; i++) {
     f1(p[i]);
   }
 }
 
 // visting all pairs by two loops over all particles
 template<class Par, class BiFunc>
-void for_each_pair(Par *p, int n, BiFunc f_pair) {
-  for (int i = 0; i < n - 1; i++) {
+void for_each_pair(std::vector<Par> &p, BiFunc f_pair) {
+  int n = p.size();
+  for (int i = 0 ; i < n - 1; i++) {
     for (int j = i + 1; j < n; j++) {
       f_pair(p[i], p[j]);
     }
@@ -40,7 +41,7 @@ public:
   void run();
 
   template <class Par>
-  void ini_rand(Par *p, double sigma);
+  void ini_rand(std::vector<Par> &p, double sigma);
 
 protected:
   double Lx;
@@ -59,17 +60,17 @@ protected:
 };
 
 template <class Par>
-void BaseDynamic_2::ini_rand(Par *p, double sigma) {
+void BaseDynamic_2::ini_rand(std::vector<Par> &p, double sigma) {
   if (packing_fraction < 0.5) {
     create_rand_2(p, nPar, sigma, Lx, Ly, myran);
   } else {
     double sigma0 = sigma;
     sigma = 0.5;
     create_rand_2(p, nPar, sigma, Lx, Ly, myran);
-    auto force = [=](auto i, auto j) {
+    auto force = [&p, this](auto i, auto j) {
       fwca->pair(p, i, j);
     };
-    auto integ = [=](auto &p1) {
+    auto integ = [this](auto &p1) {
       euler->int_T(p1, myran);
     };
     double d = 0.01;
@@ -79,14 +80,14 @@ void BaseDynamic_2::ini_rand(Par *p, double sigma) {
               << delta_t << " time steps" << std::endl;
 
     CellList_w_list clist(Lx, Ly, fwca->get_r_cut());
-    clist.create(p, nPar);
+    clist.create(p);
     for (int i = 0; i < n; i++) {
       sigma += d;
       fwca->set_sigma(sigma);
       for (int t = 0; t < delta_t; t++) {
         clist.for_each_pair(force);
-        for_each_particle(p, nPar, integ);
-        clist.update(p, nPar);
+        for_each_particle(p, integ);
+        clist.update(p);
       }
     }
     std::cout << "The diameter is increased to " << sigma << std::endl;
@@ -101,14 +102,17 @@ public:
   void run(int n_steps);
 
 protected:
-  Par * par;
+  std::vector<Par> par;
   List *nlist;
+#ifdef SPATIAL_SORT
+  MySpatialSortingTraits<Par> sst;
+#endif
 };
 
 template<class Par, class List>
 BrownianDynamic<Par,List>::BrownianDynamic(const cmdline::parser & cmd):
                                       BaseDynamic_2(cmd) {
-  par = new Par[nPar];
+  par.reserve(nPar);
   double sigma = cmd.get<double>("sigma");
   ini_rand(par, 1);
   std::cout << typeid(Par).name() << std::endl;
@@ -121,29 +125,31 @@ BrownianDynamic<Par,List>::BrownianDynamic(const cmdline::parser & cmd):
   } else {
     nlist->set_r_buf(0.4, nPar);
   }
-  nlist->create(par, nPar);
+  nlist->create(par);
   std::cout << "Finish initilization." << std::endl;
 }
 
 template<class Par, class List>
 BrownianDynamic<Par, List>::~BrownianDynamic() {
-  delete[] par;
   delete nlist;
 }
 
 template<class Par, class List>
 void BrownianDynamic<Par, List>::run(int n_steps) {
-  auto force = [=](auto i, auto j) {
+  auto f2 = [this](auto i, auto j) {
     fwca->pair(par, i, j);
   };
-  auto integ = [=](auto &p1) {
+  auto integ = [this](auto &p1) {
     euler->int_T(p1, myran);
   };
 
   for (int i = 1; i <= n_steps; i++) {
-    nlist->for_each_pair(force);
-    for_each_particle(par, nPar, integ);
-    nlist->update(par, nPar);
+#ifdef USE_SPATIAL_SORT
+    nlist->cal_force(par, f2, sst);
+#else
+    nlist->cal_force(par, f2);
+#endif
+    for_each_particle(par, integ);
     if (out_on) {
       (*xy_out)(i, par);
       (*log_out)(i);

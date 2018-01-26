@@ -47,11 +47,11 @@ public:
   void set_frames(const cmdline::parser &cmd);
   
   template <class Par>
-  void operator() (int i, Par *p);
+  void operator() (int i, std::vector<Par> &p);
 };
 
 template <class Par>
-void XY_Writer::operator() (int i, Par *p) {
+void XY_Writer::operator() (int i, std::vector<Par> &p) {
   if (i==0 || (!frames.empty() && i == frames[idx_frame])) {
     if (i > 0)
       idx_frame++;
