@@ -1,11 +1,10 @@
 #ifndef RAND_H
 #define RAND_H
 #include <cmath>
-
-// Ref: Numerical Recipes, The Art of Scientific Computing, 3rd, p366-367
-// Generate a random number
-struct Ran
-{
+/********************Uniform Random number generator*************************/
+// Ref: Numerical Recipes, The Art of Scientific Computing, 3rd
+// Uniform Random number generator with period 3.138e57
+struct Ran {
   unsigned long long u, v, w;
   Ran(unsigned long long j) :v(4101842887655102017LL), w(1) {
     u = j ^ v; int64();
@@ -19,33 +18,80 @@ struct Ran
     unsigned long long x = u ^ (u << 21); x ^= x >> 35; x ^= x << 4;
     return (x + v) ^ w;
   }
+  // Returns random double-precision floating value between 0. and 1.
   inline double doub() {
     return 5.42101086242752217E-20 * int64();
   }
   inline unsigned int int32() {
     return (unsigned int)int64();
   }
-  template<typename T>
-  void circle_point_picking(T &x, T &y);
-
-  template<typename T>
-  void sphere_point_picking(T &x, T &y, T &z);
-
-  template<typename T>
-  void hypersphere_point_picking(T &X);
-
-  template<typename T>
-  void shuffle(T *a, int n);
 };
+
+
+// Fastest Uniform Random number generator with period 1.8e19
+struct Ranq1 {
+  unsigned long long v;
+  Ranq1(unsigned long long j) : v(4101842887655102017LL) {
+    v ^= j;
+    v = int64();
+  }
+  inline unsigned long long int64() {
+    v ^= v >> 21; v ^= v << 35; v ^= v >> 4;
+    return v * 2685821657736338717LL;
+  }
+  inline double doub() { return 5.42101086242752217E-20 * int64(); }
+  inline unsigned int int32() { return (unsigned int)int64(); }
+};
+
+// Faster Uniform Random number generator with period 8.5e37
+struct Ranq2 {
+  unsigned long long v, w;
+  Ranq2(unsigned long long j) : v(4101842887655102017LL), w(1) {
+    v ^= j;
+    w = int64();
+    v = int64();
+  }
+  inline unsigned long long int64() {
+    v ^= v >> 17; v ^= v << 31; v ^= v >> 8;
+    w = 4294957665U * (w & 0xffffffff) + (w >> 32);
+    return v ^ w;
+  }
+  inline double doub() { return 5.42101086242752217E-20 * int64(); }
+  inline unsigned int int32() { return (unsigned int)int64(); }
+};
+
+// Implements Knuth’s subtractive generator using only floating operations
+struct Ranfib {
+  double dtab[55], dd;
+  int inext, inextp;
+
+  Ranfib(unsigned long long j) : inext(0), inextp(31) {
+    Ranq1 init(j);
+    for (int k = 0; k<55; k++) dtab[k] = init.doub();
+  }
+  // Returns random double-precision floating value between 0. and 1.
+  inline double doub() {
+    if (++inext == 55) inext = 0;
+    if (++inextp == 55) inextp = 0;
+    dd = dtab[inext] - dtab[inextp];
+    if (dd < 0) dd += 1.0;
+    return (dtab[inext] = dd);
+  }
+  // Returns random 32-bit integer. Recommended only for testing purposes.
+  inline unsigned long int32() {
+    return (unsigned long)(doub() * 4294967295.0);
+  }
+};
+
 
 // Uniform distribution of points on the circumference of a unit circle
 // Ref: http://mathworld.wolfram.com/CirclePointPicking.html
-template<typename T>
-void Ran::circle_point_picking(T &x, T &y) {
+template<typename MyRan>
+void circle_point_picking(double &x, double &y, MyRan &myran) {
   double a, b, aa, bb, S;
   do {
-    a = doub() * 2 - 1;
-    b = doub() * 2 - 1;
+    a = myran.doub() * 2 - 1;
+    b = myran.doub() * 2 - 1;
     aa = a * a;
     bb = b * b;
     S = aa + bb;
@@ -56,12 +102,12 @@ void Ran::circle_point_picking(T &x, T &y) {
 
 // Uniform distribution of points on the surface of a unit sphere
 // Ref: http://mathworld.wolfram.com/SpherePointPicking.html
-template<typename T>
-void Ran::sphere_point_picking(T &x, T &y, T &z) {
+template<class MyRan>
+void sphere_point_picking(double &x, double &y, double &z, MyRan &myran) {
   double a, b, S;
   do {
-    a = doub() * 2 - 1;
-    b = doub() * 2 - 1;
+    a = myran.doub() * 2 - 1;
+    b = myran.doub() * 2 - 1;
     S = a * a + b * b;
   } while (S >= 1);
   double R = std::sqrt(1 - S);
@@ -72,19 +118,19 @@ void Ran::sphere_point_picking(T &x, T &y, T &z) {
 
 // Unifor distribution of points on the surface of a unit 4d sphere
 // Ref: http://mathworld.wolfram.com/HyperspherePointPicking.html
-template<typename T>
-void Ran::hypersphere_point_picking(T &X) {
+template<class MyRan>
+void hypersphere_point_picking(double *X, MyRan &myran) {
   double a, b, S1, S2;
   do {
-    a = doub() * 2 - 1;
-    b = doub() * 2 - 1;
+    a = myran.doub() * 2 - 1;
+    b = myran.doub() * 2 - 1;
     S1 = a * a + b * b;
   } while (S1 >= 1);
   X[0] = a;
   X[1] = b;
   do {
-    a = doub() * 2 - 1;
-    b = doub() * 2 - 1;
+    a = myran.doub() * 2 - 1;
+    b = myran.doub() * 2 - 1;
     S2 = a * a + b * b;
   } while (S2 >= 1);
   double Q = std::sqrt((1 - S1) / S2);
@@ -96,11 +142,11 @@ void Ran::hypersphere_point_picking(T &X) {
 // http://mathworld.wolfram.com/topics/RandomPointPicking.html
 
 // Shuffle a array randomly
-template<class T>
-void Ran::shuffle(T *a, int n) {
+template<class T, class MyRan>
+void shuffle(T *a, int n, MyRan &myran) {
   for (int i = n - 1; i >= 0; i--) {
     // generate a random int j that 0 <= j <= i  
-    int j = int(doub() * (i + 1));
+    int j = int(myarn.doub() * (i + 1));
     if (j > i)
       j = i;
     else if (j < 0)
