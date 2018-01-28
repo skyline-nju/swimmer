@@ -24,25 +24,34 @@
     <ClInclude Include="rand.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="force2d.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="integrate2d.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="io_data.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cmdline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="cell_list.h">
+    <ClInclude Include="vect.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dynamic.h">
+    <ClInclude Include="boundary.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="neighbor_list.h">
+    <ClInclude Include="force.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="integrate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cellList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="brownian.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="neighborList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ioData.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,25 +62,25 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="force2d.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="integrate2d.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="particle2d.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="io_data.cpp">
+    <ClCompile Include="force.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="dynamic.cpp">
+    <ClCompile Include="integrate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="cell_list.cpp">
+    <ClCompile Include="cellList.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="neighbor_list.cpp">
+    <ClCompile Include="brownian.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="neighborList.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ioData.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -52,14 +52,6 @@ double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma);
 // Calculate particle number from packing fraction
 int cal_particle_number_2(double phi, double Lx, double Ly, double sigma);
 
-template<typename T>
-struct Vec_2 {
-  Vec_2() : x(0), y(0) {}
-  Vec_2(T x0, T y0) : x(x0), y(y0) {}
-  T x;
-  T y;
-};
-
 #define SPATIAL_SORT
 #ifdef SPATIAL_SORT
 #include <CGAL/spatial_sort.h>

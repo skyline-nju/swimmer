@@ -144,26 +144,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cell_list.h" />
+    <ClInclude Include="boundary.h" />
+    <ClInclude Include="brownian.h" />
+    <ClInclude Include="cellList.h" />
     <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
-    <ClInclude Include="dynamic.h" />
-    <ClInclude Include="force2d.h" />
+    <ClInclude Include="force.h" />
+    <ClInclude Include="integrate.h" />
     <ClInclude Include="integrate2d.h" />
-    <ClInclude Include="io_data.h" />
-    <ClInclude Include="neighbor_list.h" />
+    <ClInclude Include="ioData.h" />
+    <ClInclude Include="neighborList.h" />
     <ClInclude Include="particle2d.h" />
     <ClInclude Include="rand.h" />
+    <ClInclude Include="vect.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cell_list.cpp" />
+    <ClCompile Include="brownian.cpp" />
+    <ClCompile Include="cellList.cpp" />
     <ClCompile Include="comn.cpp" />
-    <ClCompile Include="dynamic.cpp" />
-    <ClCompile Include="integrate2d.cpp" />
-    <ClCompile Include="io_data.cpp" />
+    <ClCompile Include="force.cpp" />
+    <ClCompile Include="integrate.cpp" />
+    <ClCompile Include="ioData.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="force2d.cpp" />
-    <ClCompile Include="neighbor_list.cpp" />
+    <ClCompile Include="neighborList.cpp" />
     <ClCompile Include="particle2d.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

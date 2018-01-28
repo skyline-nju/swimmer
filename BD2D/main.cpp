@@ -1,6 +1,7 @@
 #include <iostream>
-#include "dynamic.h"
 #include "cmdline.h"
+#include "brownian.h"
+#include "neighborList.h"
 
 int main(int argc, char* argv[]) {
   cmdline::parser cmd;
@@ -17,14 +18,13 @@ int main(int argc, char* argv[]) {
   cmd.add<int>("log_dt", '\0', "interval to record log", false, 100);
   cmd.add<int>("XY_dt", '\0', "interval to record xy information", false, 5000);
   cmd.add<unsigned long long>("seed", 's', "seed for random number", false, 1);
+  cmd.add("no_output", '\0', "no output");
+  cmd.add("spatial_sort", '\0', "use spartial sorting");
   cmd.parse_check(argc, argv);
 
-  BaseDynamic_2 *simulator;
-  //simulator = new BrownianDynamic<BP_2, CellList_w_list>(cmd);
-  //simulator = new BrownianDynamic<Par_w_Pre_Pos<BP_2>, NeighborList_2>(cmd);
-  simulator = new BrownianDynamic<BP_2, NeighborList_2>(cmd);
-
-  simulator->run();
-  delete simulator;
-
+  DynamicBase_2 *bd;
+  bd = new BD_2<Vec_2<double>, NeighborList_2>(cmd);
+  bd->run();
+  delete[] bd;
+  std::cout << std::endl;
 }

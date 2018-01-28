@@ -60,9 +60,7 @@ int add_new_rand_2(int i, std::vector<Par> &p, int n, double sigma,
     double x = myran->doub() * Lx;
     double y = myran->doub() * Ly;
     if (!overlap_2(x, y, p, i, sigma, Lx, Ly)) {
-      p.emplace_back();
-      p[i].set_data(x, y, myran);
-
+      p.emplace_back(x, y);
       return 1;
     } else {
       count++;

@@ -1,5 +1,5 @@
-#ifndef IO_DATA_H
-#define IO_DATA_H
+#ifndef IODATA_H
+#define IODATA_H
 #include <fstream>
 #include <ctime>
 #include <chrono>
@@ -61,7 +61,7 @@ void XY_Writer::operator() (int i, std::vector<Par> &p) {
               << "Properties=species:S:1:pos:R:2 "
               << "Time=" << i * h;
     for (int j = 0; j < nPar; j++) {
-      *ptr_fout << "\n" << std::setprecision(3) << "N\t" 
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t" 
                 << p[j].x << "\t" << p[j].y;
     }
     *ptr_fout << std::endl;
