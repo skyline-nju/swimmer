@@ -133,7 +133,7 @@ template<class Par, class TList>
 void BD_2<Par, TList>::run(int nsteps) {
   EulerMethod euler(h);
   WCAForce fwca(1, 1);
-  MySpatialSortingTraits<Vec_2<double>> sst;
+  MySpatialSortingTraits<Par> sst;
   auto lambda = [&](int i, int j) {
     Vec_2<double> dis(p_arr[i].x - p_arr[j].x, p_arr[i].y - p_arr[j].y);
     pbc2.nearest_dis(dis);
@@ -151,7 +151,60 @@ void BD_2<Par, TList>::run(int nsteps) {
   }
 }
 
+template <class Par, class TList>
+class ABD_2 : public DynamicBase_2 {
+public:
+  ABD_2(const cmdline::parser &cmd);
+  ~ABD_2() { delete tlist; }
+  void run(int nsteps);
+
+protected:
+  std::vector<Par> p_arr;
+  std::vector<Vec_2<double>> f_arr;
+  TList *tlist;
+  double Pe;
+};
+
+template<class Par, class TList>
+ABD_2<Par, TList>::ABD_2(const cmdline::parser & cmd): DynamicBase_2(cmd) {
+  Pe = cmd.get<double>("Pe");
+  p_arr.reserve(nPar);
+  ini_pos_rand(p_arr, nPar);
+  f_arr.reserve(nPar);
+  for (int i = 0; i < nPar; i++) {
+    p_arr[i].theta = myran->doub() * PI * 2.;
+    f_arr.emplace_back();
+  }
+  WCAForce fwca(1, 1);
+  tlist = new TList(Lx, Ly, fwca.get_r_cut(), 0.35, nPar);
+  tlist->create(p_arr);
+  if (OUTPUT_ON) {
+    (*xy_out)(0, p_arr);
+  }
+
+}
+
+template<class Par, class TList>
+void ABD_2<Par, TList>::run(int nsteps) {
+  EulerMethod euler(h);
+  WCAForce fwca(1, 1);
+  MySpatialSortingTraits<Par> sst;
+  auto lambda = [&](int i, int j) {
+    Vec_2<double> dis(p_arr[i].x - p_arr[j].x, p_arr[i].y - p_arr[j].y);
+    pbc2.nearest_dis(dis);
+    fwca(f_arr[i], f_arr[j], dis);
+  };
+  for (int i = 1; i <= nsteps; i++) {
+    if (USE_SPATIAL_SORT)
+      tlist->cal_force(p_arr, lambda, sst);
+    else
+      tlist->cal_force(p_arr, lambda);
+    for (int ip = 0; ip < nPar; ip++) {
+      euler.update_xy_theta(p_arr[ip], f_arr[ip], Pe, pbc2, myran);
+    }
+    output(i, p_arr);
+  }
+
+}
 
 #endif
-
-

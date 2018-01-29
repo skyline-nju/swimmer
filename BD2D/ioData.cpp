@@ -72,7 +72,13 @@ LogWriter::LogWriter(const cmdline::parser & cmd, std::ofstream & fout):
 }
 
 void LogWriter::set_frames(const cmdline::parser & cmd) {
-  int dn = cmd.get<int>("log_dt");
+  //int dn = cmd.get<int>("log_dt");
+  int dn;
+  if (cmd.exist("log_dt")) {
+    dn = cmd.get<int>("log_dt");
+  } else {
+    dn = int(1 / h) * 10;
+  }
   int i = dn;
   while (i <= nstep) {
     frames.push_back(i);
@@ -110,7 +116,12 @@ XY_Writer::XY_Writer(const cmdline::parser &cmd, std::ofstream &fout):
 }
 
 void XY_Writer::set_frames(const cmdline::parser & cmd) {
-  int dn = cmd.get<int>("XY_dt");
+  int dn;
+  if (cmd.exist("XY_dt")) {
+    dn = cmd.get<int>("XY_dt");
+  } else {
+    dn = int(1 / h * 0.2);
+  }
   int i = dn;
   while (i <= nstep) {
     frames.push_back(i);

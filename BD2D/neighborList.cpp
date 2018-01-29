@@ -59,7 +59,7 @@ void NeighborList_2::count_time() {
 
   double mean = dt / refresh_count;
   double err = std::sqrt(dt_square / refresh_count - mean * mean);
-  safe_inteval = mean - 3.5 * err;
+  safe_inteval = mean - 4 * err;
   refresh_interval = 0;
 }
 

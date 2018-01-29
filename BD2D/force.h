@@ -16,7 +16,7 @@ public:
   bool operator()(Vec_2<double> &fi, Vec_2<double> &fj,
             const Vec_2<double> &dR) const;
 
-protected:
+private:
   double eps24;
   double r_cut_square;
   double sigma_inverse_square;
@@ -40,5 +40,9 @@ inline bool WCAForce::operator() (Vec_2<double>& fi, Vec_2<double>& fj,
     return false;
   }
 }
+
+class DipoleForce : public WCAForce {
+
+};
 
 #endif

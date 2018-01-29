@@ -4,30 +4,14 @@
 #include <iostream>
 #include <vector>
 #include "rand.h"
+#include "vect.h"
 
-class BP_2 {
-public:
-  BP_2(): x(0), y(0), fx(0), fy(0) {}
-  BP_2(double x0, double y0) : x(x0), y(y0), fx(0), fy(0){}
-  BP_2(double x0, double y0, double fx0, double fy0) :
-    x(x0), y(y0), fx(fx0), fy(fy0) {}
-
-  virtual void set_data(double x0, double y0, Ran *myran);
-  
-  double x;
-  double y;
-  double fx;
-  double fy;
-};
-
-class BP_with_ori_2: public BP_2 {
-public:
-  BP_with_ori_2(): BP_2() { theta = tau = 0; }
-  BP_with_ori_2(double X, double Y, double Theta):
-    BP_2(X, Y), theta(Theta), tau(0) {}
-  virtual void set_data(double x0, double y0, Ran *myran);
+struct OrientPar_2 :public Vec_2<double> {
   double theta;
-  double tau;
+
+  OrientPar_2() : Vec_2(), theta(0) {}
+  OrientPar_2(double x, double y) : Vec_2(x, y), theta(0) {}
+
 };
 
 /****************************************************************************/
