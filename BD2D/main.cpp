@@ -24,7 +24,29 @@ int main(int argc, char* argv[]) {
 
   DynamicBase_2 *bd;
   //bd = new BD_2<Vec_2<double>, NeighborList_2>(cmd);
-  bd = new ABD_2<OrientPar_2, NeighborList_2>(cmd);
+  //bd = new ABD_2<OrientPar_2, NeighborList_2>(cmd);
+
+  bd = new BD_dipole_2<OrientPar_2, CellList_list_2>(cmd);
   bd->run();
   delete[] bd;
+
+
+  //ExtDipoleForce fed(10, 1, -1, 10, 4, 3.0 / 16);
+  //Vec_2<double> x1(0, 0);
+  //Vec_2<double> x2(4, 0);
+  //Vec_2<double> dR(x1 - x2);
+  //Vec_3<double> f1;
+  //Vec_3<double> f2;
+  //double theta1 = 0;
+  //double theta2 = PI;
+  //fed.eval(f1, f2, dR, theta1, theta2);
+  //std::cout << f1.x << "\t" << f1.y << "\t" << f1.z << std::endl;
+  //std::cout << f2.x << "\t" << f2.y << "\t" << f2.z << std::endl;
+
+  //Vec_3<double> f3;
+  //Vec_3<double> f4;
+  //fed.eval2(f3, f4, dR, theta1, theta2);
+  //std::cout << f3.x << "\t" << f3.y << "\t" << f3.z << std::endl;
+  //std::cout << f4.x << "\t" << f4.y << "\t" << f4.z << std::endl;
+
 }

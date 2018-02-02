@@ -1,5 +1,6 @@
 #ifndef BROWNIAN_H
 #define BROWNIAN_H
+#include <iomanip>
 #include "cmdline.h"
 #include "force.h"
 #include "vect.h"
@@ -18,15 +19,30 @@ public:
 
   virtual void run(int steps)=0;
 
+
   void run();
 
   template <class Par>
-  void ini_pos_rand(std::vector<Par> &p_arr, int np, double sigma = 1) const;
+  void run_simple_bd(int n_steps, std::vector<Par> &p_arr,
+                     std::vector< Vec_2<double> > &f_arr, EulerMethod &euler,
+                     WCAForce &f_wca, CellList_list_2 &cl);
+
+  template <class Par>
+  void ini_pos_rand(std::vector<Par> &p_arr, int np, double sigma = 1.0);
 
   template <class Par>
   void output(int i_step, std::vector<Par> &p_arr);
 
-  void set_spatial_sort(bool flag) { USE_SPATIAL_SORT = flag; }
+  void set_spatial_sort(bool flag) { spatial_sort_on = flag; }
+
+  template <class BiFunc>
+  void for_each_pair(BiFunc f2) {
+    for (int i = 0; i < nPar - 1; i++) {
+      for (int j = i + 1; j < nPar; j++) {
+        f2(i, j);
+      }
+    }
+  }
 
 
 protected:
@@ -36,8 +52,8 @@ protected:
   int nstep;
   double packing_fraction;
   double h;
-  bool OUTPUT_ON;
-  bool USE_SPATIAL_SORT;
+  bool output_on;
+  bool spatial_sort_on;
 
   Ran *myran;
 
@@ -49,8 +65,27 @@ protected:
   std::vector<std::ofstream> fout;
 };
 
+template <class Par>
+void DynamicBase_2::run_simple_bd(int n_steps, std::vector<Par> &p_arr, 
+                                  std::vector< Vec_2<double> > &f_arr,
+                                  EulerMethod &euler, WCAForce &f_wca,
+                                  CellList_list_2 &cl) {
+  auto f_ij = [&p_arr, &f_arr, &f_wca, this](int i, int j) {
+    Vec_2<double> dR(p_arr[i].x - p_arr[j].x, p_arr[i].y - p_arr[j].y);
+    pbc2.nearest_dis(dR);
+    f_wca(f_arr[i], f_arr[j], dR);
+  };
+  for (int i = 0; i < n_steps; i++) {
+    cl.for_each_pair(f_ij);
+    cl.for_each_pair(f_ij);
+    for (int ip = 0; ip < nPar; ip++) {
+      euler.update_xy(p_arr[ip], f_arr[ip], pbc2, myran);
+    }
+    cl.update(p_arr);
+  }
+}
 template<class Par>
-void DynamicBase_2::ini_pos_rand(std::vector<Par>& p_arr, int np, double sigma) const {
+void DynamicBase_2::ini_pos_rand(std::vector<Par>& p_arr, int np, double sigma) {
   if (packing_fraction < 0.5) {
     create_rand_2(p_arr, np, sigma, Lx, Ly, myran);
   } else {
@@ -66,15 +101,11 @@ void DynamicBase_2::ini_pos_rand(std::vector<Par>& p_arr, int np, double sigma) 
 
     EulerMethod euler(h);
     WCAForce f_WCA(1, 1);
-    auto f_ij = [&p_arr, &f_arr, this, &f_WCA](auto i, auto j) {
-      Vec_2<double> distance(p_arr[i].x - p_arr[j].x, p_arr[i].y - p_arr[j].y);
-      pbc2.nearest_dis(distance);
-      f_WCA(f_arr[i], f_arr[j], distance);
-    };
     double d = 0.01;
     int n = int((sigma0 - sigma) / d);
     int delta_t = int(d / h);
-    std::cout << "The diameter is increased by " << d << " every "
+
+    std::cout << "The diameter is increased by "  << d << " every "
               << delta_t << " time steps" << std::endl;
 
     CellList_list_2 cl(Lx, Ly, f_WCA.get_r_cut(), 0);
@@ -82,21 +113,17 @@ void DynamicBase_2::ini_pos_rand(std::vector<Par>& p_arr, int np, double sigma) 
     for (int i = 0; i < n; i++) {
       sigma += d;
       f_WCA.set_sigma(sigma);
-      for (int t = 0; t < delta_t; t++) {
-        cl.for_each_pair(f_ij);
-        for (int ip = 0; ip < np; ip++) {
-          euler.update_xy(p_arr[ip], f_arr[ip], pbc2, myran);
-        }
-        cl.update(p_arr);
-      }
+      run_simple_bd(delta_t, p_arr, f_arr, euler, f_WCA, cl);
     }
-    std::cout << "The diameter is increased to " << sigma << std::endl;
+    f_WCA.set_sigma(sigma0);
+    std::cout << "The diameter is increased to " << sigma
+              << " after " << n << " steps\n";
   }
 }
 
 template<class Par>
 inline void DynamicBase_2::output(int i_step, std::vector<Par>& p_arr) {
-  if (OUTPUT_ON) {
+  if (output_on) {
     (*xy_out)(i_step, p_arr);
     (*log_out)(i_step);
   }
@@ -124,7 +151,7 @@ BD_2<Par, TList>::BD_2(const cmdline::parser & cmd):DynamicBase_2(cmd) {
   WCAForce fwca(1, 1);
   tlist = new TList(Lx, Ly, fwca.get_r_cut(), 0.4, nPar);
   tlist->create(p_arr);
-  if (OUTPUT_ON) {
+  if (output_on) {
     (*xy_out)(0, p_arr);
   }
 }
@@ -135,12 +162,10 @@ void BD_2<Par, TList>::run(int nsteps) {
   WCAForce fwca(1, 1);
   MySpatialSortingTraits<Par> sst;
   auto lambda = [&](int i, int j) {
-    Vec_2<double> dis(p_arr[i].x - p_arr[j].x, p_arr[i].y - p_arr[j].y);
-    pbc2.nearest_dis(dis);
-    fwca(f_arr[i], f_arr[j], dis);
+    fwca(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2);
   };
   for (int i = 1; i <= nsteps; i++) {
-    if (USE_SPATIAL_SORT)
+    if (spatial_sort_on)
       tlist->cal_force(p_arr, lambda, sst);
     else
       tlist->cal_force(p_arr, lambda);
@@ -178,7 +203,7 @@ ABD_2<Par, TList>::ABD_2(const cmdline::parser & cmd): DynamicBase_2(cmd) {
   WCAForce fwca(1, 1);
   tlist = new TList(Lx, Ly, fwca.get_r_cut(), 0.35, nPar);
   tlist->create(p_arr);
-  if (OUTPUT_ON) {
+  if (output_on) {
     (*xy_out)(0, p_arr);
   }
 
@@ -195,7 +220,7 @@ void ABD_2<Par, TList>::run(int nsteps) {
     fwca(f_arr[i], f_arr[j], dis);
   };
   for (int i = 1; i <= nsteps; i++) {
-    if (USE_SPATIAL_SORT)
+    if (spatial_sort_on)
       tlist->cal_force(p_arr, lambda, sst);
     else
       tlist->cal_force(p_arr, lambda);
@@ -207,4 +232,66 @@ void ABD_2<Par, TList>::run(int nsteps) {
 
 }
 
+template <class Par, class TList>
+class BD_dipole_2 : public DynamicBase_2 {
+public:
+  BD_dipole_2(const cmdline::parser &cmd);
+  ~BD_dipole_2() { delete tlist; }
+  void run(int nsteps);
+private:
+  std::vector<Par> p_arr;
+  std::vector<Vec_3<double>> f_arr;
+  TList *tlist;
+
+
+};
+template<class Par, class TList>
+BD_dipole_2<Par, TList>::BD_dipole_2(const cmdline::parser & cmd):
+  DynamicBase_2(cmd) {
+  p_arr.reserve(nPar);
+  ini_pos_rand(p_arr, nPar);
+  f_arr.reserve(nPar);
+  for (int i = 0; i < nPar; i++) {
+    f_arr.emplace_back();
+    p_arr[i].theta = myran->doub() * 2 * PI;
+  }
+  double r_cut = 4;
+  tlist = new TList(Lx, Ly, r_cut, 0.4, nPar);
+  tlist->create(p_arr);
+  if (output_on) {
+    xy_out->write(0, p_arr);
+  }
+}
+
+template<class Par, class TList>
+void BD_dipole_2<Par, TList>::run(int nsteps) {
+  EulerMethod euler(h);
+  WCAForce fwca(1, 1);
+  //DipoleForce fd(4, 2.5);
+  ExtDipoleForce fed(20, 1, -1, 4, 4, 3 / 16);
+  MySpatialSortingTraits<Par> sst;
+  auto lambda = [&](int i, int j) {
+    fed(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2, fwca);
+  };
+  for (int i = 1; i <= nsteps; i++) {
+    //if (spatial_sort_on)
+    //  tlist->cal_force(p_arr, lambda, sst);
+    //else
+    //  tlist->cal_force(p_arr, lambda);
+    for_each_pair(lambda);
+    for (int ip = 0; ip < nPar; ip++) {
+      euler.update_xy_theta(p_arr[ip], f_arr[ip], pbc2, myran);
+    }
+    if (output_on) {
+      xy_out->write(i, p_arr);
+      (*log_out)(i);
+    }
+  }
+
+}
+
+
+
+
 #endif
+

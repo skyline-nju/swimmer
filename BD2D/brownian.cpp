@@ -21,11 +21,11 @@ DynamicBase_2::DynamicBase_2(const cmdline::parser & cmd) {
   
   pbc2.ini(Lx, Ly);
   if (cmd.exist("no_output")) {
-    OUTPUT_ON = false;
+    output_on = false;
     xy_out = nullptr;
     log_out = nullptr;
   } else {
-    OUTPUT_ON = true;
+    output_on = true;
     BaseWriter::set_para(cmd);
     fout.emplace_back();
     fout.emplace_back();
@@ -34,16 +34,14 @@ DynamicBase_2::DynamicBase_2(const cmdline::parser & cmd) {
   }
 
   if (cmd.exist("spatial_sort")) {
-    USE_SPATIAL_SORT = true;
+    spatial_sort_on = true;
   } else {
-    USE_SPATIAL_SORT = false;
+    spatial_sort_on = false;
   }
-
-  
 }
 
 DynamicBase_2::~DynamicBase_2() {
-  if (OUTPUT_ON) {
+  if (output_on) {
     delete xy_out;
     delete log_out;
     fout[0].close();

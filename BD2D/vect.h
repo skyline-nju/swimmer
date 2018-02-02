@@ -9,8 +9,33 @@ struct Vec_2 {
   Vec_2(T a) : x(a), y(a) {}
   Vec_2(const Vec_2<T> &a) : x(a.x), y(a.y) {}
   Vec_2(T x0, T y0) : x(x0), y(y0) {}
+
+  void operator = (const Vec_2<T> &a) { x = a.x; y = a.y; }
+  void operator += (const Vec_2<T> &a) { x += a.x; y += a.y; }
+  void operator -= (const Vec_2<T> &a) { x -= a.x; y -= a.y; }
+
+  Vec_2 operator +(double a) const { return Vec_2<T>(x + a, y + a); }
+  Vec_2 operator +(const Vec_2<T> &a) const { return Vec_2<T>(x + a.x, y + a.y); }
+  friend inline Vec_2 operator +(double a, const Vec_2<T> &b) {
+    return Vec_2<T>(a + b.x, a + b.y);
+  }
+
+  Vec_2 operator -(double a) const { return Vec_2<T>(x - a, y - a); }
+  Vec_2 operator -(const Vec_2<T> &a) const { return Vec_2<T>(x - a.x, y - a.y); }
+  friend inline Vec_2 operator -(double a, const Vec_2<T> &b) {
+    return Vec_2<T>(a - b.x, a - b.y);
+  }
+
+  Vec_2 operator *(double a) const { return Vec_2<T>(x *a, y * a); }
+  friend inline Vec_2 operator *(double a, const Vec_2<T> &b) {
+    return Vec_2<T>(a * b.x, a * b.y);
+  }
   
-  inline double square() const { return x * x + y * y; }
+  Vec_2 operator /(double a) const { return Vec_2<T>(x / a, y / a); }
+
+  double square() const { return x * x + y * y; }
+  double dot(const Vec_2<T> & a) const { return x * a.x + y * a.y; }
+  double cross(const Vec_2<T> &a) const { return x * a.y - y * a.x; }
 };
 
 template <typename T>
@@ -22,7 +47,12 @@ struct Vec_3 {
   Vec_3(const Vec_3<T> &a) : x(a.x), y(a.y), z(a.z) {};
   Vec_3(T x0, T y0, T z0) : x(x0), y(y0), z(z0) {}
 
-  inline double square() const { return x * x + y * y + z * z; }
+  void operator += (const Vec_2<T> &a) { x += a.x; y += a.y; }
+  void operator += (const Vec_3<T> &a) { x += a.x; y += a.y; z += a.z; }
+  void operator -= (const Vec_2<T> &a) { x -= a.x; y -= a.y; }
+  void operator -= (const Vec_3<T> &a) { x -= a.x; y -= a.y; z -= a.z; }
+
+  double square() const { return x * x + y * y + z * z; }
 
 };
 

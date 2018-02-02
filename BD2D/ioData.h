@@ -48,6 +48,9 @@ public:
   
   template <class Par>
   void operator() (int i, std::vector<Par> &p);
+
+  template <class Par>
+  void write(int i, std::vector<Par> &p);
 };
 
 template <class Par>
@@ -67,5 +70,28 @@ void XY_Writer::operator() (int i, std::vector<Par> &p) {
     *ptr_fout << std::endl;
   }
 }
+
+template <class Par>
+void XY_Writer::write(int i, std::vector<Par> &p) {
+  if (i == 0 || (!frames.empty() && i == frames[idx_frame])) {
+    if (i > 0)
+      idx_frame++;
+    *ptr_fout << nPar * 2 << "\n";
+    // comment line
+    *ptr_fout << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2 "
+      << "Time=" << i * h;
+    for (int j = 0; j < nPar; j++) {
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t"
+        << p[j].x << "\t" << p[j].y;
+      double dx = 0.01 * std::cos(p[j].theta);
+      double dy = 0.01 * std::sin(p[j].theta);
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
+        << p[j].x + dx << "\t" << p[j].y + dy;
+    }
+    *ptr_fout << std::endl;
+  }
+}
+
 
 #endif

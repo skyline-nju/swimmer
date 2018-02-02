@@ -77,15 +77,39 @@ Neglecting $^\sim$, the nondimensional force on particle $i$ exerted by particle
 
 $$
 \mathbf{F}_ {ji} = -\nabla_ {\mathbf{r}_ i}U_ {\mathrm{WCA}}(\mathbf{r}_i-\mathbf{r} _j) =
-\begin{cases}
-24\epsilon\left [2\left (\frac{1}{r}\right )^{12}-(\frac{1}{r})^6 \right ] \frac{\mathbf{r}}{r^2} & \text{if } r < 2 ^{1/6}, \\
-0 & \text{if } r > 2 ^ {1/6},
-\end{cases}
+24\epsilon\left [2\left (\frac{1}{r}\right )^{12}-(\frac{1}{r})^6 \right ] \frac{\mathbf{r}}{r^2},\quad  \text{if } r < 2 ^{1/6}
 $$
 
 where $\mathbf{r} =\mathbf{r}_i-\mathbf{r}_j$ and $r=|\mathbf{r}|$.
 
+### Dipole potential
+The position of the $i$th dipole is denoted as $\mathbf{r}_i$ and the dipole moment $\mathbf{m}_i=m_i \hat{\mathbf{\mu}}_i$ is directed along the unit vector $\hat{\mathbf{\mu}}_i$. The potential for two dipoles $i, j$ is then  
 
+$$U^{\mathrm{D}}_{ij}=\frac{m_i m_j}{r_{ij}^3}\left [ \hat{\mathbf{\mu}}_i\cdot \hat{\mathbf{\mu}}_j-\frac{3(\hat{\mathbf{\mu}}_i\cdot \mathbf{r}_{ij})(\hat{\mathbf{\mu}}_j\cdot \mathbf{r}_{ij})}{r^2_{ij}}\right],$$
+where $\mathbf{r}_{ij}=\mathbf{r}_i -\mathbf{r}_j$. The dipole force felt by $i$-th dipole is 
+
+$$\begin{aligned}F_i=-\nabla_{\mathbf{r}_{i}}U^{\mathrm{D}}_{ij}&=\frac{3m_i m_j}{r^4}\left[(\hat{\mathbf{\mu}}_i \cdot \hat{\mathbf{\mu}}_j) \hat {\mathbf{r}}+(\hat{\mathbf{\mu}}_j\cdot \hat{\mathbf{r}})\hat{\mathbf{\mu}}_i+(\hat{\mathbf{\mu}}_i\cdot \hat{\mathbf{r}})\hat{\mathbf{\mu}}_j - 5 (\hat{\mathbf{\mu}}_i \cdot \hat{\mathbf{r}}) (\hat{\mathbf{\mu}}_j \cdot \hat{\mathbf{r}}) \hat{\mathbf{r}}\right],\\ &=\frac{3m_i m_j}{r^4}\left[(\cos(\theta_i-\theta_j)-5\cos(\theta_i-\phi)\cos(\theta_j-\phi))\hat{\mathbf{r}}+\cos(\theta_j-\phi)\hat{\mathbf{\mu}}_i+\cos(\theta_i-\phi)\hat{\mathbf{\mu}}_j\right],\end{aligned}$$
+
+where $\theta_i,\theta_j,\phi$ are the orientation angles for $\hat{\mathbf{\mu}}_1, \hat{\mathbf{\mu}}_2$ and $\hat{\mathbf{r}}_{ij}$, respectively.
+
+For 2D case, the torque felt by the $i$-th particle is
+
+$$T_i=-\frac{\partial}{\partial \theta_i} U^\mathrm{D}_{ij}=\frac{m_i m_j}{r^3_{ij}} \left [\sin (\theta_i-\theta_j)-3\sin (\theta_i-\phi)\cos(\theta_j-\phi)\right],$$
+
+and the torque feld by the $j$-th particle is
+
+$$T_j=-\frac{\partial}{\partial \theta_j} U^\mathrm{D}_{ij}=\frac{m_i m_j}{r^3_{ij}} \left [\sin (\theta_j-\theta_i)-3\sin (\theta_j-\phi)\cos(\theta_i-\phi)\right],$$
+
+
+
+
+
+### Quadrupole potential
+For the Janus particle with the quadrupolar distribution of the induced charge, the pair potential is 
+
+$$U^{\mathrm{Q}}_{ij}=U_{\mathrm{h}_i\mathrm{h}_j}^{\mathrm{D}}+U_{\mathrm{h}_i\mathrm{t}_j}^{\mathrm{D}}+U_{\mathrm{t}_i\mathrm{h}_j}^{\mathrm{D}}+U_{\mathrm{t}_i\mathrm{t}_j}^{\mathrm{D}},$$
+
+where $\mathrm{h}_i$, $\mathrm{t}_i$ denotes the head dipole and tail dipole of $i$-th particle. 
 
 # Numerical Integration
 
