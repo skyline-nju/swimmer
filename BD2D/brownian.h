@@ -242,9 +242,8 @@ private:
   std::vector<Par> p_arr;
   std::vector<Vec_3<double>> f_arr;
   TList *tlist;
-
-
 };
+
 template<class Par, class TList>
 BD_dipole_2<Par, TList>::BD_dipole_2(const cmdline::parser & cmd):
   DynamicBase_2(cmd) {
@@ -268,17 +267,16 @@ void BD_dipole_2<Par, TList>::run(int nsteps) {
   EulerMethod euler(h);
   WCAForce fwca(1, 1);
   //DipoleForce fd(4, 2.5);
-  ExtDipoleForce fed(20, 1, -1, 4, 4, 3 / 16);
+  ExtDipoleForce fed(80, 1, -1, 4, 4, 3.0 / 16);
   MySpatialSortingTraits<Par> sst;
   auto lambda = [&](int i, int j) {
     fed(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2, fwca);
   };
   for (int i = 1; i <= nsteps; i++) {
-    //if (spatial_sort_on)
-    //  tlist->cal_force(p_arr, lambda, sst);
-    //else
-    //  tlist->cal_force(p_arr, lambda);
-    for_each_pair(lambda);
+    if (spatial_sort_on)
+      tlist->cal_force(p_arr, lambda, sst);
+    else
+      tlist->cal_force(p_arr, lambda);
     for (int ip = 0; ip < nPar; ip++) {
       euler.update_xy_theta(p_arr[ip], f_arr[ip], pbc2, myran);
     }
@@ -287,8 +285,74 @@ void BD_dipole_2<Par, TList>::run(int nsteps) {
       (*log_out)(i);
     }
   }
-
 }
+
+template <class Par, class TList>
+class CABD_dipole_2 : public DynamicBase_2 {
+public:
+  CABD_dipole_2(const cmdline::parser &cmd);
+  ~CABD_dipole_2() { delete tlist; }
+  void run(int nsteps);
+private:
+  std::vector<Par> p_arr;
+  std::vector<Vec_3<double>> f_arr;
+  TList *tlist;
+  double r_cut;
+  double epsilon;
+  double ratio;
+};
+
+template<class Par, class TList>
+CABD_dipole_2<Par, TList>::CABD_dipole_2(const cmdline::parser & cmd):
+  DynamicBase_2(cmd) {
+  p_arr.reserve(nPar);
+  ini_pos_rand(p_arr, nPar);
+  f_arr.reserve(nPar);
+  for (int i = 0; i < nPar; i++) {
+    f_arr.emplace_back();
+    p_arr[i].theta = myran->doub() * 2 * PI;
+  }
+  r_cut = 3;
+  epsilon = cmd.get<double>("dipole_strength");
+  ratio = cmd.get<double>("dipole_ratio");
+
+  tlist = new TList(Lx, Ly, r_cut, 0.35, nPar);
+  tlist->create(p_arr);
+  if (output_on) {
+    xy_out->write(0, p_arr);
+  }
+}
+
+template<class Par, class TList>
+void CABD_dipole_2<Par, TList>::run(int nsteps) {
+  EulerMethod euler(h);
+  WCAForce fwca(1, 1);
+  double qh, qt;
+  if (ratio < 0) {
+    
+  }
+  ExtDipoleForce fed(epsilon, 1, -1, r_cut, 4, 3.0 / 16);
+  MySpatialSortingTraits<Par> sst;
+  auto lambda = [&](int i, int j) {
+    fed(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2, fwca);
+  };
+  for (int i = 1; i <= nsteps; i++) {
+    if (spatial_sort_on)
+      tlist->cal_force(p_arr, lambda, sst);
+    else
+      tlist->cal_force(p_arr, lambda);
+    for (int ip = 0; ip < nPar; ip++) {
+      euler.update_xy_theta(p_arr[ip], f_arr[ip], pbc2, myran);
+    }
+    if (output_on) {
+      xy_out->write(i, p_arr);
+      (*log_out)(i);
+    }
+  }
+  
+}
+
+
 
 
 

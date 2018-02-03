@@ -66,7 +66,7 @@ where $\mathrm{Pe}=\frac{\sigma}{\epsilon_0} F_p$.
 
 # Potential, force and torque
 
-### WCA potential
+## WCA potential
 
 $$U_{\mathrm{WCA}}(r)=4\epsilon\left [\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon \quad \mathrm{if}\quad r<2^{1/6}\sigma,\quad \mathrm{and\ zero\ otherwise.}$$
 Nondimensionalized with $r=\sigma \widetilde{r}$, $\epsilon=\epsilon_0 \widetilde{\epsilon}$, $U_{\mathrm{WCA}}=\epsilon_0 \widetilde{U}_{\mathrm{WCA}}$,
@@ -82,7 +82,7 @@ $$
 
 where $\mathbf{r} =\mathbf{r}_i-\mathbf{r}_j$ and $r=|\mathbf{r}|$.
 
-### Dipole potential
+## Dipole potential
 The position of the $i$th dipole is denoted as $\mathbf{r}_i$ and the dipole moment $\mathbf{m}_i=m_i \hat{\mathbf{\mu}}_i$ is directed along the unit vector $\hat{\mathbf{\mu}}_i$. The potential for two dipoles $i, j$ is then  
 
 $$U^{\mathrm{D}}_{ij}=\frac{m_i m_j}{r_{ij}^3}\left [ \hat{\mathbf{\mu}}_i\cdot \hat{\mathbf{\mu}}_j-\frac{3(\hat{\mathbf{\mu}}_i\cdot \mathbf{r}_{ij})(\hat{\mathbf{\mu}}_j\cdot \mathbf{r}_{ij})}{r^2_{ij}}\right],$$
@@ -100,11 +100,7 @@ and the torque feld by the $j$-th particle is
 
 $$T_j=-\frac{\partial}{\partial \theta_j} U^\mathrm{D}_{ij}=\frac{m_i m_j}{r^3_{ij}} \left [\sin (\theta_j-\theta_i)-3\sin (\theta_j-\phi)\cos(\theta_i-\phi)\right],$$
 
-
-
-
-
-### Quadrupole potential
+## Quadrupole potential
 For the Janus particle with the quadrupolar distribution of the induced charge, the pair potential is 
 
 $$U^{\mathrm{Q}}_{ij}=U_{\mathrm{h}_i\mathrm{h}_j}^{\mathrm{D}}+U_{\mathrm{h}_i\mathrm{t}_j}^{\mathrm{D}}+U_{\mathrm{t}_i\mathrm{h}_j}^{\mathrm{D}}+U_{\mathrm{t}_i\mathrm{t}_j}^{\mathrm{D}},$$

@@ -152,6 +152,7 @@
     <ClInclude Include="force.h" />
     <ClInclude Include="integrate.h" />
     <ClInclude Include="ioData.h" />
+    <ClInclude Include="mixture.h" />
     <ClInclude Include="neighborList.h" />
     <ClInclude Include="particle2d.h" />
     <ClInclude Include="rand.h" />

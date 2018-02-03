@@ -23,6 +23,10 @@ public:
                        const PBC_2 &pbc2, Ran *myran) const;
 
   template <class Par>
+  void update_xy_theta(Par &p, Vec_2<double> &f, double Pe, double tau,
+                       const PBC_2 &pbc2, Ran *myran) const;
+
+  template <class Par>
   void update_xy_theta(Par &p, Vec_3<double> &f, double Pe, double tau,
                        const PBC_2 &pbc2, Ran *myran) const;
 
@@ -76,6 +80,17 @@ inline void EulerMethod::update_xy_theta(Par & p, Vec_3<double>& f, double Pe,
   f.x = 0;
   f.y = 0;
   f.z = 0;
+}
+
+template<class Par>
+inline void EulerMethod::update_xy_theta(Par & p, Vec_2<double>& f, double Pe, double tau,
+                                         const PBC_2 & pbc2, Ran * myran) const {
+  p.theta += tau * trible_h + (myran->doub() - 0.5) * sqrt_72h;
+  p.x += (f.x + std::cos(p.theta) * Pe) * h + (myran->doub() - 0.5) * sqrt_24h;
+  p.y += (f.y + std::sin(p.theta) * Pe) * h + (myran->doub() - 0.5) * sqrt_24h;
+  pbc2.wrap(p);
+  f.x = 0;
+  f.y = 0;
 }
 
 template<class Par>

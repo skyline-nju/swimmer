@@ -51,6 +51,9 @@ public:
 
   template <class Par>
   void write(int i, std::vector<Par> &p);
+
+  template <class Par>
+  void write_mix(int i_step, std::vector<Par> &p, int n_sep);
 };
 
 template <class Par>
@@ -88,6 +91,28 @@ void XY_Writer::write(int i, std::vector<Par> &p) {
       double dy = 0.01 * std::sin(p[j].theta);
       *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
         << p[j].x + dx << "\t" << p[j].y + dy;
+    }
+    *ptr_fout << std::endl;
+  }
+}
+
+template<class Par>
+void XY_Writer::write_mix(int i_step, std::vector<Par>& p, int n_sep) {
+  if (i_step == 0 || (!frames.empty() && i_step == frames[idx_frame])) {
+    if (i_step > 0)
+      idx_frame++;
+    *ptr_fout << nPar << "\n";
+    // comment line
+    *ptr_fout << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2 "
+      << "Time=" << i_step * h;
+    for (int j = 0; j < n_sep; j++) {
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t"
+        << p[j].x << "\t" << p[j].y;
+    }
+    for (int j = n_sep; j < nPar; j++) {
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
+        << p[j].x << "\t" << p[j].y;
     }
     *ptr_fout << std::endl;
   }
