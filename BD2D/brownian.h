@@ -258,7 +258,7 @@ BD_dipole_2<Par, TList>::BD_dipole_2(const cmdline::parser & cmd):
   tlist = new TList(Lx, Ly, r_cut, 0.4, nPar);
   tlist->create(p_arr);
   if (output_on) {
-    xy_out->write(0, p_arr);
+    xy_out->write_theta(0, p_arr);
   }
 }
 
@@ -281,7 +281,7 @@ void BD_dipole_2<Par, TList>::run(int nsteps) {
       euler.update_xy_theta(p_arr[ip], f_arr[ip], pbc2, myran);
     }
     if (output_on) {
-      xy_out->write(i, p_arr);
+      xy_out->write_theta(i, p_arr);
       (*log_out)(i);
     }
   }
@@ -300,6 +300,8 @@ private:
   double r_cut;
   double epsilon;
   double ratio;
+  double tau;
+  double Pe;
 };
 
 template<class Par, class TList>
@@ -310,16 +312,21 @@ CABD_dipole_2<Par, TList>::CABD_dipole_2(const cmdline::parser & cmd):
   f_arr.reserve(nPar);
   for (int i = 0; i < nPar; i++) {
     f_arr.emplace_back();
-    p_arr[i].theta = myran->doub() * 2 * PI;
+    //p_arr[i].theta = myran->doub() * 2 * PI;
+    double theta = myran->doub() * 2 * PI;
+    p_arr[i].u.x = std::cos(theta);
+    p_arr[i].u.y = std::sin(theta);
   }
   r_cut = 3;
   epsilon = cmd.get<double>("dipole_strength");
   ratio = cmd.get<double>("dipole_ratio");
+  tau = cmd.get<double>("tau");
+  Pe = cmd.get<double>("Pe");
 
-  tlist = new TList(Lx, Ly, r_cut, 0.35, nPar);
+  tlist = new TList(Lx, Ly, r_cut, 0.3, nPar);
   tlist->create(p_arr);
   if (output_on) {
-    xy_out->write(0, p_arr);
+    xy_out->write_theta(0, p_arr);
   }
 }
 
@@ -329,9 +336,13 @@ void CABD_dipole_2<Par, TList>::run(int nsteps) {
   WCAForce fwca(1, 1);
   double qh, qt;
   if (ratio < 0) {
-    
+    qh = std::sqrt(-ratio);
+    qt = - 1 / qh;
+  } else {
+    qh = std::sqrt(ratio);
+    qt = 1 / qh;
   }
-  ExtDipoleForce fed(epsilon, 1, -1, r_cut, 4, 3.0 / 16);
+  ExtDipoleForce fed(epsilon, qh, qt, r_cut, 4, 3.0 / 16);
   MySpatialSortingTraits<Par> sst;
   auto lambda = [&](int i, int j) {
     fed(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2, fwca);
@@ -342,20 +353,16 @@ void CABD_dipole_2<Par, TList>::run(int nsteps) {
     else
       tlist->cal_force(p_arr, lambda);
     for (int ip = 0; ip < nPar; ip++) {
-      euler.update_xy_theta(p_arr[ip], f_arr[ip], pbc2, myran);
+      euler.update_xy_uxuy(p_arr[ip], f_arr[ip], Pe, tau, pbc2, myran);
     }
     if (output_on) {
-      xy_out->write(i, p_arr);
+      //xy_out->write_double(i, p_arr);
+      xy_out->write_theta(i, p_arr);
       (*log_out)(i);
     }
   }
   
 }
-
-
-
-
-
 
 #endif
 

@@ -30,6 +30,10 @@ public:
   void update_xy_theta(Par &p, Vec_3<double> &f, double Pe, double tau,
                        const PBC_2 &pbc2, Ran *myran) const;
 
+  template <class Par>
+  void update_xy_uxuy(Par &p, Vec_3 <double> &f, double Pe, double tau,
+    const PBC_2 &pbc2, Ran *myran) const;
+
 protected:
   double h;
   double sqrt_24h;
@@ -103,6 +107,20 @@ inline void EulerMethod::update_xy_theta(Par & p, Vec_3<double>& f, double Pe, d
   f.x = 0;
   f.y = 0;
   f.z = 0;
+}
+
+template<class Par>
+inline void EulerMethod::update_xy_uxuy(Par & p, Vec_3<double>& f, double Pe, double tau,
+                                        const PBC_2 & pbc2, Ran * myran) const {
+  double d_theta = (tau + f.z) * trible_h + (myran->doub() - 0.5) * sqrt_72h;
+  p.u.rotate(d_theta);
+  p.x += (f.x + p.u.x * Pe) * h + (myran->doub() - 0.5) * sqrt_24h;
+  p.y += (f.y + p.u.y * Pe) * h + (myran->doub() - 0.5) * sqrt_24h;
+  pbc2.wrap(p);
+  f.x = 0;
+  f.y = 0;
+  f.z = 0;
+
 }
 
 

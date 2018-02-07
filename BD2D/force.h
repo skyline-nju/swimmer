@@ -113,14 +113,17 @@ public:
   double cal_potential(const Vec_2<double> &dR,
     const Vec_2<double> &u1, const Vec_2<double> &u2) const;
 
-  void eval(Vec_3<double> &f1, Vec_3<double> &f2,
-    const Vec_2<double> dR, double theta1, double theta2) const;
+  void eval(Vec_3<double> &f1, Vec_3<double> &f2, const Vec_2<double> &dR,
+    const Vec_2<double> &u1, const Vec_2<double> &u2) const;
 
-  void eval2(Vec_3<double> &f1, Vec_3<double> &f2, const Vec_2<double> dR,
+  void eval(Vec_3<double> &f1, Vec_3<double> &f2,
+    const Vec_2<double> &dR, double theta1, double theta2) const;
+
+  void eval2(Vec_3<double> &f1, Vec_3<double> &f2, const Vec_2<double> &dR,
     double theta1, double theta2) const;
 
   void eval3(Vec_3<double> &f1, Vec_3<double> &f2,
-    const Vec_2<double> dR, double theta1, double theta2) const;
+    const Vec_2<double> &dR, double theta1, double theta2) const;
 
   void charge_pair(Vec_2<double> &f, Vec_2<double> &tau, const Vec_2<double> &dR,
     double epsilon, double prod1, double prod2, double prod3) const;
@@ -167,12 +170,35 @@ inline void ExtDipoleForce::operator()(Force & fi, Force & fj, Par & pi, Par & p
   bc.nearest_dis(dR);
   double dR_square = dR.square();
   if (dR_square < r_cut_square) {
-    eval2(fi, fj, dR, pi.theta, pj.theta);
+    //eval(fi, fj, dR, pi.theta, pj.theta);
+    eval(fi, fj, dR, pi.u, pj.u);
     if (fwca.within_range(dR_square)) {
       fwca.eval(fi, fj, dR, dR_square);
     }
   }
-
 }
 
+class AlignForce {
+public:
+  AlignForce(double epsilon, double r_cut);
+
+  void eval(Vec_3<double> &fi, Vec_3<double> &fj,
+            double theta_i, double theta_j) const;
+
+  template <class Force, class Par>
+  void operator() (Force &fi, Force &fj, Par &pi, Par &pj,
+    const PBC_2 &bc, const WCAForce &fwca) const;
+
+
+private:
+  double eps;
+  double r_cut_square;
+};
+
+
+template<class Force, class Par>
+inline void AlignForce::operator()(Force &fi, Force &fj, Par &pi, Par &pj,
+                                   const PBC_2 &bc, const WCAForce &fwca) const {
+
+}
 #endif

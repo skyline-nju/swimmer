@@ -178,6 +178,9 @@ void CellList_list_2::update(const std::vector<Par>& p_arr) {
             ++it;
           } else {
             it = cell[ic].erase(it);
+            //if (ic_new >= cell.size()) {
+            //  std::cout << ic_new << std::endl;
+            //}
             cell[ic_new].push_back(ip);
           }
         }

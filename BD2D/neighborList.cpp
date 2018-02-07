@@ -11,7 +11,7 @@ NeighborList_2::NeighborList_2(double Lx, double Ly, double r_cut,
 
   double rmin = 0.5;
   int n1 = int(r_verlet / rmin) + 2;
-  mat_bins.x = n1 * n1  /  2;        // max neighbors of one particle
+  mat_bins.x = n1 * n1;        // max neighbors of one particle
   std::cout << "Max length of one neighbor list is "
             << mat_bins.x << std::endl;
   mat_bins.y = nPar;

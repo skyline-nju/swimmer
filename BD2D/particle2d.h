@@ -6,12 +6,19 @@
 #include "rand.h"
 #include "vect.h"
 
-struct OrientPar_2 :public Vec_2<double> {
+struct Par_w_theta_2 :public Vec_2<double> {
   double theta;
 
-  OrientPar_2() : Vec_2(), theta(0) {}
-  OrientPar_2(double x, double y) : Vec_2(x, y), theta(0) {}
+  Par_w_theta_2() : Vec_2(), theta(0) {}
+  Par_w_theta_2(double x, double y) : Vec_2(x, y), theta(0) {}
 
+};
+
+struct Par_w_u_2: public Vec_2<double> {
+  Vec_2<double> u;
+
+  Par_w_u_2() : Vec_2(), u(0) {}
+  Par_w_u_2(double x, double y) : Vec_2(x, y), u(0) {}
 };
 
 /****************************************************************************/

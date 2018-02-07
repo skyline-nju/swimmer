@@ -53,31 +53,32 @@ ExtDipoleForce::ExtDipoleForce(double eps, double qh, double qt,
 
 }
 
-void ExtDipoleForce::eval(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<double> dR,
-                          double theta1, double theta2) const {
-  Vec_2<double> u1(std::cos(theta1), std::sin(theta1));
-  Vec_2<double> u2(std::cos(theta2), std::sin(theta2));
+void ExtDipoleForce::eval(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<double> &dR,
+  const Vec_2<double> &u1, const Vec_2<double> &u2) const {
   double prod1 = u1.cross(dR);
   double prod2 = u2.cross(dR);
   double prod3 = delta * u1.cross(u2);
 
   Vec_2<double> f;
   Vec_2<double> tau;
-  charge_pair(f, tau, dR + delta * (u1 - u2), eps_qh_qh,
-    prod1, prod2, prod3);
-  charge_pair(f, tau, dR + delta * (u1 + u2), eps_qh_qt,
-    prod1, -prod2, -prod3);
-  charge_pair(f, tau, dR - delta * (u1 + u2), eps_qh_qt,
-    -prod1, prod2, -prod3);
-  charge_pair(f, tau, dR - delta * (u1 - u2), eps_qt_qt,
-    -prod1, -prod2, prod3);
+  charge_pair(f, tau, dR + delta * (u1 - u2), eps_qh_qh, prod1, prod2, prod3);
+  charge_pair(f, tau, dR + delta * (u1 + u2), eps_qh_qt, prod1, -prod2, -prod3);
+  charge_pair(f, tau, dR - delta * (u1 + u2), eps_qh_qt, -prod1, prod2, -prod3);
+  charge_pair(f, tau, dR - delta * (u1 - u2), eps_qt_qt, -prod1, -prod2, prod3);
   f1 += f;
   f2 -= f;
   f1.z += tau.x;
   f2.z += tau.y;
 }
 
-void ExtDipoleForce::eval2(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<double> dR,
+void ExtDipoleForce::eval(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<double> &dR,
+                          double theta1, double theta2) const {
+  Vec_2<double> u1(std::cos(theta1), std::sin(theta1));
+  Vec_2<double> u2(std::cos(theta2), std::sin(theta2));
+  eval(f1, f2, dR, u1, u2);
+}
+
+void ExtDipoleForce::eval2(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<double> &dR,
                            double theta1, double theta2) const {
   double dx = 1e-10;
   Vec_2<double> u1(std::cos(theta1), std::sin(theta1));
@@ -99,7 +100,7 @@ void ExtDipoleForce::eval2(Vec_3<double>& f1, Vec_3<double>& f2, const Vec_2<dou
 }
 
 void ExtDipoleForce::eval3(Vec_3<double>& f1, Vec_3<double>& f2,
-  const Vec_2<double> dR, double theta1, double theta2) const {
+  const Vec_2<double> &dR, double theta1, double theta2) const {
   Vec_2<double> u1(std::cos(theta1), std::sin(theta1));
   Vec_2<double> u2(std::cos(theta2), std::sin(theta2));
 
@@ -149,4 +150,14 @@ void ExtDipoleForce::eval3(Vec_3<double>& f1, Vec_3<double>& f2,
   tmp *= delta / r;
   f1.z += -tmp * (u1_cross_dR + delta * u1_cross_u2);
   f2.z +=  tmp * (u2_cross_dR + delta * u1_cross_u2);
+}
+
+AlignForce::AlignForce(double epsilon, double r_cut) {
+  eps = epsilon;
+  r_cut_square = r_cut * r_cut;
+}
+
+void AlignForce::eval(Vec_3<double>& fi, Vec_3<double>& fj,
+                      double theta_i, double theta_j) const {
+
 }

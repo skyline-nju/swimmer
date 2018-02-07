@@ -27,12 +27,14 @@ int main(int argc, char* argv[]) {
 
   DynamicBase_2 *bd;
   //bd = new BD_2<Vec_2<double>, NeighborList_2>(cmd);
-  //bd = new ABD_2<OrientPar_2, NeighborList_2>(cmd);
+  //bd = new ABD_2<Par_w_theta_2, NeighborList_2>(cmd);
 
-  //bd = new BD_dipole_2<OrientPar_2, NeighborList_2>(cmd);
-  bd = new CW_CCW_AB_2<OrientPar_2, NeighborList_2>(cmd);
+  //bd = new BD_dipole_2<Par_w_theta_2, NeighborList_2>(cmd);
+  //bd = new CW_CCW_AB_2<Par_w_theta_2, NeighborList_2>(cmd);
+  //bd = new CABD_dipole_2<Par_w_u_2, NeighborList_2>(cmd);
+  bd = new CW_CCW_AB_Dipole_2<Par_w_u_2, NeighborList_2>(cmd);
   bd->run();
-  delete[] bd;
+  delete bd;
 
 
   //ExtDipoleForce fed(80, 2, -0.5, 10, 4, 3.0 / 16);

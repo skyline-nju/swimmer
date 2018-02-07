@@ -141,6 +141,9 @@ inline void NeighborList_2::renew_mat(std::vector<Par>& p, int i, int j,
     int im = i * mat_bins.x;
     mat[im]++;
     mat[im + mat[im]] = j;
+    //if (mat[im] >= mat_bins.x) {
+    //  std::cout << "neighbor list lenght: " << mat[im] << std::endl;
+    //}
   }
 }
 

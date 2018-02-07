@@ -50,10 +50,17 @@ public:
   void operator() (int i, std::vector<Par> &p);
 
   template <class Par>
-  void write(int i, std::vector<Par> &p);
+  void write_double(int i, std::vector<Par> &p);
 
   template <class Par>
   void write_mix(int i_step, std::vector<Par> &p, int n_sep);
+
+  template <class Par>
+  void write_theta(int i_step, std::vector<Par> &p);
+
+  template <class Par>
+  void write_theta(int i_step, std::vector<Par> &p, int n_sep);
+
 };
 
 template <class Par>
@@ -67,7 +74,7 @@ void XY_Writer::operator() (int i, std::vector<Par> &p) {
               << "Properties=species:S:1:pos:R:2 "
               << "Time=" << i * h;
     for (int j = 0; j < nPar; j++) {
-      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t" 
+      *ptr_fout << "\n" << std::fixed << std::setprecision(3) << "N\t" 
                 << p[j].x << "\t" << p[j].y;
     }
     *ptr_fout << std::endl;
@@ -75,7 +82,7 @@ void XY_Writer::operator() (int i, std::vector<Par> &p) {
 }
 
 template <class Par>
-void XY_Writer::write(int i, std::vector<Par> &p) {
+void XY_Writer::write_double(int i, std::vector<Par> &p) {
   if (i == 0 || (!frames.empty() && i == frames[idx_frame])) {
     if (i > 0)
       idx_frame++;
@@ -87,8 +94,10 @@ void XY_Writer::write(int i, std::vector<Par> &p) {
     for (int j = 0; j < nPar; j++) {
       *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t"
         << p[j].x << "\t" << p[j].y;
-      double dx = 0.01 * std::cos(p[j].theta);
-      double dy = 0.01 * std::sin(p[j].theta);
+      //double dx = 0.01 * std::cos(p[j].theta);
+      //double dy = 0.01 * std::sin(p[j].theta);
+      double dx = 0.01 * p[j].u.x;
+      double dy = 0.01 * p[j].u.y;
       *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
         << p[j].x + dx << "\t" << p[j].y + dy;
     }
@@ -113,6 +122,53 @@ void XY_Writer::write_mix(int i_step, std::vector<Par>& p, int n_sep) {
     for (int j = n_sep; j < nPar; j++) {
       *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
         << p[j].x << "\t" << p[j].y;
+    }
+    *ptr_fout << std::endl;
+  }
+}
+
+template<class Par>
+void XY_Writer::write_theta(int i, std::vector<Par>& p) {
+  if (i == 0 || (!frames.empty() && i == frames[idx_frame])) {
+    if (i > 0)
+      idx_frame++;
+    *ptr_fout << nPar << "\n";
+    // comment line
+    *ptr_fout << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2:mass:M:1 "
+      << "Time=" << i * h;
+    for (int j = 0; j < nPar; j++) {
+      double theta = std::atan2(p[j].u.y, p[j].u.x) / PI * 180;
+      if (theta < 0)
+        theta += 360;
+      *ptr_fout << "\n" << std::fixed << std::setprecision(3) << "N\t"
+        << p[j].x << "\t" << p[j].y << "\t" << theta;
+    }
+    *ptr_fout << std::endl;
+  }
+}
+
+template<class Par>
+void XY_Writer::write_theta(int i, std::vector<Par>& p, int n_sep) {
+  if (i == 0 || (!frames.empty() && i == frames[idx_frame])) {
+    if (i > 0)
+      idx_frame++;
+    *ptr_fout << nPar << "\n";
+    // comment line
+    *ptr_fout << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2:mass:M:1 "
+      << "Time=" << i * h;
+    for (int j = 0; j < nPar; j++) {
+      double theta = std::atan2(p[j].u.y, p[j].u.x) / PI * 180;
+      if (theta < 0)
+        theta += 360;
+      if (j < n_sep) {
+        *ptr_fout << "\nN\t";
+      } else {
+        *ptr_fout << "\nO\t";
+      }
+      *ptr_fout << std::fixed << std::setprecision(3)
+        << p[j].x << "\t" << p[j].y << "\t" << theta;
     }
     *ptr_fout << std::endl;
   }

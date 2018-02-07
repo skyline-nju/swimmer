@@ -45,8 +45,14 @@ LogWriter::LogWriter(const cmdline::parser & cmd, std::ofstream & fout):
                      BaseWriter(cmd) {
   mkdir("log");
   char filename[100];
+  if (cmd.exist("dipole_strength")) {
+    snprintf(filename, 100, "log%s%g_%g_%g_%g_%g_%g_%llu.dat",
+      delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
+      cmd.get<double>("dipole_ratio"), seed);
+  } else {
   snprintf(filename, 100, "log%s%g_%g_%g_%g_%llu.dat",
     delimiter.c_str(), phi, Pe, tau, Lx, seed);
+  }
   fout.open(filename);
   set_frames(cmd);
 
@@ -61,6 +67,10 @@ LogWriter::LogWriter(const cmdline::parser & cmd, std::ofstream & fout):
   fout << "torque: " << tau << "\n";
   fout << "Lx: " << Lx << "\n";
   fout << "Ly: " << Ly << "\n";
+  if (cmd.exist("dipole_strength")) {
+    fout << "dipole strenth: " << cmd.get<double>("dipole_strength") << "\n";
+    fout << "dipole ratio: " << cmd.get<double>("dipole_ratio") << "\n";
+  }
   fout << "seed: " << seed << "\n";
   fout << "Total time steps: " << nstep << "\n";
   fout << "Integration time step: " << h << "\n";
@@ -108,8 +118,14 @@ XY_Writer::XY_Writer(const cmdline::parser &cmd, std::ofstream &fout):
     BaseWriter(cmd) {
   mkdir("XY");
   char filename[100];
-  snprintf(filename, 100, "XY%s%g_%g_%g_%g_%llu.extxyz",
-    delimiter.c_str(), phi, Pe, tau, Lx, seed);
+  if (cmd.exist("dipole_strength")) {
+    snprintf(filename, 100, "XY%s%g_%g_%g_%g_%g_%g_%llu.extxyz",
+      delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
+      cmd.get<double>("dipole_ratio"), seed);
+  } else {
+    snprintf(filename, 100, "XY%s%g_%g_%g_%g_%llu.extxyz",
+      delimiter.c_str(), phi, Pe, tau, Lx, seed);
+  }
   fout.open(filename);
   set_frames(cmd);
   ptr_fout = &fout;

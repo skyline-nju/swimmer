@@ -1,5 +1,6 @@
 #ifndef VECT_H
 #define VECT_H
+#include <cmath>
 
 template <typename T>
 struct Vec_2 {
@@ -36,6 +37,15 @@ struct Vec_2 {
   double square() const { return x * x + y * y; }
   double dot(const Vec_2<T> & a) const { return x * a.x + y * a.y; }
   double cross(const Vec_2<T> &a) const { return x * a.y - y * a.x; }
+
+  void rotate(double theta) {
+    double c = std::cos(theta);
+    double s = std::sin(theta);
+    double x_new = x * c - y * s;
+    double y_new = x * s + y * c;
+    x = x_new;
+    y = y_new;
+  }
 };
 
 template <typename T>
