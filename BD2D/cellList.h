@@ -79,14 +79,30 @@ public:
   template <class Par>
   void create(const std::vector<Par> &p_arr);
 
+  template <class Par1, class Par2>
+  void create(const std::vector<Par1> &p1_arr,
+              const std::vector<Par2> &p2_arr);
+
   template <class Par>
   void recreate(const std::vector<Par> &p_arr);
+
+  template <class Par1, class Par2>
+  void recreate(const std::vector<Par1> &p1_arr,
+                const std::vector<Par2> &p2_arr);
 
   template <class Par>
   void update(const std::vector<Par> &p_arr);
 
+  template <class Par1, class Par2>
+  void update(const std::vector<Par1> &p1_arr,
+              const std::vector<Par2> &p2_arr);
+
   template <class Par, class BiFunc>
   void cal_force(const std::vector<Par> &p_arr, BiFunc f_ij);
+
+  template <class Par1, class Par2, class BiFunc>
+  void cal_force(const std::vector<Par1> &p1_arr,
+    const std::vector<Par2> &p2_arr, BiFunc f_ij);
 
 #ifdef SPATIAL_SORT
   template <class Par, class BiFunc>
@@ -153,12 +169,37 @@ void CellList_list_2::create(const std::vector<Par>& p_arr) {
   }
 }
 
+template<class Par1, class Par2>
+void CellList_list_2::create(const std::vector<Par1>& p1_arr,
+  const std::vector<Par2> &p2_arr) {
+  int n1 = p1_arr.size();
+  for (int ip = 0; ip < n1; ip++) {
+    cell[get_ic(p1_arr[ip])].push_back(ip);
+  }
+  int n2 = p2_arr.size();
+  for (int ip = 0; ip < n2; ip++) {
+    cell[get_ic(p2_arr[ip])].push_back(ip + n1);
+  }
+  for (int ic = 0; ic < ncells; ic++) {
+    list_len[ic] = cell[ic].size();
+  }
+}
+
 template<class Par>
 void CellList_list_2::recreate(const std::vector<Par>& p_arr) {
   for (int ic = 0; ic < ncells; ic++) {
     cell[ic].clear();
   }
   create(p_arr);
+}
+
+template <class Par1, class Par2>
+void CellList_list_2::recreate(const std::vector<Par1> &p1_arr,
+  const std::vector<Par2> &p2_arr) {
+  for (int ic = 0; ic < ncells; ic++) {
+    cell[ic].clear();
+  }
+  create(p1_arr, p2_arr);
 }
 
 template<class Par>
@@ -192,6 +233,36 @@ void CellList_list_2::update(const std::vector<Par>& p_arr) {
   }
 }
 
+template <class Par1, class Par2>
+void CellList_list_2::update(const std::vector<Par1> &p1_arr,
+  const std::vector<Par2> &p2_arr) {
+  int n1 = p1_arr.size();
+  for (int iy = 0; iy < bins.y; iy++) {
+    int iy_times_nx = iy * bins.x;
+
+    for (int ix = 0; ix < bins.x; ix++) {
+      int ic = ix + iy_times_nx;
+      int depth = list_len[ic];
+      if (depth) {
+        int it_count = 0;
+        for (auto it = cell[ic].begin(); it_count < depth; it_count++) {
+          int ip = *it;
+          int ic_new = ip < n1 ? get_ic(p1_arr[ip]) : get_ic(p2_arr[ip - n1]);
+          if (ic_new == ic) {
+            ++it;
+          } else {
+            it = cell[ic].erase(it);
+            cell[ic_new].push_back(ip);
+          }
+        }
+      }
+    }
+  }
+  for (int ic = 0; ic < ncells; ic++) {
+    list_len[ic] = cell[ic].size();
+  }
+}
+
 template<class Par, class BiFunc>
 inline void CellList_list_2::cal_force(const std::vector<Par>& p_arr,
                                        BiFunc f_ij) {
@@ -199,6 +270,14 @@ inline void CellList_list_2::cal_force(const std::vector<Par>& p_arr,
   for_each_pair(f_ij);
 }
 
+template <class Par1, class Par2, class BiFunc>
+inline void CellList_list_2::cal_force(const std::vector<Par1> &p1_arr,
+  const std::vector<Par2> &p2_arr, BiFunc f_ij) {
+  update(p1_arr, p2_arr);
+  for_each_pair(f_ij);
+}
+
+#ifdef SPATIAL_SORT
 template<class Par, class BiFunc>
 inline void CellList_list_2::cal_force(std::vector<Par> p_arr, BiFunc pair_force,
                                        MySpatialSortingTraits<Par>& sst) {
@@ -210,5 +289,6 @@ inline void CellList_list_2::cal_force(std::vector<Par> p_arr, BiFunc pair_force
   }
   for_each_pair(pair_force);
 }
+#endif
 
 #endif

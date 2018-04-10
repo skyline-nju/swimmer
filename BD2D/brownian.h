@@ -312,7 +312,6 @@ CABD_dipole_2<Par, TList>::CABD_dipole_2(const cmdline::parser & cmd):
   f_arr.reserve(nPar);
   for (int i = 0; i < nPar; i++) {
     f_arr.emplace_back();
-    //p_arr[i].theta = myran->doub() * 2 * PI;
     double theta = myran->doub() * 2 * PI;
     p_arr[i].u.x = std::cos(theta);
     p_arr[i].u.y = std::sin(theta);
@@ -342,7 +341,7 @@ void CABD_dipole_2<Par, TList>::run(int nsteps) {
     qh = std::sqrt(ratio);
     qt = 1 / qh;
   }
-  ExtDipoleForce fed(epsilon, qh, qt, r_cut, 4, 3.0 / 16);
+  ExtDipoleForce fed(epsilon, qh, qt, r_cut, 4, 3. / 16);
   MySpatialSortingTraits<Par> sst;
   auto lambda = [&](int i, int j) {
     fed(f_arr[i], f_arr[j], p_arr[i], p_arr[j], pbc2, fwca);

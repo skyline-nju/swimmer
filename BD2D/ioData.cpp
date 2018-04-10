@@ -46,9 +46,16 @@ LogWriter::LogWriter(const cmdline::parser & cmd, std::ofstream & fout):
   mkdir("log");
   char filename[100];
   if (cmd.exist("dipole_strength")) {
-    snprintf(filename, 100, "log%s%g_%g_%g_%g_%g_%g_%llu.dat",
-      delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
-      cmd.get<double>("dipole_ratio"), seed);
+    if (cmd.exist("phi_A")) {
+      snprintf(filename, 100, "log%s%g_%g_%g_%g_%g_%g_%g_%llu.dat",
+        delimiter.c_str(), phi, cmd.get<double>("phi_A"), Pe, tau, Lx,
+        cmd.get<double>("dipole_strength"),
+        cmd.get<double>("dipole_ratio"), seed);
+    } else {
+      snprintf(filename, 100, "log%s%g_%g_%g_%g_%g_%g_%llu.dat",
+        delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
+        cmd.get<double>("dipole_ratio"), seed);
+    }
   } else {
   snprintf(filename, 100, "log%s%g_%g_%g_%g_%llu.dat",
     delimiter.c_str(), phi, Pe, tau, Lx, seed);
@@ -119,9 +126,16 @@ XY_Writer::XY_Writer(const cmdline::parser &cmd, std::ofstream &fout):
   mkdir("XY");
   char filename[100];
   if (cmd.exist("dipole_strength")) {
-    snprintf(filename, 100, "XY%s%g_%g_%g_%g_%g_%g_%llu.extxyz",
-      delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
-      cmd.get<double>("dipole_ratio"), seed);
+    if (cmd.exist("phi_A")) {
+      snprintf(filename, 100, "XY%s%g_%g_%g_%g_%g_%g_%g_%llu.extxyz",
+        delimiter.c_str(), phi, cmd.get<double>("phi_A"), Pe, tau, Lx,
+        cmd.get<double>("dipole_strength"),
+        cmd.get<double>("dipole_ratio"), seed);
+    } else {
+      snprintf(filename, 100, "XY%s%g_%g_%g_%g_%g_%g_%llu.extxyz",
+        delimiter.c_str(), phi, Pe, tau, Lx, cmd.get<double>("dipole_strength"),
+        cmd.get<double>("dipole_ratio"), seed);
+    }
   } else {
     snprintf(filename, 100, "XY%s%g_%g_%g_%g_%llu.extxyz",
       delimiter.c_str(), phi, Pe, tau, Lx, seed);

@@ -21,6 +21,9 @@ public:
   template <class T>
   bool operator()(T &fi, T &fj, const Vec_2<double> &dR) const;
 
+  template <class T1, class T2>
+  bool operator()(T1 &fi, T2 &fj, const Vec_2<double> &dR) const;
+
   template <class T>
   void eval(T &fi, T &fj, const Vec_2<double> &dR, double dR_square) const;
 
@@ -35,6 +38,21 @@ private:
 
 template <class T>
 inline bool WCAForce::operator() (T& fi, T& fj, const Vec_2<double>& dR) const {
+  double dR_square = dR.square() * sigma_inverse_square;
+  if (dR_square < r_cut_square) {
+    double r_2 = 1 / dR_square;    //  dr ^ -2
+    double r_6 = r_2 * r_2 * r_2;  //  dr ^ -6
+    Vec_2<double> f(eps24 * (2 * r_6 * r_6 - r_6) * r_2 * dR);
+    fi += f;
+    fj -= f;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+template <class T1, class T2>
+inline bool WCAForce::operator() (T1& fi, T2& fj, const Vec_2<double>& dR) const {
   double dR_square = dR.square() * sigma_inverse_square;
   if (dR_square < r_cut_square) {
     double r_2 = 1 / dR_square;    //  dr ^ -2

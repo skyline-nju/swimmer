@@ -55,6 +55,9 @@ public:
   template <class Par>
   void write_mix(int i_step, std::vector<Par> &p, int n_sep);
 
+  template <class Par1, class Par2>
+  void write_mix(int i_step, std::vector<Par1> &p1, std::vector<Par2> &p2);
+
   template <class Par>
   void write_theta(int i_step, std::vector<Par> &p);
 
@@ -122,6 +125,33 @@ void XY_Writer::write_mix(int i_step, std::vector<Par>& p, int n_sep) {
     for (int j = n_sep; j < nPar; j++) {
       *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
         << p[j].x << "\t" << p[j].y;
+    }
+    *ptr_fout << std::endl;
+  }
+}
+
+template <class Par1, class Par2>
+void XY_Writer::write_mix(int i_step, std::vector<Par1> &p1, std::vector<Par2> &p2) {
+  if (i_step == 0 || (!frames.empty() && i_step == frames[idx_frame])) {
+    if (i_step > 0)
+      idx_frame++;
+    *ptr_fout << nPar << "\n";
+    // comment line
+    *ptr_fout << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2:mass:M:1 "
+      << "Time=" << i_step * h;
+    int n1 = p1.size();
+    for (int j = 0; j < n1; j++) {
+      double theta = std::atan2(p1[j].u.y, p1[j].u.x) / PI * 180;
+      if (theta < 0)
+        theta += 360;
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "N\t"
+        << p1[j].x << "\t" << p1[j].y << "\t" << theta;
+    }
+    int n2 = p2.size();
+    for (int j = 0; j < n2; j++) {
+      *ptr_fout << "\n" << std::fixed << std::setprecision(6) << "O\t"
+        << p2[j].x << "\t" << p2[j].y << "\t0";
     }
     *ptr_fout << std::endl;
   }
