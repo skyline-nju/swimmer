@@ -2,12 +2,20 @@
 #define PARTICLE_H
 #include "rand.h"
 #include "comn.h"
-#include "vect.h"
-/********************** Create particles with random position ***************/
-// check whether the new particle is overlapped with existed particle.
-template <typename _TPar, typename _TBC>
-bool check_overlap(const _TPar &p_new, const std::vector<_TPar> &p_arr,
-    double sigma_square, const _TBC &bc) {
+
+/**
+ * \brief check whether the new particle is overlapped with existed particle.
+ * \tparam TPar
+ * \tparam TBc 
+ * \param p_new 
+ * \param p_arr 
+ * \param sigma_square 
+ * \param bc 
+ * \return flag_overlap
+ */
+template <typename TPar, typename TBc>
+bool check_overlap(const TPar &p_new, const std::vector<TPar> &p_arr,
+    double sigma_square, const TBc &bc) {
   bool flag_overlap = false;
   auto end = p_arr.cend();
   for (auto it = p_arr.cbegin(); it != end; ++it) {
@@ -19,15 +27,25 @@ bool check_overlap(const _TPar &p_new, const std::vector<_TPar> &p_arr,
   return flag_overlap;
 }
 
-// Add new particle with random position, avoiding overlapped with existed
-// particle.
-template <typename _TPar, typename _TBC>
-bool add_new_rand_2(std::vector<_TPar> &p_arr, int n, double sigma_square,
-                    Ran &myran, const _TBC &bc) {
+/**
+ * \brief Add new particle with random position, avoiding overlapped with existed
+ * particles
+ * \tparam TPar 
+ * \tparam TBc 
+ * \param p_arr 
+ * \param n 
+ * \param sigma_square 
+ * \param myran 
+ * \param bc 
+ * \return flag
+ */
+template <typename TPar, typename TBc>
+bool add_new_rand_2(std::vector<TPar> &p_arr, int n, double sigma_square,
+                    Ran &myran, const TBc &bc) {
   bool flag = false;
   int count = 0;
   while (count < 10 * n) {
-    _TPar p_new(myran, bc);
+    TPar p_new(myran, bc);
     if (!check_overlap(p_new, p_arr, sigma_square, bc)) {
       p_arr.push_back(p_new);
       flag = true;
@@ -39,13 +57,22 @@ bool add_new_rand_2(std::vector<_TPar> &p_arr, int n, double sigma_square,
   return flag;
 }
 
-// Create particle randomly without overlapping
-template <class _TPar, typename _TBC>
-void create_rand_2(std::vector<_TPar> &p_arr, int n, double sigma,
-                   Ran &myran, const _TBC &bc) {
-  double sigma_square = sigma * sigma;
+/**
+ * \brief Create particle randomly without overlapping
+ * \tparam TPar 
+ * \tparam TBc 
+ * \param p_arr 
+ * \param n 
+ * \param sigma 
+ * \param myran 
+ * \param bc 
+ */
+template <class TPar, typename TBc>
+void create_rand_2(std::vector<TPar> &p_arr, int n, double sigma,
+                   Ran &myran, const TBc &bc) {
+  auto sigma_square = sigma * sigma;
   for (int i = 0; i < n; i++) {
-    if (!add_new_rand_2(p_arr, n, sigma, myran, bc)) {
+    if (!add_new_rand_2(p_arr, n, sigma_square, myran, bc)) {
       std::cout << "Failed to add the " << i << "-th particles" << std::endl;
       exit(1);
     }
@@ -54,13 +81,15 @@ void create_rand_2(std::vector<_TPar> &p_arr, int n, double sigma,
     << " and random positions" << std::endl;
 }
 
-/* Class for 2D Brownian particle */
+/**
+ * \brief Class for Brownian particles in 2D
+ */
 class BrownPar_2 {
 public:
-  BrownPar_2() {}
+  BrownPar_2():x(0), y(0), fx(0), fy(0) {}
   BrownPar_2(double x0, double y0) : x(x0), y(y0) { fx = fy = 0; }
-  template <typename _TBC>
-  BrownPar_2(Ran &myran, const _TBC &bc);
+  template <typename TBc>
+  BrownPar_2(Ran &myran, const TBc &bc);
 
   double x;
   double y;
@@ -68,20 +97,22 @@ public:
   double fy;
 };
 
-template<typename _TBC>
-inline BrownPar_2::BrownPar_2(Ran &myran, const _TBC & bc) {
+template<typename TBc>
+BrownPar_2::BrownPar_2(Ran &myran, const TBc & bc) {
   bc.new_rand_pos(x, y, myran);
   fx = fy = 0;
 }
 
-/* Class for 2D Active Brownian particle */
+/**
+ * \brief Class for Active Brownian particles in 2D
+ */
 class ActiveBrownPar_2{
 public:
-  ActiveBrownPar_2() {}
+  ActiveBrownPar_2() { x = y = ux = uy = fx = fy = 0; }
   ActiveBrownPar_2(double x0, double y0, double ux0, double uy0) :
     x(x0), y(y0), ux(ux0), uy(uy0), fx(0), fy(0) {}
-  template <typename _TBC>
-  ActiveBrownPar_2(Ran &myran, const _TBC &bc);
+  template <typename TBc>
+  ActiveBrownPar_2(Ran &myran, const TBc &bc);
 
   double x;
   double y;
@@ -92,10 +123,13 @@ public:
 };
 
 
-template<typename _TBC>
-inline ActiveBrownPar_2::ActiveBrownPar_2(Ran &myran, const _TBC & bc) {
-  bc.new_rand_pos(x, y, myran);
-  double theta = 2 * PI * myran.doub();
+template<typename TBc>
+ActiveBrownPar_2::ActiveBrownPar_2(Ran &myran, const TBc & bc) {
+  double x0, y0;
+  bc.new_rand_pos(x0, y0, myran);
+  x = x0;
+  y = y0;
+  const auto theta = 2 * PI * myran.doub();
   ux = std::cos(theta);
   uy = std::sin(theta);
   fx = fy = 0;

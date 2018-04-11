@@ -1,18 +1,19 @@
 #ifndef SINGLE_DOMAIN_2_H
-#define SIGNLE_DOMAIN_2_H
+#define SINGLE_DOMAIN_2_H
+#include <functional>
 #include "cellList2D.h"
 #include "rand.h"
-#include "boundary.h"
 #include "particle.h"
 #include "integrate.h"
 #include "force.h"
+#include "outData.h"
 
-template <typename _TNode, typename _TBC>
+template <typename TNode, typename TBc>
 class Single_domain_2 {
 public:
-  typedef unsigned long long int Ull;
-  Single_domain_2(double Lx, double Ly, double phi, Ull seed0, double r_cut = 1);
-
+  typedef unsigned long long int ull;
+  Single_domain_2(double lx, double ly, double phi, ull seed0, double r_cut = 1);
+  explicit Single_domain_2(const cmdline::parser &cmd);
   void ini_rand(double sigma = 1);
 
   template <typename _TForce>
@@ -27,89 +28,117 @@ public:
   template <typename _TIntegrate>
   void integrate3(const _TIntegrate &integ);
 
-  void eval_elapsed_time(int n_steps, int t_start, int t_sep,
-    int mode = 1, double h = 0.01);
+  void run(const cmdline::parser &cmd);
 private:
-  Ran myran;
-  Cell_list_2<_TNode> cell_list;
-  std::vector<_TNode> p_arr;
-  _TBC bc;
+  Ran myran_;
+  Cell_list_2<TNode> cell_list_;
+  std::vector<TNode> p_arr_;
+  TBc bc_;
 
-  int nPar;
-  double packing_frac;
+  int n_par_;
+  double packing_frac_;
 };
 
-template<typename _TNode, typename _TBC>
-Single_domain_2<_TNode, _TBC>::Single_domain_2(double Lx, double Ly,
-    double phi, Ull seed0, double r_cut): myran(seed0),
-    cell_list(Lx, Ly, 0, 0, r_cut), bc(Lx, Ly), packing_frac(phi) {
-  nPar = cal_particle_number_2(packing_frac, Lx, Ly, r_cut);
-  p_arr.reserve(nPar);
+
+template<typename TNode, typename TBc>
+Single_domain_2<TNode, TBc>::Single_domain_2(double lx, double ly, double phi,
+                                             ull seed0, double r_cut):
+    myran_(seed0), cell_list_(lx, ly, 0, 0, r_cut), bc_(lx, ly), packing_frac_(phi) {
+  n_par_ = cal_particle_number_2(packing_frac_, lx, ly, r_cut);
+  p_arr_.reserve(n_par_);
 }
 
-template<typename _TNode, typename _TBC>
-void Single_domain_2<_TNode, _TBC>::ini_rand(double sigma) {
-  create_rand_2(p_arr, nPar, sigma, myran, bc);
-  cell_list.create(p_arr);
+template<typename TNode, typename TBc>
+Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
+    myran_(cmd.get<unsigned long long>("seed")), cell_list_(cmd), bc_(cmd) {
+  packing_frac_ = cmd.get<double>("phi");
+  const auto lx = cmd.get<double>("Lx");
+  const auto ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : lx;
+  n_par_ = cal_particle_number_2(packing_frac_, lx, ly, 1);
+  p_arr_.reserve(n_par_);
 }
 
-template<typename _TNode, typename _TBC>
+template<typename TNode, typename TBc>
+void Single_domain_2<TNode, TBc>::ini_rand(double sigma) {
+  create_rand_2(p_arr_, n_par_, sigma, myran_, bc_);
+  cell_list_.create(p_arr_);
+}
+
+template<typename TNode, typename TBc>
 template<typename _TForce>
-inline void Single_domain_2<_TNode, _TBC>::cal_force(const _TForce &force) {
-  auto f_ij = [this, &force](_TNode *pi, _TNode *pj) {
-    force(*pi, *pj, bc);
+void Single_domain_2<TNode, TBc>::cal_force(const _TForce &force) {
+  auto f_ij = [this, &force](TNode *pi, TNode *pj) {
+    force(*pi, *pj, bc_);
   };
-  cell_list.for_each_pair(f_ij);
+  cell_list_.for_each_pair(f_ij);
 }
 
-template<typename _TNode, typename _TBC>
+template<typename TNode, typename TBc>
 template<typename _TIntegrate>
-void Single_domain_2<_TNode, _TBC>::integrate(const _TIntegrate &integ) {
-  for (int i = 0; i < nPar; i++) {
-    integ(p_arr[i], bc, myran);
+void Single_domain_2<TNode, TBc>::integrate(const _TIntegrate &integ) {
+  for (int i = 0; i < n_par_; i++) {
+    integ(p_arr_[i], bc_, myran_);
   }
-  cell_list.recreate(p_arr);
+  cell_list_.recreate(p_arr_);
 }
 
-template<typename _TNode, typename _TBC>
+template<typename TNode, typename TBc>
 template<typename _TIntegrate>
-void Single_domain_2<_TNode, _TBC>::integrate2(const _TIntegrate &integ) {
-  auto move = [this, &integ](_TNode *p) {
-    integ(*p, bc, myran);
+void Single_domain_2<TNode, TBc>::integrate2(const _TIntegrate &integ) {
+  auto move = [this, &integ](TNode *p) {
+    integ(*p, bc_, myran_);
   };
-  cell_list.update(move);
+  cell_list_.update(move);
 }
 
-template<typename _TNode, typename _TBC>
+template<typename TNode, typename TBc>
 template<typename _TIntegrate>
-void Single_domain_2<_TNode, _TBC>::integrate3(const _TIntegrate &integ) {
-  auto move = [this, &integ](_TNode *p) {
-    integ(*p, bc, myran);
+void Single_domain_2<TNode, TBc>::integrate3(const _TIntegrate &integ) {
+  auto move = [this, &integ](TNode *p) {
+    integ(*p, bc_, myran_);
   };
-  cell_list.update_by_row(move);
+  cell_list_.update_by_row(move);
 }
 
-template<typename _TNode, typename _TBC>
-inline void Single_domain_2<_TNode, _TBC>::eval_elapsed_time(
-    int n_steps, int t_start, int t_sep, int mode, double h) {
-  Run_and_tumble move(h, 0.0001);
-  SpringForce f_spring(100);
+template<typename TNode, typename TBc>
+void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
+  const Run_and_tumble move(cmd.get<double>("h"), cmd.get<double>("alpha"));
+  const SpringForce f_spring(cmd.get<double>("spring_const"));
+  const auto n_step = cmd.get<int>("n_step");
+  std::function<void()> integ;
+  const auto mode = cmd.get<int>("int_mode");
+  if (mode == 0)
+    integ = [this, &move]() {integrate(move); };
+  else if (mode == 1)
+    integ = [this, &move]() {integrate2(move); };
+  else
+    integ = [this, &move]() {integrate3(move); };
 
-  auto t1 = std::chrono::system_clock::now();
-  int count = 0;
-  for (int i = 0; i < n_steps; i++) {
+  std::vector<std::ofstream> fout;
+  LogWriter *log = nullptr;
+  XyWriter *xy = nullptr;
+  if (cmd.exist("output")) {
+    fout.emplace_back();
+    log = new LogWriter(cmd, fout[0]);
+    fout.emplace_back();
+    xy = new XyWriter(cmd, fout[1]);
+  }
+  const auto t1 = std::chrono::system_clock::now();
+  for (int i = 1; i <= n_step; i++) {
     cal_force(f_spring);
-    if (mode == 1)
-      integrate(move);
-    else if (mode == 3)
-      integrate2(move);
-    else if (mode == 2)
-      integrate3(move);
+    integ();
+    if (log)
+      log->record(i);
+    if (xy)
+      xy->write(i, p_arr_);
   }
-  auto t2 = std::chrono::system_clock::now();
+  const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
   std::cout << "elapsed time: " << elapsed_time.count() << std::endl;
   std::cout << std::endl;
+
+  delete log;
+  delete xy;
 }
 
 #endif

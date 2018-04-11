@@ -1,10 +1,10 @@
 #include <iostream>
-#include <ctime>
 #include <chrono>
-//#include "singleDomain2D.h"
 #include "node.h"
 #include "particle.h"
 #include "singleDomain2D.h"
+#include "boundary.h"
+#include "cmdline.h"
 //#define USE_MPI
 #ifdef USE_MPI
 #include "mpi.h"
@@ -22,32 +22,28 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifndef USE_MPI
-  double L = 64;
-  double phi = 0.2;
-
-  unsigned long long seed = 1;
-  int n_step = 100000;
-  int t_start = 2000;
-  int t_sep = 100;
-
-  {
-    Single_domain_2<BiNode<ActiveBrownPar_2>, PBC_xy_2> s(L, L, phi, seed);
-    s.ini_rand();
-    s.eval_elapsed_time(n_step, t_start, t_sep, 1);
-  }
-
-  {
-    Single_domain_2<BiNode<ActiveBrownPar_2>, PBC_xy_2> s(L, L, phi, seed);
-    s.ini_rand();
-    s.eval_elapsed_time(n_step, t_start, t_sep, 3);
-  }
+  cmdline::parser cmd;
+  cmd.add<double>("Lx", 'L', "Domain size in the x direction", true);
+  cmd.add<double>("Ly", '\0', "Domain size in the y direction", false);
+  cmd.add<double>("phi", '\0', "packing fraction", true);
+  cmd.add<int>("n_step", '\0', "total steps to run", true);
+  cmd.add<double>("h", 'h', "time step for integration", true);
+  cmd.add<double>("v0", 'v', "speed", false, 1);
+  cmd.add<double>("alpha", '\0', "tumbling rate", true);
+  cmd.add<unsigned long long>("seed", '\0', "random number seed", false, 1);
+  cmd.add<double>("sigma", '\0', "particle size", false, 1);
+  cmd.add<int>("log_dt", '\0', "interval to update log", false);
+  cmd.add<int>("XY_dt", '\0', "interval to save snapshot", false);
+  cmd.add<double>("spring_const", 'k', "spring const", false, 100);
+  cmd.add<int>("int_mode", '\0', "integration mode", false, 0);
+  cmd.add("output", '\0', "turn on outputing");
+  cmd.parse_check(argc, argv);
 
   {
-    Single_domain_2<BiNode<ActiveBrownPar_2>, PBC_xy_2> s(L, L, phi, seed);
+    Single_domain_2<BiNode<ActiveBrownPar_2>, PBC_xy_2> s(cmd);
     s.ini_rand();
-    s.eval_elapsed_time(n_step, t_start, t_sep, 2);
+    s.run(cmd);
   }
-
 #else
   MPI_Finalize();
 #endif

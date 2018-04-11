@@ -8,6 +8,8 @@
 *.sln.docstates
 BD2D/log
 BD2D/XY
+BD2D_MPI/log
+BD2D_MPI/XY
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

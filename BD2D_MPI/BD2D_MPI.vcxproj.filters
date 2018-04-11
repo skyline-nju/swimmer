@@ -45,6 +45,12 @@
     <ClInclude Include="integrate.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="outData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp">
@@ -54,6 +60,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="boundary.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="outData.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,52 +1,65 @@
 #include "boundary.h"
 
-void BoundaryBase_2::ini(double Lx0, double Ly0, double x0, double y0) {
-  Lx = Lx0;
-  Ly = Ly0;
-  x_min = x0;
-  y_min = y0;
+BoundaryBase_2::BoundaryBase_2(const cmdline::parser& cmd) {
+  lx_ = cmd.get<double>("Lx");
+  ly_ = cmd.exist("Ly") ? cmd.get<double>("Ly") : lx_;
+  x_min_ = 0;
+  y_min_ = 0;
 }
 
-PBC_x_2::PBC_x_2(double Lx0, double Ly0, double x0, double y0) :
-  BoundaryBase_2(Lx0, Ly0, x0, y0) {
-  half_Lx = 0.5 * Lx;
-  x_max = x_min + Lx;
+void BoundaryBase_2::set_para0(double lx, double ly, double x0, double y0) {
+  lx_ = lx;
+  ly_ = ly;
+  x_min_ = x0;
+  y_min_ = y0;
 }
 
-void PBC_x_2::ini(double Lx0, double Ly0, double x0, double y0) {
-  Lx = Lx0;
-  Ly = Ly0;
-  x_min = x0;
-  y_min = y0;
-  half_Lx = 0.5 * Lx;
-  x_max = x_min + Lx;
+PBC_x_2::PBC_x_2(const cmdline::parser & cmd): BoundaryBase_2(cmd) {
+  half_lx_ = 0.5 * lx_;
+  x_max_ = x_min_ + lx_;
+}
+
+PBC_x_2::PBC_x_2(double lx, double ly, double x0, double y0) :
+  BoundaryBase_2(lx, ly, x0, y0) {
+  half_lx_ = 0.5 * lx_;
+  x_max_ = x_min_ + lx_;
+}
+
+void PBC_x_2::set_para(double lx, double ly, double x0, double y0) {
+  set_para0(lx, ly, x0, y0);
+  half_lx_ = 0.5 * lx_;
+  x_max_ = x_min_ + lx_;
 }
 
 void PBC_x_2::new_rand_pos(double & x, double & y, Ran &myran) const {
-  x = x_min + myran.doub() * Lx;
-  y = y_min + myran.doub() * Ly;
+  x = x_min_ + myran.doub() * lx_;
+  y = y_min_ + myran.doub() * ly_;
 }
 
-PBC_xy_2::PBC_xy_2(double Lx0, double Ly0) :
-  BoundaryBase_2(Lx0, Ly0) {
-  half_Lx = 0.5 * Lx;
-  half_Ly = 0.5 * Ly;
-  x_max = x_min + Lx;
-  y_max = y_min + Ly;
+PBC_xy_2::PBC_xy_2(const cmdline::parser & cmd): BoundaryBase_2(cmd) {
+  half_lx_ = 0.5 * lx_;
+  half_ly_ = 0.5 * ly_;
+  x_max_ = x_min_ + lx_;
+  y_max_ = y_min_ + ly_;
 }
 
-void PBC_xy_2::ini(double Lx0, double Ly0, double x0, double y0) {
-  Lx = Lx0;
-  Ly = Ly0;
-  x_min = x0;
-  y_min = y0;
-  half_Lx = 0.5 * Lx;
-  half_Ly = 0.5 * Ly;
-  x_max = x_min + Lx;
-  y_max = y_min + Ly;
+PBC_xy_2::PBC_xy_2(double lx, double ly, double x0, double y0) :
+  BoundaryBase_2(lx, ly, x0, y0) {
+  half_lx_ = 0.5 * lx_;
+  half_ly_ = 0.5 * ly_;
+  x_max_ = x_min_ + lx_;
+  y_max_ = y_min_ + ly_;
+}
+
+void PBC_xy_2::set_para(double lx, double ly, double x0, double y0) {
+  set_para0(lx, ly, x0, y0);
+  half_lx_ = 0.5 * lx_;
+  half_ly_ = 0.5 * ly_;
+  x_max_ = x_min_ + lx_;
+  y_max_ = y_min_ + ly_;
 }
 
 void PBC_xy_2::new_rand_pos(double & x, double & y, Ran &myran) const {
-  x = x_min + myran.doub() * Lx;
-  y = y_min + myran.doub() * Ly;
+  x = x_min_ + myran.doub() * lx_;
+  y = y_min_ + myran.doub() * ly_;
 }

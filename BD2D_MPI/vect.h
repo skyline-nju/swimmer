@@ -39,7 +39,7 @@ struct Vec_2 {
   double dot(const Vec_2<T> & a) const { return x * a.x + y * a.y; }
   double cross(const Vec_2<T> &a) const { return x * a.y - y * a.x; }
   void normalize() {
-    double one_over_r = 1 / std::sqrt(square());
+    auto one_over_r = 1 / std::sqrt(square());
     x *= one_over_r;
     y *= one_over_r;
   }
