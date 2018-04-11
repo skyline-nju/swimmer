@@ -12,21 +12,20 @@ template <typename TNode, typename TBc>
 class Single_domain_2 {
 public:
   typedef unsigned long long int ull;
-  Single_domain_2(double lx, double ly, double phi, ull seed0, double r_cut = 1);
   explicit Single_domain_2(const cmdline::parser &cmd);
   void ini_rand(double sigma = 1);
 
-  template <typename _TForce>
-  void cal_force(const _TForce &force);
+  template <typename TForce>
+  void cal_force(const TForce &force);
 
-  template <typename _TIntegrate>
-  void integrate(const _TIntegrate &integ);
+  template <typename TIntegrate>
+  void integrate(const TIntegrate &integ);
 
-  template <typename _TIntegrate>
-  void integrate2(const _TIntegrate &integ);
+  template <typename TIntegrate>
+  void integrate2(const TIntegrate &integ);
 
-  template <typename _TIntegrate>
-  void integrate3(const _TIntegrate &integ);
+  template <typename TIntegrate>
+  void integrate3(const TIntegrate &integ);
 
   void run(const cmdline::parser &cmd);
 private:
@@ -38,15 +37,6 @@ private:
   int n_par_;
   double packing_frac_;
 };
-
-
-template<typename TNode, typename TBc>
-Single_domain_2<TNode, TBc>::Single_domain_2(double lx, double ly, double phi,
-                                             ull seed0, double r_cut):
-    myran_(seed0), cell_list_(lx, ly, 0, 0, r_cut), bc_(lx, ly), packing_frac_(phi) {
-  n_par_ = cal_particle_number_2(packing_frac_, lx, ly, r_cut);
-  p_arr_.reserve(n_par_);
-}
 
 template<typename TNode, typename TBc>
 Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
@@ -65,8 +55,8 @@ void Single_domain_2<TNode, TBc>::ini_rand(double sigma) {
 }
 
 template<typename TNode, typename TBc>
-template<typename _TForce>
-void Single_domain_2<TNode, TBc>::cal_force(const _TForce &force) {
+template<typename TForce>
+void Single_domain_2<TNode, TBc>::cal_force(const TForce &force) {
   auto f_ij = [this, &force](TNode *pi, TNode *pj) {
     force(*pi, *pj, bc_);
   };
@@ -74,8 +64,8 @@ void Single_domain_2<TNode, TBc>::cal_force(const _TForce &force) {
 }
 
 template<typename TNode, typename TBc>
-template<typename _TIntegrate>
-void Single_domain_2<TNode, TBc>::integrate(const _TIntegrate &integ) {
+template<typename TIntegrate>
+void Single_domain_2<TNode, TBc>::integrate(const TIntegrate &integ) {
   for (int i = 0; i < n_par_; i++) {
     integ(p_arr_[i], bc_, myran_);
   }
@@ -83,8 +73,8 @@ void Single_domain_2<TNode, TBc>::integrate(const _TIntegrate &integ) {
 }
 
 template<typename TNode, typename TBc>
-template<typename _TIntegrate>
-void Single_domain_2<TNode, TBc>::integrate2(const _TIntegrate &integ) {
+template<typename TIntegrate>
+void Single_domain_2<TNode, TBc>::integrate2(const TIntegrate &integ) {
   auto move = [this, &integ](TNode *p) {
     integ(*p, bc_, myran_);
   };
@@ -92,8 +82,8 @@ void Single_domain_2<TNode, TBc>::integrate2(const _TIntegrate &integ) {
 }
 
 template<typename TNode, typename TBc>
-template<typename _TIntegrate>
-void Single_domain_2<TNode, TBc>::integrate3(const _TIntegrate &integ) {
+template<typename TIntegrate>
+void Single_domain_2<TNode, TBc>::integrate3(const TIntegrate &integ) {
   auto move = [this, &integ](TNode *p) {
     integ(*p, bc_, myran_);
   };

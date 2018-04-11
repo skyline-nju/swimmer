@@ -36,11 +36,12 @@ int main(int argc, char* argv[]) {
   cmd.add<int>("XY_dt", '\0', "interval to save snapshot", false);
   cmd.add<double>("spring_const", 'k', "spring const", false, 100);
   cmd.add<int>("int_mode", '\0', "integration mode", false, 0);
+  cmd.add<double>("k_wall", '\0', "hardness of the wall", false, 100);
   cmd.add("output", '\0', "turn on outputing");
   cmd.parse_check(argc, argv);
 
   {
-    Single_domain_2<BiNode<ActiveBrownPar_2>, PBC_xy_2> s(cmd);
+    Single_domain_2<BiNode<ActiveBrownPar_2>, Wall_x_PBC_y_2> s(cmd);
     s.ini_rand();
     s.run(cmd);
   }

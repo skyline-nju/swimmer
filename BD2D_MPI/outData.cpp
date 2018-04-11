@@ -9,7 +9,7 @@ BaseWriter::BaseWriter(const cmdline::parser &cmd): idx_frame_(0) {  // NOLINT
 
 void BaseWriter::set_para(const cmdline::parser &cmd) {
   lx_ = cmd.get<double>("Lx");
-  ly_ = cmd.exist("Ly") ? cmd.get<double>("Lx") : lx_;
+  ly_ = cmd.exist("Ly") ? cmd.get<double>("Ly") : lx_;
   n_step_ = cmd.get<int>("n_step");
   packing_frac_ = cmd.get<double>("phi");
   n_par_ = cal_particle_number_2(packing_frac_, lx_, ly_, 1);

@@ -1,6 +1,7 @@
 #ifndef INTEGRATE_H
 #define INTEGRATE_H
 #include "rand.h"
+#include "boundary.h"
 
 class Run_and_tumble {
 public:
@@ -11,6 +12,12 @@ public:
 
   template<typename TPar, typename TBc>
   void operator()(TPar &p, const TBc &bc, Ran &myran) const {
+    update(p, bc, myran);
+  }
+
+  template<typename TPar>
+  void operator()(TPar &p, const Wall_x_PBC_y_2 &bc, Ran &myran) const {
+    bc.force(p);
     update(p, bc, myran);
   }
 
