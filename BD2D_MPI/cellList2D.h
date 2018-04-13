@@ -1,18 +1,37 @@
 #ifndef CELLLIST2D_H
 #define CELLLIST2D_H
 #include <vector>
-#include <iterator>
+//#include <iterator>
 #include "vect.h"
 #include "node.h"
 #include "cmdline.h"
+
+class Cell_list_base_2 {
+public:
+  Cell_list_base_2(const Vec_2<double> &l_domain,
+                   const Vec_2<double> &origin,
+                   double r_cut,
+                   const Vec_2<bool> &flag_comm);
+protected:
+  Vec_2<bool> flag_comm_;
+  int ncells_;
+  double r_cut_;
+  Vec_2<int> n_;
+  Vec_2<double> origin_;
+  Vec_2<double> l_domain_;
+  Vec_2<double> l_cell_;
+  Vec_2<double> inverse_l_cell_;
+};
+
 
 template <typename TNode>
 class Cell_list_2 {
 public:
   typedef typename std::vector<TNode*>::iterator IT;
   typedef typename std::vector<TNode*>::const_iterator CIT;
-  Cell_list_2(double lx, double ly, double x0 = 0, double y0 = 0, double r_cut = 1,
-    bool comm_x = false, bool comm_y = false) {
+  Cell_list_2(double lx, double ly,  // NOLINT
+              double x0 = 0, double y0 = 0, double r_cut = 1,
+              bool comm_x = false, bool comm_y = false) {
     set_para(lx, ly, x0, y0, r_cut, comm_x, comm_y); 
   }
   explicit Cell_list_2(const cmdline::parser &cmd);
@@ -21,8 +40,15 @@ public:
                 bool comm_x, bool comm_y);
   int get_ic(const TNode &p) const;
 
+  int get_row(int my_row, int drow) const;
+
+  int get_col(int my_col, int dcol) const;
+
   template <typename BiFunc>
   void for_each_pair(BiFunc f_ij, int row_beg = 0, int row_end = -1, int col_beg = 0, int col_end = -1);
+
+  template <typename BiFunc>
+  void for_nearby_par(const TNode *p, BiFunc f_ij) const;
 
   void create(std::vector<TNode> &p_arr);
 
@@ -47,12 +73,15 @@ public:
   void update_by_row(UniFunc move);
 
 protected:
+  bool comm_x_;
+  bool comm_y_;
+  int ncells_;
+  double r_cut_;
   Vec_2<double> origin_;
   Vec_2<double> l_box_;
   Vec_2<double> inverse_lc_;
   Vec_2<double> l_cell_;
   Vec_2<int> n_bins_;
-  int ncells_;
   std::vector<TNode*> head_;
 };
 
@@ -69,8 +98,13 @@ Cell_list_2<TNode>::Cell_list_2(const cmdline::parser & cmd) {
 }
 
 template<typename TNode>
-void Cell_list_2<TNode>::set_para(double lx, double ly, double x0, double y0,
-                                  double r_cut, bool comm_x, bool comm_y) {
+void Cell_list_2<TNode>::set_para(double lx, double ly,
+                                  double x0, double y0,
+                                  double r_cut,
+                                  bool comm_x, bool comm_y) {
+  r_cut_ = r_cut;
+  comm_x_ = comm_x;
+  comm_y_ = comm_y;
   if (!comm_x && !comm_y) {
     origin_.x = 0;
     origin_.y = 0;
@@ -114,6 +148,28 @@ int Cell_list_2<TNode>::get_ic(const TNode & p) const {
     + int((p.y - origin_.y) * inverse_lc_.y) * n_bins_.x;
 }
 
+template <typename TNode>
+int Cell_list_2<TNode>::get_row(int my_row, int drow) const {
+  int row = my_row + drow;
+  if(row < 0) {
+    row += n_bins_.y;
+  } else if (row >= n_bins_.y) {
+    row -= n_bins_.y;
+  }
+  return row;
+}
+
+template <typename TNode>
+int Cell_list_2<TNode>::get_col(int my_col, int dcol) const {
+  int col = my_col + dcol;
+  if(col < 0) {
+    col += n_bins_.x;
+  } else if (col >= n_bins_.x) {
+    col -= n_bins_.x;
+  }
+  return col;  
+}
+
 template<typename TNode>
 void Cell_list_2<TNode>::create(std::vector<TNode>& p_arr) {
   auto end = p_arr.end();
@@ -143,8 +199,8 @@ void Cell_list_2<TNode>::for_each_pair(BiFunc f_ij, int row_beg, int row_end,
     int row_upper = row + 1;
     if (row_upper == n_bins_.y)
       row_upper = 0;
-    int row_times_ncols = row * n_bins_.x;
-    int row_upper_times_ncols = row_upper * n_bins_.x;
+    const auto row_times_ncols = row * n_bins_.x;
+    const auto row_upper_times_ncols = row_upper * n_bins_.x;
     for (int col = col_beg; col < col_end; col++) {
       int ic0 = col + row_times_ncols;
       int col_right = col + 1;
@@ -171,6 +227,26 @@ void Cell_list_2<TNode>::for_each_pair(BiFunc f_ij, int row_beg, int row_end,
       } else if (head_[ic1] && head_[ic2]) {
         for_each_node_pair(head_[ic1], head_[ic2], f_ij);
       }
+    }
+  }
+}
+
+template<typename TNode>
+template<typename BiFunc>
+void Cell_list_2<TNode>::for_nearby_par(const TNode * p, BiFunc f_ij) const {
+  auto f_j = [p, f_ij](const TNode * p_j) {
+    if (p != p_j) {
+      f_ij(p, p_j);  
+    }
+  };
+  const int my_ic = get_ic(*p);
+  const int my_col = my_ic % n_bins_.x;
+  const int my_row = my_ic / n_bins_.x;
+  for (int drow = -1; drow <= 1; drow++) {
+    auto row = get_row(my_row, drow);
+    for (int dcol = -1; dcol <= 1; dcol++) {
+      auto col = get_col(my_col, dcol);
+      for_each_par(head_[col + row * n_bins_.x], f_j);
     }
   }
 }

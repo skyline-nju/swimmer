@@ -15,6 +15,8 @@ public:
     lx_(lx), ly_(ly), x_min_(x0), y_min_(y0) { }
   double get_lx() const { return lx_; }
   double get_ly() const { return ly_; }
+  double get_xmin() const {return x_min_;}
+  double get_ymin() const {return y_min_;}
 protected:
   void set_para0(double lx, double ly, double x0 = 0, double y0 = 0);
   double lx_;

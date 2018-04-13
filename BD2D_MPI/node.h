@@ -136,5 +136,14 @@ void for_each_node_pair(const std::list<TPar *> &cl1,
   }
 }
 
-
+template <class TNode, class UniFunc>
+void for_each_par(TNode *head, UniFunc f_i){
+  if (head) {
+    TNode *cur_node = head;
+    do {
+      f_i(cur_node);
+      cur_node = cur_node->next;
+    } while(cur_node);
+  }  
+}
 #endif

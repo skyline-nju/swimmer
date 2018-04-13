@@ -120,7 +120,8 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
     if (log)
       log->record(i);
     if (xy)
-      xy->write(i, p_arr_);
+      //xy->write(i, p_arr_, cell_list_, bc_);
+      xy->write_cluster(i, p_arr_,cell_list_,bc_);
   }
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;

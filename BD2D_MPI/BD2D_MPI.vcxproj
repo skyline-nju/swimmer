@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="boundary.h" />
     <ClInclude Include="cellList2D.h" />
+    <ClInclude Include="wetting.h" />
     <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
     <ClInclude Include="force.h" />
@@ -154,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="boundary.cpp" />
+    <ClCompile Include="cellList2D.cpp" />
     <ClCompile Include="comn.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="outData.cpp" />
