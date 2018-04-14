@@ -1,18 +1,31 @@
 #ifndef WETTING_H
 #define WETTING_H
-#include "cellList2D.h"
 #include "boundary.h"
+#include "cellList2D.h"
 #include <list>
+#include <forward_list>
 
 template <typename TNode, typename TCellList, typename TBc>
-void get_neighbors(int i, double eps_square, const std::vector<TNode> &p_arr,
-    const TCellList &cl, const TBc &bc, std::list<int> &neighbor) {
-  auto lambda = [eps_square, &p_arr, &bc, &neighbor](const TNode *pi, const TNode *pj) {
+void find_neighbors(int i, double eps_square, const TNode *p0,
+                    const TCellList &cl, const TBc &bc, std::list<int> &neighbor) {
+  auto lambda = [p0, eps_square, &bc, &neighbor](const TNode* pi, const TNode* pj) {
     if (get_dis_square(*pi, *pj, bc) < eps_square) {
-      neighbor.push_back(pj - &p_arr[0]);
-    }  
+      neighbor.push_back(pj - p0);
+    }
   };
-  cl.for_nearby_par(&p_arr[i], lambda);
+  cl.for_nearby_par(p0 + i, lambda);
+}
+
+template <typename TPar, typename TCellList, typename TBc>
+void find_neighbors(int i, double eps_square, const std::vector<TPar> &p_arr,
+                    const TCellList &cl, const TBc &bc, std::list<int> &neighbor) {
+  const auto p0 = &p_arr[0];
+  auto lambda = [p0, eps_square, &bc, &neighbor](const TPar *pi, const TPar *pj) {
+    if(get_dis_square(*pi, *pj, bc) < eps_square) {
+      neighbor.push_back(pj - p0);
+    }
+  };
+  cl.for_nearby_par(&p_arr[i], p_arr, lambda);
 }
 
 class Cluster {
@@ -30,17 +43,19 @@ public:
   }
 
   template <typename TNode, typename TCellList, typename TBc>
-  void expand(double eps_square, int min_pts, const std::vector<TNode> &p_arr,
-              const TCellList &cl, const TBc &bc, std::list<int> &neighbor,
-              std::vector<bool> &flag_visited, std::vector<bool> &flag_clustered);
-
+  void expand(double eps_square, unsigned int min_pts,
+              const std::vector<TNode>& p_arr,
+              const TCellList &cl,
+              const TBc &bc,
+              std::list<int> &neighbor,
+              std::vector<bool> &flag_visited,
+              std::vector<bool> &flag_clustered);
   template <typename UniFunc>
   void for_each(UniFunc f_i) const {
     const auto end = idx_arr_.cend();
     for (auto it = idx_arr_.cbegin(); it != end; ++it)
       f_i(*it);
   }
-
   int get_n() const {return idx_arr_.size();}
 
 protected:
@@ -66,16 +81,19 @@ protected:
 };
 
 template <typename TNode, typename TCellList, typename TBc>
-void Cluster::expand(double eps_square, int min_pts,
-                     const std::vector<TNode>& p_arr, const TCellList& cl,
-                     const TBc& bc, std::list<int> &neighbor,
-                     std::vector<bool>& flag_visited, std::vector<bool>& flag_clustered) {
+void Cluster::expand(double eps_square, unsigned int min_pts,
+                     const std::vector<TNode>& p_arr,
+                     const TCellList& cl,
+                     const TBc& bc,
+                     std::list<int> &neighbor,
+                     std::vector<bool>& flag_visited,
+                     std::vector<bool>& flag_clustered) {
   for (auto it = neighbor.begin(); it != neighbor.end();++it) {
     auto k = *it;
     if (!flag_visited[k]) {
       flag_visited[k] = true;
       std::list<int> new_neighbor_idx;
-      get_neighbors(k, eps_square, p_arr, cl, bc, new_neighbor_idx);
+      find_neighbors(k, eps_square, p_arr, cl, bc, neighbor);
       if (new_neighbor_idx.size() >= min_pts) {
         neighbor.splice(neighbor.end(), new_neighbor_idx);
       } 
@@ -93,13 +111,14 @@ void Cluster::expand(double eps_square, int min_pts,
 void Cluster_w_xlim::expand(double eps_square, int min_pts,
                             const std::vector<TNode>& p_arr, const TCellList& cl,
                             const TBc& bc, std::list<int>& neighbor,
-                            std::vector<bool>& flag_visited, std::vector<bool>& flag_clustered) {
+                            std::vector<bool>& flag_visited,
+                            std::vector<bool>& flag_clustered) {
   for (auto it = neighbor.begin(); it != neighbor.end();++it) {
     auto k = *it;
     if (!flag_visited[k]) {
       flag_visited[k] = true;
       std::list<int> new_neighbor_idx;
-      get_neighbors(k, eps_square, p_arr, cl, bc, new_neighbor_idx);
+      find_neighbors(k, eps_square, p_arr, cl, bc, neighbor);
       if (new_neighbor_idx.size() >= min_pts) {
         neighbor.splice(neighbor.end(), new_neighbor_idx);
       } 
@@ -119,23 +138,24 @@ void Cluster_w_xlim::expand(double eps_square, int min_pts,
   idx_arr_.shrink_to_fit();
 }
 
-template <typename TNode, typename TCellList, typename TBc, typename TCluster>
+template <typename TPar, typename TBc, typename TCluster>
 void dbscan(std::vector<TCluster> &c_arr,
             std::vector<bool> &flag_clustered,
-            double eps, int min_pts,
-            const std::vector<TNode> &p_arr,
-            const TBc &bc,
-            const TCellList &cl) {
+            double eps, unsigned int min_pts,
+            const std::vector<TPar> &p_arr,
+            const TBc &bc) {
   const auto eps_square = eps * eps;
   const auto n_par = p_arr.size();
   c_arr.reserve(n_par);
   std::vector<bool> flag_visited(n_par, false);
-  for (int i = 0; i < n_par; i++) {
+  Cell_list_idx_2<std::forward_list<int>> cl(bc, eps);
+  cl.create(p_arr);
+  for (unsigned int i = 0; i < n_par; i++) {
     if (!flag_visited[i]) {
       flag_visited[i] = true;
       std::list<int> neighbor;
-      get_neighbors(i, eps_square, p_arr, cl, bc, neighbor);
-      if (neighbor.size()>=min_pts) {
+      find_neighbors(i, eps_square, p_arr, cl, bc, neighbor);
+      if (neighbor.size() >= min_pts) {
         c_arr.emplace_back(i, n_par, p_arr[i].x);
         flag_clustered[i] = true;
         c_arr.back().expand(eps_square, min_pts, p_arr, cl, bc,
@@ -143,6 +163,7 @@ void dbscan(std::vector<TCluster> &c_arr,
       }
     }
   }
+  
 }
 
 #endif

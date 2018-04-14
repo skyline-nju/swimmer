@@ -12,6 +12,7 @@ struct Vec_2 {
   Vec_2(const Vec_2<T> &a) : x(a.x), y(a.y) {}
 
   Vec_2<T>& operator =(const Vec_2<T>& rhs);
+  Vec_2<T> operator -() const;
   void operator +=(const Vec_2<T>& rhs);
   void operator -=(const Vec_2<T>& rhs);
   void operator *=(double rhs);
@@ -37,6 +38,12 @@ Vec_2<T>& Vec_2<T>::operator=(const Vec_2<T>& rhs) {
   this->x = rhs.x;
   this->y = rhs.y;
   return *this;
+}
+
+template <typename T>
+Vec_2<T> Vec_2<T>::operator-() const {
+  return Vec_2<T>(-x, -y);
+  
 }
 
 template <typename T>
@@ -74,8 +81,8 @@ Vec_2<T> Vec_2<T>::operator+(const Vec_2<T>& rhs) const {
 }
 
 template <typename T>
-Vec_2<T> operator+(double a, const Vec_2<T>& b) {
-  return Vec_2<T>(a + b.x, a + b.y);
+Vec_2<T> operator+(double lhs, const Vec_2<T>& rhs) {
+  return Vec_2<T>(lhs + rhs.x, lhs + rhs.y);
 }
 
 template <typename T>
@@ -114,7 +121,9 @@ Vec_2<T> Vec_2<T>::inverse() const {
 }
 
 template <typename T>
-double Vec_2<T>::square() const { return x * x + y * y; }
+double Vec_2<T>::square() const {
+  return x * x + y * y;
+}
 
 template <typename T>
 double Vec_2<T>::dot(const Vec_2<T>& a) const {
@@ -151,9 +160,10 @@ struct Vec_3 {
 
   Vec_3(): x(0), y(0), z(0) {}
   Vec_3(T x0, T y0, T z0) : x(x0), y(y0), z(z0) {}
-  Vec_3(const Vec_2<T> &a) : x(a.x), y(a.y), z(a.z) {}
+  Vec_3(const Vec_3<T> &a) : x(a.x), y(a.y), z(a.z) {}
 
   Vec_3<T>& operator =(const Vec_3<T>& rhs);
+  Vec_3<T> operator -()const;
   void operator +=(const Vec_3<T>& rhs);
   void operator -=(const Vec_3<T>& rhs);
   void operator *=(double rhs);
@@ -166,7 +176,7 @@ struct Vec_3 {
   Vec_3<T> operator /(double rhs) const;
 
   double dot(const Vec_3<T>& a) const;
-  double cross(const Vec_3<T>& a) const;
+  Vec_3<T> cross(const Vec_3<T>& a) const;
   void normalize();
   double square() const;
   Vec_3 inverse() const;
@@ -179,6 +189,11 @@ Vec_3<T>& Vec_3<T>::operator=(const Vec_3<T>& rhs) {
   this->y = rhs.y;
   this->z = rhs.z;
   return *this;
+}
+
+template <typename T>
+Vec_3<T> Vec_3<T>::operator-() const {
+  return Vec_3<T>(-x, -y, -z);
 }
 
 template <typename T>
@@ -196,89 +211,96 @@ void Vec_3<T>::operator-=(const Vec_3<T>& rhs) {
 }
 
 template <typename T>
-void Vec_2<T>::operator*=(double rhs) {
+void Vec_3<T>::operator*=(double rhs) {
   x *= rhs;
   y *= rhs;
+  z *= rhs;
 }
 
 template <typename T>
-void Vec_2<T>::operator/=(double rhs) {
+void Vec_3<T>::operator/=(double rhs) {
   x /= rhs;
   y /= rhs;
+  z /= rhs;
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator+(double rhs) const {
-  return Vec_2<T>(x + rhs, y + rhs);
+Vec_3<T> Vec_3<T>::operator+(double rhs) const {
+  return Vec_3<T>(x + rhs, y + rhs, z + rhs);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator+(const Vec_2<T>& rhs) const {
-  return Vec_2<T>(x + rhs.x, y + rhs.y);
+Vec_3<T> Vec_3<T>::operator+(const Vec_3<T>& rhs) const {
+  return Vec_3<T>(x + rhs.x, y + rhs.y, z + rhs.z);
 }
 
 template <typename T>
-Vec_2<T> operator+(double a, const Vec_2<T>& b) {
-  return Vec_2<T>(a + b.x, a + b.y);
+Vec_3<T> operator+(double lhs, const Vec_3<T>& rhs) {
+  return Vec_3<T>(lhs + rhs.x, lhs + rhs.y, lhs + rhs.z);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator-(double rhs) const {
-  return Vec_2<T>(x - rhs, y - rhs);
+Vec_3<T> Vec_3<T>::operator-(double rhs) const {
+  return Vec_3<T>(x - rhs, y - rhs, z - rhs);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator-(const Vec_2<T>& rhs) const {
-  return Vec_2<T>(x - rhs.x, y - rhs.y);
+Vec_3<T> Vec_3<T>::operator-(const Vec_3<T>& rhs) const {
+  return Vec_3<T>(x - rhs.x, y - rhs.y, z - rhs.z);
 }
 
 template <typename T>
-Vec_2<T> operator-(double lhs, const Vec_2<T>& rhs) {
-  return Vec_2<T>(lhs - rhs.x, lhs - rhs.y);
+Vec_3<T> operator-(double lhs, const Vec_2<T>& rhs) {
+  return Vec_3<T>(lhs - rhs.x, lhs - rhs.y, lhs - rhs.z);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator*(double rhs) const {
-  return Vec_2<T>(x * rhs, y * rhs);
+Vec_3<T> Vec_3<T>::operator*(double rhs) const {
+  return Vec_3<T>(x * rhs, y * rhs, z * rhs);
 }
 
 template <typename T>
-Vec_2<T> operator*(double lhs, const Vec_2<T>& rhs) {
-  return Vec_2<T>(lhs * rhs.x, lhs * rhs.y);
+Vec_3<T> operator*(double lhs, const Vec_3<T>& rhs) {
+  return Vec_3<T>(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::operator/(double rhs) const {
-  return Vec_2<T>(x / rhs, y / rhs);
+Vec_3<T> Vec_3<T>::operator/(double rhs) const {
+  return Vec_3<T>(x / rhs, y / rhs, z / rhs);
 }
 
 template <typename T>
-Vec_2<T> Vec_2<T>::inverse() const {
-  return Vec_2<T>(1 / x, 1 / y);
+Vec_3<T> Vec_3<T>::inverse() const {
+  return Vec_3<T>(1 / x, 1 / y, 1 / z);
 }
 
 template <typename T>
-double Vec_2<T>::square() const { return x * x + y * y; }
-
-template <typename T>
-double Vec_2<T>::dot(const Vec_2<T>& a) const {
-  return x * a.x + y * a.y;
+double Vec_3<T>::square() const {
+  return x * x + y * y + z * z;
 }
 
 template <typename T>
-double Vec_2<T>::cross(const Vec_2<T>& a) const {
-  return x * a.y - y * a.x;
+double Vec_3<T>::dot(const Vec_3<T>& a) const {
+  return x * a.x + y * a.y + z * a.z;
 }
 
 template <typename T>
-void Vec_2<T>::normalize() {
+Vec_3<T> Vec_3<T>::cross(const Vec_3<T>& a) const {
+  return Vec_3<T>(y * a.z - z * a.y,
+                  z * a.x - x * a.z,
+                  x * a.y - y * a.x);
+}
+
+template <typename T>
+void Vec_3<T>::normalize() {
   const auto one_over_r = 1 / std::sqrt(square());
   x *= one_over_r;
   y *= one_over_r;
+  z *= one_over_r;
 }
 
 template <typename T>
-void Vec_2<T>::rotate(double theta) {
+void Vec_3<T>::rotate(double theta) {
   const auto c = std::cos(theta);
   const auto s = std::sin(theta);
   const auto x_new = x * c - y * s;

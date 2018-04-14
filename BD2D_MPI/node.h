@@ -2,7 +2,6 @@
 #define NODE_H
 #include "rand.h"
 #include <list>
-#include <vector>
 
 template <class TPar>
 class UniNode : public TPar {
@@ -24,8 +23,8 @@ public:
 };
 
 template<class TPar>
-inline void UniNode<TPar>::break_away(UniNode<TPar>** head,
-                                       UniNode<TPar>* pre_node) const {
+void UniNode<TPar>::break_away(UniNode<TPar>** head,
+                               UniNode<TPar>* pre_node) const {
   if (pre_node) {
     pre_node->next = next;
   } else {
@@ -57,7 +56,7 @@ public:
 };
 
 template <class TPar>
-inline void BiNode<TPar>::append_at_front(BiNode<TPar> ** head) {
+void BiNode<TPar>::append_at_front(BiNode<TPar> ** head) {
   prev = nullptr;
   next = *head;
   if (next) {
@@ -67,7 +66,7 @@ inline void BiNode<TPar>::append_at_front(BiNode<TPar> ** head) {
 }
 
 template<class TPar>
-inline void BiNode<TPar>::break_away() const {
+void BiNode<TPar>::break_away() const {
   prev->next = next;
   if (next) {
     next->prev = prev;
@@ -75,7 +74,7 @@ inline void BiNode<TPar>::break_away() const {
 }
 
 template<class TPar>
-inline void BiNode<TPar>::break_away(BiNode<TPar>** head) const {
+void BiNode<TPar>::break_away(BiNode<TPar>** head) const {
   if (prev) {
     break_away();
   } else {
@@ -134,16 +133,5 @@ void for_each_node_pair(const std::list<TPar *> &cl1,
       f_ij(*it1, *it2);
     }
   }
-}
-
-template <class TNode, class UniFunc>
-void for_each_par(TNode *head, UniFunc f_i){
-  if (head) {
-    TNode *cur_node = head;
-    do {
-      f_i(cur_node);
-      cur_node = cur_node->next;
-    } while(cur_node);
-  }  
 }
 #endif

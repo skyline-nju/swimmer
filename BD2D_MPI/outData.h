@@ -117,7 +117,7 @@ void XyWriter::write_cluster(int i_step, const std::vector<TPar>& p_arr, const C
       idx_frame_++;
     std::vector<Cluster> c_arr;
     std::vector<bool> flag_clustered(p_arr.size(), false);
-    dbscan(c_arr, flag_clustered, 1, 1, p_arr, bc, cl);
+    dbscan(c_arr, flag_clustered, 1.1, 2, p_arr, bc);
     *ptr_fout_ << p_arr.size() << "\n";
         // comment line
     *ptr_fout_ << "Lattice=\"" << lx_ << " 0 0 0 " << ly_ << " 0 0 0 1\" "

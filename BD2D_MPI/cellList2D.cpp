@@ -32,3 +32,24 @@ Cell_list_base_2::Cell_list_base_2(const Vec_2<double>& l_domain,
   inverse_l_cell_ = l_cell_.inverse();
   ncells_ = n_.x * n_.y;
 }
+
+int Cell_list_base_2::get_row(int my_row, int drow) const {
+  auto row = my_row + drow;
+  if (row < 0) {
+    row += n_.y;
+  } else if (row >= n_.y) {
+    row -= n_.y;
+  }
+  return row;
+}
+
+int Cell_list_base_2::get_col(int my_col, int dcol) const {
+  auto col = my_col + dcol;
+  if (col < 0) {
+    col += n_.x;  
+  } else if (col >= n_.x) {
+    col -= n_.x;
+  }
+  return col;
+}
+

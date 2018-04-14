@@ -30,9 +30,9 @@ public:
   void run(const cmdline::parser &cmd);
 private:
   Ran myran_;
+  TBc bc_;
   Cell_list_2<TNode> cell_list_;
   std::vector<TNode> p_arr_;
-  TBc bc_;
 
   int n_par_;
   double packing_frac_;
@@ -40,7 +40,8 @@ private:
 
 template<typename TNode, typename TBc>
 Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
-    myran_(cmd.get<unsigned long long>("seed")), cell_list_(cmd), bc_(cmd) {
+    myran_(cmd.get<unsigned long long>("seed")), bc_(cmd),
+    cell_list_(bc_, cmd.get<double>("sigma")) {
   packing_frac_ = cmd.get<double>("phi");
   const auto lx = cmd.get<double>("Lx");
   const auto ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : lx;
