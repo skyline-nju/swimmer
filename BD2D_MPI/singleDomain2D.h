@@ -6,7 +6,7 @@
 #include "particle.h"
 #include "integrate.h"
 #include "force.h"
-#include "outData.h"
+#include "netCDFExporter.h"
 
 template <typename TNode, typename TBc>
 class Single_domain_2 {
@@ -106,23 +106,24 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
     integ = [this, &move]() {integrate3(move); };
 
   std::vector<std::ofstream> fout;
-  LogWriter *log = nullptr;
-  XyWriter *xy = nullptr;
-  if (cmd.exist("output")) {
-    fout.emplace_back();
-    log = new LogWriter(cmd, fout[0]);
-    fout.emplace_back();
-    xy = new XyWriter(cmd, fout[1]);
+  LogExporter_2 *log = nullptr;
+  XyExporter *xy = nullptr;
+  NcParExporter_2 *nc = nullptr;
+  const auto output_on = cmd.exist("output") ? true: false;
+  if (output_on) {
+    xy = new XyExporter(cmd);
+    log = new LogExporter_2(cmd);
+    nc = new NcParExporter_2(cmd);
   }
   const auto t1 = std::chrono::system_clock::now();
   for (int i = 1; i <= n_step; i++) {
     cal_force(f_spring);
     integ();
-    if (log)
+    if (output_on) {
       log->record(i);
-    if (xy)
-      //xy->write(i, p_arr_, cell_list_, bc_);
-      xy->write_cluster(i, p_arr_,cell_list_,bc_);
+      xy->write_frame(i, p_arr_);
+      nc->write_frame(i, p_arr_);
+    }
   }
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
@@ -131,6 +132,7 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
 
   delete log;
   delete xy;
+  delete nc;
 }
 
 #endif

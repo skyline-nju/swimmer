@@ -33,6 +33,8 @@ const std::string delimiter("/");
 // create folder
 void mkdir(const char *folder);
 
+inline void mkdir(const std::string &folder) {mkdir(folder.c_str());}
+
 // split string by a delimiter
 std::vector<std::string> split(
   const std::string &str, const std::string &dlm);

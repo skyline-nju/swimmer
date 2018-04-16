@@ -54,6 +54,12 @@
     <ClInclude Include="wetting.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="netCDFExporter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="exporter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp">
@@ -69,6 +75,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cellList2D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="netCDFExporter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="exporter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

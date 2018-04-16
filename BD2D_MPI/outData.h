@@ -6,7 +6,6 @@
 #include "comn.h"
 #include "cmdline.h"
 #include "boundary.h"
-#include "cellList2D.h"
 #include "wetting.h"
 
 class BaseWriter {
@@ -55,13 +54,13 @@ public:
   template<typename TPar>
   void write(int i_step, const std::vector<TPar> &p_arr);
   
-  //template<typename TPar>
-  //void write(int i_step, const std::vector<TPar> &p_arr,
-  //           const Cell_list_2<TPar> &cl, const Wall_x_PBC_y_2 &bc);
-
   template<typename TPar>
   void write_cluster(int i_step, const std::vector<TPar> &p_arr,
-                     const Cell_list_2<TPar> &cl, const Wall_x_PBC_y_2 &bc);
+                     const Wall_x_PBC_y_2 &bc);
+
+  template<typename TPar>
+  void write_wetting(int i_step, const std::vector<TPar> &p_arr,
+                     const Wall_x_PBC_y_2 &bc, bool flag_filter = false);
 };
 
 template<typename TPar>
@@ -110,14 +109,16 @@ void XyWriter::write(int i_step, const std::vector<TPar>& p_arr) {
 //}
 
 template <typename TPar>
-void XyWriter::write_cluster(int i_step, const std::vector<TPar>& p_arr, const Cell_list_2<TPar>& cl,
-  const Wall_x_PBC_y_2& bc) {
+void XyWriter::write_cluster(int i_step, const std::vector<TPar>& p_arr,
+                             const Wall_x_PBC_y_2& bc) {
   if (i_step == 0 || (!frames_.empty() && i_step == frames_[idx_frame_])) {
     if (i_step > 0)
       idx_frame_++;
     std::vector<Cluster> c_arr;
     std::vector<bool> flag_clustered(p_arr.size(), false);
+    std::vector<int> size_arr(p_arr.size(), 1);
     dbscan(c_arr, flag_clustered, 1.1, 2, p_arr, bc);
+    get_cluster_size(c_arr, size_arr);
     *ptr_fout_ << p_arr.size() << "\n";
         // comment line
     *ptr_fout_ << "Lattice=\"" << lx_ << " 0 0 0 " << ly_ << " 0 0 0 1\" "
@@ -126,7 +127,41 @@ void XyWriter::write_cluster(int i_step, const std::vector<TPar>& p_arr, const C
     for (size_t i = 0; i < p_arr.size(); i++) {
       *ptr_fout_ << "\nB\t" << std::fixed << std::setprecision(3)
                  << p_arr[i].x << "\t" << p_arr[i].y << "\t"
-                 << flag_clustered[i];
+                 << size_arr[i];
+    }
+    *ptr_fout_ << std::endl;
+  }
+}
+
+template <typename TPar>
+void XyWriter::write_wetting(int i_step, const std::vector<TPar>& p_arr,
+                             const Wall_x_PBC_y_2& bc, bool flag_filter) {
+   if (i_step == 0 || (!frames_.empty() && i_step == frames_[idx_frame_])) {
+    if (i_step > 0)
+      idx_frame_++;
+    std::vector<Cluster_w_xlim> c_arr;
+    std::vector<bool> flag_clustered(p_arr.size(), false);
+    std::vector<int> size_arr(p_arr.size(), 1);
+    std::vector<char> flag_wetting(p_arr.size(), 'V');
+    double xl = 0.55;
+    double xr = bc.get_lx() - xl;
+    dbscan_wall(c_arr, flag_clustered, flag_wetting, 1.1, 2, xl, xr, p_arr, bc);
+    if (!flag_filter) {
+      *ptr_fout_ << p_arr.size() << "\n";
+    } else {
+      *ptr_fout_ << p_arr.size() - get_n_flag(flag_wetting, 'V') << "\n";
+    }
+    // comment line
+    *ptr_fout_ << "Lattice=\"" << lx_ << " 0 0 0 " << ly_ << " 0 0 0 1\" "
+      << "Properties=species:S:1:pos:R:2:mass:M:1 "
+      << "Time=" << i_step * h_;
+    for (size_t i = 0; i < p_arr.size(); i++) {
+      if (!flag_filter || flag_wetting[i] != 'V') {
+        *ptr_fout_ << "\n" << flag_wetting[i] << "\t"
+                   << std::fixed << std::setprecision(3)
+                   << p_arr[i].x << "\t" << p_arr[i].y << "\t"
+                   << size_arr[i];        
+      }
     }
     *ptr_fout_ << std::endl;
   }

@@ -73,8 +73,6 @@ public:
 
   void recreate(std::vector<TNode> &p_arr);
 
-
-
   /**
    * \brief Update the location of particles in the ic-th cell.
    * \tparam UniFunc Template function with one input para
@@ -120,7 +118,6 @@ public:
 protected:
   std::vector<TNode*> head_;
 };
-
 
 /**
  * \brief  Class for cell list for 2D. 
@@ -283,7 +280,7 @@ Cell_list_idx_2<TContainer>::Cell_list_idx_2(const TBc& bc, double r_cut,
 template <typename TContainer>
 template <typename TPar>
 void Cell_list_idx_2<TContainer>::create(const TPar& p_arr) {
-  for (int i = 0; i < p_arr.size(); i++) {
+  for (unsigned int i = 0; i < p_arr.size(); i++) {
     int ic = get_ic(p_arr[i]);
     head_[ic].push_front(i);
   }

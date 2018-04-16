@@ -32,12 +32,12 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("alpha", '\0', "tumbling rate", true);
   cmd.add<unsigned long long>("seed", '\0', "random number seed", false, 1);
   cmd.add<double>("sigma", '\0', "particle size", false, 1);
-  cmd.add<int>("log_dt", '\0', "interval to update log", false);
-  cmd.add<int>("XY_dt", '\0', "interval to save snapshot", false);
+  cmd.add<int>("log_dt", '\0', "interval to update log", false, 1000);
+  cmd.add<int>("snap_dt", '\0', "interval to save snapshot", false, 1000);
   cmd.add<double>("spring_const", 'k', "spring const", false, 100);
   cmd.add<int>("int_mode", '\0', "integration mode", false, 0);
   cmd.add<double>("k_wall", '\0', "hardness of the wall", false, 100);
-  cmd.add("output", '\0', "turn on outputing");
+  cmd.add<string>("output", 'o', "path for outputting", false);
   cmd.parse_check(argc, argv);
 
   {
@@ -48,5 +48,4 @@ int main(int argc, char* argv[]) {
 #else
   MPI_Finalize();
 #endif
-
 }
