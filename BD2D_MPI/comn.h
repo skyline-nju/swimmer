@@ -2,25 +2,11 @@
 #define COMN_H
 //#define USE_MPI
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
-#include <fstream>
 #include <sstream>
-#include <iomanip>
 #include <vector>
 #include <string>
-#include <cstring>
-#include <ctime>
 #include <chrono>
-#include <algorithm>
-
-#ifdef _MSC_VER
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
 
 const double PI = 3.14159265358979;
 
@@ -60,11 +46,11 @@ double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma);
 int cal_particle_number_2(double phi, double Lx, double Ly, double sigma);
 
 // Calculate the elapsed time to run a function
-template <typename _TFunc>
-void cal_elapsed_time(_TFunc f) {
-  auto t1 = std::chrono::system_clock::now();
+template <typename TFunc>
+void cal_elapsed_time(TFunc f) {
+  const auto t1 = std::chrono::system_clock::now();
   f();
-  auto t2 = std::chrono::system_clock::now();
+  const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
   std::cout << "elapsed time: " << elapsed_time.count() << std::endl;
 

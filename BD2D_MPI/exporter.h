@@ -4,7 +4,7 @@
 #include <chrono>
 #include <iomanip>
 
-#include "cmdline.h"
+#include <cmdline.h>
 #include "vect.h"
 
 class BaseExporter_2 {
@@ -17,11 +17,13 @@ public:
 
   bool need_export(int i_step);
 
+  int get_n_frames() const {return frames_arr_.size();}
+
 protected:
   Vec_2<double> domain_length_;
   double pack_frac_;
   double sigma_;
-  int n_par_;
+  size_t n_par_;
   int n_step_;
   double h_;
   double v0_;
@@ -48,7 +50,6 @@ private:
 
 class XyExporter: public BaseExporter_2 {
 public:
-  //XyExporter(const cmdline::parser &cmd, std::ofstream &fout);
   XyExporter(const cmdline::parser &cmd);
   template<typename TPar>
   void write_frame(int i_step, const std::vector<TPar> &p_arr);

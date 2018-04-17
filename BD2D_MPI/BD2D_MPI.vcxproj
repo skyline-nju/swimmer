@@ -90,7 +90,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(NETCDF_ROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CMDLINE_INC);$(NETCDF_ROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -147,12 +147,10 @@
     <ClInclude Include="exporter.h" />
     <ClInclude Include="netCDFExporter.h" />
     <ClInclude Include="wetting.h" />
-    <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
     <ClInclude Include="force.h" />
     <ClInclude Include="integrate.h" />
     <ClInclude Include="node.h" />
-    <ClInclude Include="outData.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="singleDomain2D.h" />
@@ -165,7 +163,6 @@
     <ClCompile Include="exporter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netCDFExporter.cpp" />
-    <ClCompile Include="outData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

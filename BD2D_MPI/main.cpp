@@ -1,10 +1,10 @@
 #include <iostream>
 #include <chrono>
+#include <cmdline.h>
 #include "node.h"
 #include "particle.h"
 #include "singleDomain2D.h"
 #include "boundary.h"
-#include "cmdline.h"
 //#define USE_MPI
 #ifdef USE_MPI
 #include "mpi.h"

@@ -1,4 +1,10 @@
 #include "comn.h"
+#ifdef _MSC_VER
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 
 using namespace std;
 
@@ -22,7 +28,7 @@ vector<string> split(const string &str, const string &delim) {
   vector<string> res;
   int str_size = str.size();
   int dlm_size = delim.size();
-  for (int i = 0; i < str.size(); i++) {
+  for (unsigned int i = 0; i < str.size(); i++) {
     pos = str.find(delim, i);
     if (pos == string::npos) {
       res.push_back(str.substr(i, str_size));
