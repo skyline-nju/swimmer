@@ -14,14 +14,14 @@ void check_err(const int stat, const int line, const char * file) {
 
 NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd):  // NOLINT
                                  BaseExporter_2(cmd),
-                                 flag_nc4_(false),
+                                 flag_nc4_(true),
                                  frame_len_(NC_UNLIMITED),
                                  spatial_len_(3),
                                  atom_len_(n_par_),
                                  cell_spatial_len_(3),
                                  time_idx_{0} {
   deflate_level_ = 6;
-  atom_types_on_ = false;
+  atom_types_on_ = true;
   set_lin_frame(cmd.get<int>("snap_dt"));
   cell_lengths_data_[0] = cmd.get<double>("Lx");
   cell_lengths_data_[1] = cmd.exist("Ly")? cmd.get<double>("Ly"): cell_lengths_data_[0];
@@ -132,44 +132,44 @@ void NcParExporter_2::open() {
 
 void NcParExporter_2::set_chunk_and_deflate() {
   { // time steps
-    //size_t time_block = get_n_frames() / 10;
-    //if (time_block >= 4096)
-    //  time_block = 4096;
-    //size_t chunk[1] = {time_block};
-    //std::cout << time_block << std::endl;
-    //auto stat = nc_def_var_chunking(ncid_, time_id_, NC_CHUNKED, chunk);
-    //check_err(stat, __LINE__, __FILE__);
-    //stat = nc_def_var_deflate(ncid_, time_id_, NC_SHUFFLE, 1, deflate_level_);
-    //check_err(stat, __LINE__, __FILE__);
+    size_t time_block = get_n_frames() / 10;
+    if (time_block >= 4096)
+      time_block = 4096;
+    size_t chunk[1] = {time_block};
+    std::cout << time_block << std::endl;
+    auto stat = nc_def_var_chunking(ncid_, time_id_, NC_CHUNKED, chunk);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_def_var_deflate(ncid_, time_id_, NC_SHUFFLE, 1, deflate_level_);
+    check_err(stat, __LINE__, __FILE__);
   }
 
   { // cell lengths
-    //size_t time_block = get_n_frames() / 10;
-    //if (time_block >= 4096)
-    //  time_block = 4096;
-    //std::cout << time_block << std::endl;
+    size_t time_block = get_n_frames() / 10;
+    if (time_block >= 4096)
+      time_block = 4096;
+    std::cout << time_block << std::endl;
 
-    //size_t chunk[2] = {time_block, cell_spatial_len_};
-    //auto stat = nc_def_var_chunking(ncid_, cell_lengths_id_, NC_CHUNKED, chunk);
-    //check_err(stat, __LINE__, __FILE__);
-    //stat = nc_def_var_deflate(ncid_, cell_lengths_id_, 0, 1, deflate_level_);
-    //check_err(stat, __LINE__, __FILE__);
+    size_t chunk[2] = {time_block, cell_spatial_len_};
+    auto stat = nc_def_var_chunking(ncid_, cell_lengths_id_, NC_CHUNKED, chunk);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_def_var_deflate(ncid_, cell_lengths_id_, 0, 1, deflate_level_);
+    check_err(stat, __LINE__, __FILE__);
   }
 
   { // coordinates
-    //size_t time_block = 48 * 4096 / 12 / n_par_;
-    //if (time_block > get_n_frames()) {
-    //  time_block = get_n_frames();
-    //} else if (time_block < 1) {
-    //  time_block = 1;
-    //}
-    //std::cout << time_block << std::endl;
+    size_t time_block = 48 * 4096 / 12 / n_par_;
+    if (time_block > get_n_frames()) {
+      time_block = get_n_frames();
+    } else if (time_block < 1) {
+      time_block = 1;
+    }
+    std::cout << time_block << std::endl;
 
-    //size_t chunk[3] = {time_block, atom_len_, spatial_len_};
-    //auto stat = nc_def_var_chunking(ncid_, coordinates_id_, NC_CHUNKED, chunk);
-    //check_err(stat, __LINE__, __FILE__);
-    //stat = nc_def_var_deflate(ncid_, coordinates_id_, 0, 1, deflate_level_);
-    //check_err(stat, __LINE__, __FILE__);
+    size_t chunk[3] = {time_block, atom_len_, spatial_len_};
+    auto stat = nc_def_var_chunking(ncid_, coordinates_id_, NC_CHUNKED, chunk);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_def_var_deflate(ncid_, coordinates_id_, 0, 1, deflate_level_);
+    check_err(stat, __LINE__, __FILE__);
   }
 
   if (atom_types_on_) {   // atom types

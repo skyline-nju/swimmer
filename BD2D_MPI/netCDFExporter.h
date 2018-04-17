@@ -5,7 +5,7 @@
 void check_err(const int stat, const int line, const char *file);
 
 template <typename TPar, typename T>
-void par2_to_coord3(const std::vector<TPar> &p_arr, T* coord) {
+void par2_to_coord3(const std::vector<TPar> &p_arr, std::vector<T> &coord) {
   auto n = p_arr.size();
   for (size_t i = 0; i < n; i++) {
     coord[i * 3] = p_arr[i].x;
@@ -59,15 +59,13 @@ void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
     put_time_step(i_step);
     put_cell_lengths();
 
-    auto *coor_data = new float[n_par_ * 3];
+    std::vector<float> coor_data(atom_len_ * 3);
     par2_to_coord3(p_arr, coor_data);
-    delete[] coor_data;
-    put_coordinates(coor_data);
+    put_coordinates(&coor_data[0]);
     if (atom_types_on_) {
       std::vector<char> atom_types_data(n_par_, 1);
       put_atom_types(&atom_types_data[0]);
     }
-
     time_idx_[0] = time_idx_[0] + 1;
   }
 }
