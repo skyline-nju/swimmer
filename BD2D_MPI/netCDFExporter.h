@@ -20,12 +20,12 @@ public:
 
   ~NcParExporter_2();
   
-  void open(bool flag_nc4 = true);
-  void set_dims_vars();
-  void set_chunk_deflate() const;
-  void write_time(int i_step);
-  void write_static_vara();
-  void write_coordinates(float *coordinates_data);
+  void open();
+  void set_chunk_and_deflate();
+  void put_time_step(int i_step) const;
+  void put_cell_lengths() const;
+  void put_coordinates(const float *data) const;
+  void put_atom_types(const char *data)const;
   template <typename TPar>
   void write_frame(int i_step, const std::vector<TPar> &p_arr);
 
@@ -35,8 +35,8 @@ protected:
   int spatial_id_;
   int cell_spatial_id_;
   int time_id_;
-  int coordinates_id_;
   int cell_lengths_id_;
+  int coordinates_id_;
   int atom_types_id_;
 
   /* dimension lengths */
@@ -46,6 +46,9 @@ protected:
   const size_t cell_spatial_len_;
 
 private:
+  bool flag_nc4_;
+  bool atom_types_on_;
+  int deflate_level_;
   size_t time_idx_[1];
   float cell_lengths_data_[3];
 };
@@ -53,13 +56,19 @@ private:
 template <typename TPar>
 void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
   if (need_export(i_step)) {
+    put_time_step(i_step);
+    put_cell_lengths();
+
     auto *coor_data = new float[n_par_ * 3];
     par2_to_coord3(p_arr, coor_data);
-    write_time(i_step);
-    write_static_vara();
-    write_coordinates(coor_data);
-    time_idx_[0] = time_idx_[0] + 1;
     delete[] coor_data;
+    put_coordinates(coor_data);
+    if (atom_types_on_) {
+      std::vector<char> atom_types_data(n_par_, 1);
+      put_atom_types(&atom_types_data[0]);
+    }
+
+    time_idx_[0] = time_idx_[0] + 1;
   }
 }
 
