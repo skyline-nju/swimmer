@@ -12,22 +12,18 @@ void check_err(const int stat, const int line, const char * file) {
   }
 }
 
-NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd):  // NOLINT
-                                 BaseExporter_2(cmd),
-                                 flag_nc4_(true),
-                                 frame_len_(NC_UNLIMITED),
-                                 spatial_len_(3),
-                                 atom_len_(n_par_),
-                                 cell_spatial_len_(3),
-                                 time_idx_{0} {
-  deflate_level_ = 6;
-  atom_types_on_ = true;
+NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd):
+                                 BaseExporter_2(cmd), frame_len_(NC_UNLIMITED),
+                                 spatial_len_(3), atom_len_(n_par_),
+                                 cell_spatial_len_(3), time_idx_{0} {
+  flag_nc4_ = true;   // If true, use netCDF-4 format, else use 64bit-offset format
+  deflate_level_ = 6;     
+  atom_types_on_ = true;  
   set_lin_frame(cmd.get<int>("snap_dt"));
   cell_lengths_data_[0] = cmd.get<double>("Lx");
   cell_lengths_data_[1] = cmd.exist("Ly")? cmd.get<double>("Ly"): cell_lengths_data_[0];
-  cell_lengths_data_[2] = 2;
-  std::cout << "cell.z = " << cell_lengths_data_[2] << std::endl;
-  open();
+  cell_lengths_data_[2] = 0;
+  open(cmd);
 }
 
 NcParExporter_2::~NcParExporter_2() {
@@ -35,14 +31,14 @@ NcParExporter_2::~NcParExporter_2() {
   check_err(stat, __LINE__, __FILE__);
 }
 
-void NcParExporter_2::open() {
+void NcParExporter_2::open(const cmdline::parser &cmd) {
   char str[100];
-  snprintf(str, 100, "%s%straj.nc", folder_.c_str(), delimiter.c_str());
+  snprintf(str, 100, "%straj.nc", folder_.c_str());
   int stat;
-  //if (flag_nc4_)
+  if (flag_nc4_)
     stat = nc_create(str, NC_NETCDF4, &ncid_);
-  //else
-    //stat = nc_create(str, NC_64BIT_OFFSET, &ncid_);
+  else
+    stat = nc_create(str, NC_64BIT_OFFSET, &ncid_);
   check_err(stat, __LINE__, __FILE__);
 
   /* dimension ids */
@@ -96,7 +92,7 @@ void NcParExporter_2::open() {
 
   /* assign global attributes */
   {
-    stat = nc_put_att_text(ncid_, NC_GLOBAL, "title", 18, "netCDF output test");
+    stat = nc_put_att_text(ncid_, NC_GLOBAL, "title", 18, "wetting transition");
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_text(ncid_, NC_GLOBAL, "application", 5, "AMBER");
     check_err(stat, __LINE__, __FILE__);
@@ -108,6 +104,16 @@ void NcParExporter_2::open() {
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_text(ncid_, NC_GLOBAL, "ConventionVersion", 3, "1.0");
     check_err(stat, __LINE__, __FILE__);
+  }
+  /* write simulating parameters as global attributes */
+  {
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1, &pack_frac_);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "v0", NC_DOUBLE, 1, &v0_);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate_);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed_);
   }
     /* assign per-variable attributes */
   {
@@ -136,7 +142,6 @@ void NcParExporter_2::set_chunk_and_deflate() {
     if (time_block >= 4096)
       time_block = 4096;
     size_t chunk[1] = {time_block};
-    std::cout << time_block << std::endl;
     auto stat = nc_def_var_chunking(ncid_, time_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
     stat = nc_def_var_deflate(ncid_, time_id_, NC_SHUFFLE, 1, deflate_level_);
@@ -147,8 +152,6 @@ void NcParExporter_2::set_chunk_and_deflate() {
     size_t time_block = get_n_frames() / 10;
     if (time_block >= 4096)
       time_block = 4096;
-    std::cout << time_block << std::endl;
-
     size_t chunk[2] = {time_block, cell_spatial_len_};
     auto stat = nc_def_var_chunking(ncid_, cell_lengths_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
@@ -163,8 +166,6 @@ void NcParExporter_2::set_chunk_and_deflate() {
     } else if (time_block < 1) {
       time_block = 1;
     }
-    std::cout << time_block << std::endl;
-
     size_t chunk[3] = {time_block, atom_len_, spatial_len_};
     auto stat = nc_def_var_chunking(ncid_, coordinates_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
@@ -179,15 +180,12 @@ void NcParExporter_2::set_chunk_and_deflate() {
     } else if (time_block < 1) {
       time_block = 1;
     }
-    std::cout << time_block << std::endl;
-
     size_t chunk[2] = {time_block, atom_len_};
     auto stat = nc_def_var_chunking(ncid_, atom_types_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
     stat = nc_def_var_deflate(ncid_, atom_types_id_, NC_SHUFFLE, 1, deflate_level_);
     check_err(stat, __LINE__, __FILE__);
   }
-
 }
 
 void NcParExporter_2::put_time_step(int i_step) const {
@@ -218,3 +216,4 @@ void NcParExporter_2::put_atom_types(const char * data) const {
                           countset, data);
   check_err(stat, __LINE__, __FILE__);
 }
+

@@ -7,6 +7,7 @@
 #include "integrate.h"
 #include "force.h"
 #include "netCDFExporter.h"
+#include "wetting.h"
 
 template <typename TNode, typename TBc>
 class Single_domain_2 {
@@ -109,12 +110,17 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
   LogExporter_2 *log = nullptr;
   XyExporter *xy = nullptr;
   NcParExporter_2 *nc = nullptr;
+  WetDataExporter *profile = nullptr;
   const auto output_on = cmd.exist("output") ? true: false;
   if (output_on) {
     xy = new XyExporter(cmd);
     log = new LogExporter_2(cmd);
     nc = new NcParExporter_2(cmd);
+    profile = new WetDataExporter(cmd);
   }
+  double eps = 1.1;
+  int min_pts = 2;
+  double height_min = 0.55;
   const auto t1 = std::chrono::system_clock::now();
   for (int i = 1; i <= n_step; i++) {
     cal_force(f_spring);
@@ -122,7 +128,21 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
     if (output_on) {
       log->record(i);
       xy->write_frame(i, p_arr_);
-      nc->write_frame(i, p_arr_);
+      std::vector<bool> flag_clustered(n_par_);
+      std::vector<char> flag_wetting(n_par_, 'V');
+      std::vector<Cluster_w_xlim> c_arr;
+      if (profile->need_export(i)) {
+        dbscan_wall(c_arr, flag_clustered, flag_wetting,
+                    eps, min_pts, height_min, p_arr_, bc_);
+        profile->write_frame(i, p_arr_, flag_wetting, bc_);
+      }
+      if (nc->need_export(i)) {
+        if (flag_clustered.size() == 0) {
+          dbscan_wall(c_arr, flag_clustered, flag_wetting,
+                      eps, min_pts, height_min, p_arr_, bc_);
+        }
+        nc->write_frame(i, p_arr_, flag_wetting);
+      }
     }
   }
   const auto t2 = std::chrono::system_clock::now();
@@ -133,6 +153,7 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
   delete log;
   delete xy;
   delete nc;
+  delete profile;
 }
 
 #endif

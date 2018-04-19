@@ -2,8 +2,10 @@
 #define WETTING_H
 #include "boundary.h"
 #include "cellList2D.h"
+#include "exporter.h"
 #include <list>
 #include <forward_list>
+#include <cassert>
 
 template <typename TNode, typename TCellList, typename TBc>
 void find_neighbors(int i, double eps_square, const TNode *p0,
@@ -191,11 +193,12 @@ template <typename TPar, typename TBc>
 void dbscan_wall(std::vector<Cluster_w_xlim> &c_arr, 
                  std::vector<bool> &flag_clustered,
                  std::vector<char> &flag_wetting,
-                 double eps, unsigned int min_pts,
-                 double x_left, double x_right,
+                 double eps, unsigned int min_pts, double height_min,
                  const std::vector<TPar> &p_arr,
                  const TBc &bc) {
   const auto eps_square = eps * eps;
+  double x_left = height_min;
+  double x_right = bc.get_xmin() + bc.get_lx() - height_min;
   const auto n_par = p_arr.size();
   c_arr.reserve(n_par);
   std::vector<bool> flag_visited(n_par, false);
@@ -241,14 +244,16 @@ unsigned int get_n_flag(const std::vector<T> &flag_arr, T flag) {
   return n;
 }
 
+/* Cal the thickness profile and corresponding particle number */
+
 template <typename TPar, typename TBc>
-void cal_thickness_and_n_par(std::vector<double> &thickness_l,
-                             std::vector<double> &thickness_r,
-                             std::vector<unsigned short> &num_par_l,
-                             std::vector<unsigned short> &num_par_r,
-                             const std::vector<TPar> &p_arr,
-                             const std::vector<char> &flag_wetting,
-                             const TBc &bc) {
+void cal_wetting_profile(std::vector<float> &thickness_profile,
+                         std::vector<unsigned short> &num_profile,
+                         std::vector<double> &packing_frac,
+                         const std::vector<TPar> &p_arr,
+                         const std::vector<char> &flag_wetting,
+                         const TBc &bc) {
+  const auto nrow = int(bc.get_ly());
   const auto x_min = bc.get_xmin();
   const auto x_max = x_min + bc.get_lx();
   const auto y_min = bc.get_ymin();
@@ -256,20 +261,71 @@ void cal_thickness_and_n_par(std::vector<double> &thickness_l,
   for (unsigned int i = 0; i < n; i++) {
     if (flag_wetting[i] == 'L') {
       const auto row = int(p_arr[i].y - y_min);
-      const auto dx = p_arr[i].x - x_min;
-      if (thickness_l[row] < dx) {
-        thickness_l[row] = dx;
+     double dx = p_arr[i].x - x_min;
+      if (thickness_profile[row] < dx) {
+        thickness_profile[row] = dx;
       }
-      num_par_l[row]++;
+      if (num_profile[row] == 0) {
+        packing_frac[0] += 1;
+      }
+      num_profile[row]++;
     } else if (flag_wetting[i] == 'R') {
-      const auto row = int(p_arr[i].y - y_min);
-      const auto dx = x_max - p_arr[i].x;
-      if (thickness_r[row] < dx) {
-        thickness_r[row] = dx;
+      const auto row = int(p_arr[i].y - y_min) + nrow;
+      double dx = x_max - p_arr[i].x;
+      if (thickness_profile[row] < dx) {
+        thickness_profile[row] = dx;
       }
-      num_par_r[row]++;
+      if (num_profile[row] == 0) {
+        packing_frac[1] += 1;
+      }
+      num_profile[row]++;
     }
   }
+  packing_frac[0] /= nrow;
+  packing_frac[1] /= nrow;
 }
 
+/* Export the data about wetting transition */
+class WetDataExporter : public BaseExporter_2 {
+public:
+  WetDataExporter(const cmdline::parser &cmd);
+  ~WetDataExporter();
+
+  void dump_frame(int i_step,
+                  const std::vector<float> &thickness_profile,
+                  const std::vector<unsigned short> &num_profile,
+                  const std::vector<double> &packing_frac);
+
+  template <typename TPar, typename TBc>
+  void write_frame(int i_step, const std::vector<TPar> &p_arr,
+                   const std::vector<char> &flag_wetting, const TBc &bc);
+
+private:
+  void set_chunk_and_deflate();
+  int deflate_level_;
+
+  int ncid_;
+  int row_id_;
+  int time_id_;
+  int wetting_frac_id_;
+  int thickness_profile_id_;
+  int num_profile_id_;
+
+  size_t row_len_;
+  size_t frame_len_;
+  size_t time_idx_[1];
+};
+
+
+template<typename TPar, typename TBc>
+void WetDataExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
+                                  const std::vector<char>& flag_wetting,
+                                  const TBc & bc) {
+  std::vector<float> thickness_profile(row_len_ * 2, 0);
+  std::vector<unsigned short> num_profile(row_len_ * 2, 0);
+  std::vector<double> packing_frac(2, 0);
+  cal_wetting_profile(thickness_profile, num_profile, packing_frac,
+                      p_arr, flag_wetting, bc);
+  dump_frame(i_step, thickness_profile, num_profile, packing_frac);
+}
 #endif

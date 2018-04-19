@@ -2,25 +2,28 @@
 #define NETCDFEXPORTER_H
 #include "exporter.h"
 
-void check_err(const int stat, const int line, const char *file);
+void check_err(const int stat, const int line, const char * file);
 
+/* Transform the 2D particle's coordinates into a 3D array by setting z=1 */
 template <typename TPar, typename T>
 void par2_to_coord3(const std::vector<TPar> &p_arr, std::vector<T> &coord) {
   auto n = p_arr.size();
+  coord.reserve(n * 3);
   for (size_t i = 0; i < n; i++) {
-    coord[i * 3] = p_arr[i].x;
-    coord[i * 3 + 1] = p_arr[i].y;
-    coord[i * 3 + 2] = 1;
-  }    
+    coord.push_back(p_arr[i].x);
+    coord.push_back(p_arr[i].y);
+    coord.push_back(1);
+  }
 }
 
-class NcParExporter_2:public BaseExporter_2 {  // NOLINT
+/* Export particle data into netCDF file*/
+class NcParExporter_2 :public BaseExporter_2 {
 public:
   explicit NcParExporter_2(const cmdline::parser &cmd);
 
   ~NcParExporter_2();
-  
-  void open();
+
+  void open(const cmdline::parser &cmd);
   void set_chunk_and_deflate();
   void put_time_step(int i_step) const;
   void put_cell_lengths() const;
@@ -28,7 +31,9 @@ public:
   void put_atom_types(const char *data)const;
   template <typename TPar>
   void write_frame(int i_step, const std::vector<TPar> &p_arr);
-
+  template <typename TPar>
+  void write_frame(int i_step, const std::vector<TPar> &p_arr,
+                   const std::vector<char> &p_type);
 protected:
   /* id for each variables */
   int ncid_;
@@ -59,7 +64,7 @@ void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
     put_time_step(i_step);
     put_cell_lengths();
 
-    std::vector<float> coor_data(atom_len_ * 3);
+    std::vector<float> coor_data;
     par2_to_coord3(p_arr, coor_data);
     put_coordinates(&coor_data[0]);
     if (atom_types_on_) {
@@ -68,6 +73,21 @@ void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
     }
     time_idx_[0] = time_idx_[0] + 1;
   }
+}
+
+template<typename TPar>
+void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr,
+                                  const std::vector<char>& p_type) {
+  put_time_step(i_step);
+  put_cell_lengths();
+
+  std::vector<float> coor_data;
+  par2_to_coord3(p_arr, coor_data);
+  put_coordinates(&coor_data[0]);
+  if (atom_types_on_) {
+    put_atom_types(&p_type[0]);
+  }
+  time_idx_[0] = time_idx_[0] + 1;
 }
 
 #endif

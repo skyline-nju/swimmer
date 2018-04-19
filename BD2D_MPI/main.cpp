@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("spring_const", 'k', "spring const", false, 100);
   cmd.add<int>("int_mode", '\0', "integration mode", false, 0);
   cmd.add<double>("k_wall", '\0', "hardness of the wall", false, 100);
+  cmd.add<int>("profile_dt", '\0', "interval to calculate wetting profile", false, 200);
   cmd.add<string>("output", 'o', "path for outputting", false);
   cmd.parse_check(argc, argv);
 
