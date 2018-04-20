@@ -3,10 +3,12 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
-
 #include <cmdline.h>
 #include "vect.h"
 
+/**
+ * \brief Basic class for exporter
+ */
 class BaseExporter_2 {
 public:
   typedef unsigned long long ull;
@@ -17,7 +19,7 @@ public:
 
   bool need_export(int i_step);
 
-  int get_n_frames() const {return frames_arr_.size();}
+  size_t get_n_frames() const {return frames_arr_.size();}
 
 protected:
   Vec_2<double> domain_length_;
@@ -29,18 +31,28 @@ protected:
   double v0_;
   ull seed_;
   double tumbling_rate_;
+  double particle_hardness_;
+  double wall_hardness_;
   std::string folder_;
   std::string path_;
+  int frame_interval_;
 
+  double eps_;  // two particle are treated as neighbors within eps.
+  int min_pts_; // the minimum neighbors that one core point should have.
+  double height_min_;  // the minimum distance from the "wetting" particle to the wall.
 private:
   int iframe_;
   std::vector<int> frames_arr_;
 };
 
 
+/**
+ * \brief Class for writting the log file
+ */
 class LogExporter_2: public BaseExporter_2 {
 public:
-  LogExporter_2(const cmdline::parser &cmd);
+  explicit LogExporter_2(const cmdline::parser &cmd);
+  ~LogExporter_2();
   void record(int i_step);
 
 private:
@@ -48,31 +60,48 @@ private:
   std::ofstream fout_;
 };
 
+/**
+ * \brief Class for outputing the snapshot as XYZ format.
+ */
 class XyExporter: public BaseExporter_2 {
 public:
-  XyExporter(const cmdline::parser &cmd);
-  template<typename TPar>
+  explicit XyExporter(const cmdline::parser &cmd);
+
+  template <typename TPar>
   void write_frame(int i_step, const std::vector<TPar> &p_arr);
 
+  template <typename TPar>
+  void write_frame(int i_step, const std::vector<TPar> &p_arr,
+                   const std::vector<char> &p_type_arr);
 private:
-  void write_lattice();
+  void write_head_lines(int n_par, int i_step);
   std::ofstream fout_;
 };
 
 template <typename TPar>
 void XyExporter::write_frame(int i_step, const std::vector<TPar>& p_arr) {
-  if (need_export(i_step)) {
-    fout_ << p_arr.size() << "\n";
-    // comment line
-    write_lattice();
-    fout_ << "Properties=species:S:1:pos:R:2 "
-            << "Time=" << i_step * h_;
-    auto end = p_arr.cend();
-    for (auto it = p_arr.cbegin(); it != end; ++it) {
-      fout_ << "\n" << std::fixed << std::setprecision(3) << "N\t"
-        << (*it).x << "\t" << (*it).y;
-    }
-    fout_ << std::endl;
+  write_head_lines(p_arr.size(), i_step);
+  auto end = p_arr.cend();
+  for (auto it = p_arr.cbegin(); it != end; ++it) {
+    fout_ << "\nV\t" << std::fixed << std::setprecision(3)
+          << (*it).x << "\t" << (*it).y;
   }
+  fout_ << std::endl;
 }
+
+template <typename TPar>
+void XyExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
+                             const std::vector<char>& p_type_arr) {
+  write_head_lines(p_arr.size(), i_step);
+  auto end = p_arr.cend();
+  auto it_type = p_type_arr.cbegin();
+  for (auto it = p_arr.cbegin(); it != end; ++it) {
+    fout_ << "\n" << *it_type << "\t"
+      << std::fixed << std::setprecision(3)
+      << (*it).x << "\t" << (*it).y;
+    ++it_type;
+  }
+  fout_ << std::endl;
+}
+
 #endif

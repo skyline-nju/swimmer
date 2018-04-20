@@ -14,6 +14,9 @@ class Single_domain_2 {
 public:
   typedef unsigned long long int ull;
   explicit Single_domain_2(const cmdline::parser &cmd);
+
+  ~Single_domain_2();
+
   void ini_rand(double sigma = 1);
 
   template <typename TForce>
@@ -28,26 +31,62 @@ public:
   template <typename TIntegrate>
   void integrate3(const TIntegrate &integ);
 
+  void output(int i_step);
+
   void run(const cmdline::parser &cmd);
+
 private:
+  // parameters
   Ran myran_;
   TBc bc_;
   Cell_list_2<TNode> cell_list_;
   std::vector<TNode> p_arr_;
-
   int n_par_;
   double packing_frac_;
+
+  // output
+  LogExporter_2 *log_;
+  XyExporter *xy_;
+  NcParExporter_2 *nc_;
+  WetDataExporter *profile_;
 };
 
 template<typename TNode, typename TBc>
 Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
     myran_(cmd.get<unsigned long long>("seed")), bc_(cmd),
-    cell_list_(bc_, cmd.get<double>("sigma")) {
+    cell_list_(bc_, cmd.get<double>("sigma")),
+    log_(nullptr), xy_(nullptr), nc_(nullptr), profile_(nullptr) {
+  // parameters for simulating
   packing_frac_ = cmd.get<double>("phi");
   const auto lx = cmd.get<double>("Lx");
   const auto ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : lx;
   n_par_ = cal_particle_number_2(packing_frac_, lx, ly, 1);
   p_arr_.reserve(n_par_);
+
+  // initial output
+  if (cmd.exist("output")) {
+    log_ = new LogExporter_2(cmd);
+    const std::string snap_format = cmd.get<std::string>("snap_fmt");
+    if (snap_format == "xy") {
+      xy_ = new XyExporter(cmd);
+    } else if (snap_format == "nc") {
+      nc_ = new NcParExporter_2(cmd);
+    } else if (snap_format == "both") {
+      xy_ = new XyExporter(cmd);
+      nc_ = new NcParExporter_2(cmd);
+    }
+    if (cmd.exist("profile")) {
+      profile_ = new WetDataExporter(cmd);
+    }
+  }
+}
+
+template <typename TNode, typename TBc>
+Single_domain_2<TNode, TBc>::~Single_domain_2() {
+    delete log_;
+    delete xy_;
+    delete nc_;
+    delete profile_;
 }
 
 template<typename TNode, typename TBc>
@@ -92,6 +131,35 @@ void Single_domain_2<TNode, TBc>::integrate3(const TIntegrate &integ) {
   cell_list_.update_by_row(move);
 }
 
+template <typename TNode, typename TBc>
+void Single_domain_2<TNode, TBc>::output(int i_step) {
+  log_->record(i_step);
+  if (profile_) {
+    std::vector<Cluster_w_xlim> c_arr;
+    std::vector<bool> flag_clustered;
+    std::vector<char> flag_wetting;
+    if (profile_->need_export(i_step)) {
+      profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
+      profile_->write_frame(i_step, p_arr_, flag_wetting, bc_);
+    }
+    if (xy_ && xy_->need_export(i_step)) {
+      if (c_arr.empty())
+        profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
+      xy_->write_frame(i_step, p_arr_, flag_wetting);
+    }
+    if (nc_ && nc_->need_export(i_step)) {
+      if (c_arr.empty())
+        profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
+      nc_->write_frame(i_step, p_arr_, flag_wetting);
+    }
+  } else {
+    if (xy_ && xy_->need_export(i_step))
+      xy_->write_frame(i_step, p_arr_);
+    if (nc_ && nc_->need_export(i_step))
+      nc_->write_frame(i_step, p_arr_);
+  }  
+}
+
 template<typename TNode, typename TBc>
 void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
   const Run_and_tumble move(cmd.get<double>("h"), cmd.get<double>("alpha"));
@@ -106,54 +174,15 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
   else
     integ = [this, &move]() {integrate3(move); };
 
-  std::vector<std::ofstream> fout;
-  LogExporter_2 *log = nullptr;
-  XyExporter *xy = nullptr;
-  NcParExporter_2 *nc = nullptr;
-  WetDataExporter *profile = nullptr;
-  const auto output_on = cmd.exist("output") ? true: false;
-  if (output_on) {
-    xy = new XyExporter(cmd);
-    log = new LogExporter_2(cmd);
-    nc = new NcParExporter_2(cmd);
-    profile = new WetDataExporter(cmd);
-  }
-  double eps = 1.1;
-  int min_pts = 2;
-  double height_min = 0.55;
   const auto t1 = std::chrono::system_clock::now();
   for (int i = 1; i <= n_step; i++) {
     cal_force(f_spring);
     integ();
-    if (output_on) {
-      log->record(i);
-      xy->write_frame(i, p_arr_);
-      std::vector<bool> flag_clustered(n_par_);
-      std::vector<char> flag_wetting(n_par_, 'V');
-      std::vector<Cluster_w_xlim> c_arr;
-      if (profile->need_export(i)) {
-        dbscan_wall(c_arr, flag_clustered, flag_wetting,
-                    eps, min_pts, height_min, p_arr_, bc_);
-        profile->write_frame(i, p_arr_, flag_wetting, bc_);
-      }
-      if (nc->need_export(i)) {
-        if (flag_clustered.size() == 0) {
-          dbscan_wall(c_arr, flag_clustered, flag_wetting,
-                      eps, min_pts, height_min, p_arr_, bc_);
-        }
-        nc->write_frame(i, p_arr_, flag_wetting);
-      }
-    }
+    output(i);
   }
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
   std::cout << "elapsed time: " << elapsed_time.count() << std::endl;
-  std::cout << std::endl;
-
-  delete log;
-  delete xy;
-  delete nc;
-  delete profile;
 }
 
 #endif

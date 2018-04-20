@@ -1,4 +1,5 @@
 #include "comn.h"
+#include <cmath>
 #ifdef _MSC_VER
 #include <io.h>
 #else
@@ -47,13 +48,13 @@ double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma) {
 }
 
 int cal_particle_number_2(double phi, double Lx, double Ly, double sigma) {
-  double phi_max = PI / (2 * std::sqrt(3.0));
+  double phi_max = PI / (2 * sqrt(3.0));
   if (phi > phi_max) {
-    std::cout << "Input packing fraction phi = " << phi
-      << " is larger than phi_max = " << phi_max << std::endl;
+    cout << "Input packing fraction phi = " << phi
+      << " is larger than phi_max = " << phi_max << endl;
     exit(1);
   } else {
     double a = sigma * 0.5;
-    return int(std::round(phi * Lx * Ly / (PI * a * a)));
+    return int(round(phi * Lx * Ly / (PI * a * a)));
   }
 }

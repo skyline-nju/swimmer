@@ -24,7 +24,7 @@ public:
   ~NcParExporter_2();
 
   void open(const cmdline::parser &cmd);
-  void set_chunk_and_deflate();
+  void set_chunk_and_deflate() const;
   void put_time_step(int i_step) const;
   void put_cell_lengths() const;
   void put_coordinates(const float *data) const;
@@ -60,19 +60,17 @@ private:
 
 template <typename TPar>
 void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
-  if (need_export(i_step)) {
-    put_time_step(i_step);
-    put_cell_lengths();
+  put_time_step(i_step);
+  put_cell_lengths();
 
-    std::vector<float> coor_data;
-    par2_to_coord3(p_arr, coor_data);
-    put_coordinates(&coor_data[0]);
-    if (atom_types_on_) {
-      std::vector<char> atom_types_data(n_par_, 1);
-      put_atom_types(&atom_types_data[0]);
-    }
-    time_idx_[0] = time_idx_[0] + 1;
+  std::vector<float> coor_data;
+  par2_to_coord3(p_arr, coor_data);
+  put_coordinates(&coor_data[0]);
+  if (atom_types_on_) {
+    std::vector<char> atom_types_data(n_par_, 1);
+    put_atom_types(&atom_types_data[0]);
   }
+  time_idx_[0] = time_idx_[0] + 1;
 }
 
 template<typename TPar>

@@ -12,7 +12,7 @@ void check_err(const int stat, const int line, const char * file) {
   }
 }
 
-NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd):
+NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd):  // NOLINT
                                  BaseExporter_2(cmd), frame_len_(NC_UNLIMITED),
                                  spatial_len_(3), atom_len_(n_par_),
                                  cell_spatial_len_(3), time_idx_{0} {
@@ -111,15 +111,20 @@ void NcParExporter_2::open(const cmdline::parser &cmd) {
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_double(ncid_, NC_GLOBAL, "v0", NC_DOUBLE, 1, &v0_);
     check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "h0", NC_DOUBLE, 1, &h_);
+    check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate_);
     check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "particle_hardness", NC_DOUBLE, 1, &particle_hardness_);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "wall_hardness", NC_DOUBLE, 1, &wall_hardness_);
+    check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed_);
+    check_err(stat, __LINE__, __FILE__);
   }
     /* assign per-variable attributes */
   {
-    char tstr[50];
-    snprintf(tstr, 50, "%.5f tau", h_);
-    stat = nc_put_att_text(ncid_, time_id_, "units", 11, tstr);
+    stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1, &frame_interval_);
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_text(ncid_, coordinates_id_, "units", 5, "sigma");
     check_err(stat, __LINE__, __FILE__);
@@ -136,9 +141,9 @@ void NcParExporter_2::open(const cmdline::parser &cmd) {
   check_err(stat, __LINE__, __FILE__);   
 }
 
-void NcParExporter_2::set_chunk_and_deflate() {
+void NcParExporter_2::set_chunk_and_deflate() const {
   { // time steps
-    size_t time_block = get_n_frames() / 10;
+    auto time_block = get_n_frames() / 10;
     if (time_block >= 4096)
       time_block = 4096;
     size_t chunk[1] = {time_block};

@@ -5,7 +5,6 @@
 #include "exporter.h"
 #include <list>
 #include <forward_list>
-#include <cassert>
 
 template <typename TNode, typename TCellList, typename TBc>
 void find_neighbors(int i, double eps_square, const TNode *p0,
@@ -60,7 +59,7 @@ public:
 
   template <typename T>
   void mark(std::vector<T> &flag_arr, T flag) const {
-    for_each([flag, &flag_arr](auto i){flag_arr[i] = flag;});
+    for_each([flag, &flag_arr](int i){flag_arr[i] = flag;});
   }
 
 protected:
@@ -120,7 +119,7 @@ void Cluster::expand(double eps_square, unsigned int min_pts,
       idx_arr_.push_back(k);
     }
   }
-  idx_arr_.shrink_to_fit();
+  idx_arr_.reserve(idx_arr_.size());
 }
 
 template <typename UniFunc>
@@ -159,7 +158,7 @@ void Cluster_w_xlim::expand(double eps_square, int min_pts,
       }
     }
   }
-  idx_arr_.shrink_to_fit();
+  idx_arr_.reserve(idx_arr_.size());
 }
 
 template <typename TPar, typename TBc, typename TCluster>
@@ -171,6 +170,9 @@ void dbscan(std::vector<TCluster> &c_arr,
   const auto eps_square = eps * eps;
   const auto n_par = p_arr.size();
   c_arr.reserve(n_par);
+  flag_clustered.reserve(n_par);
+  for (size_t i = 0; i < n_par; i++)
+    flag_clustered.push_back(false);
   std::vector<bool> flag_visited(n_par, false);
   Cell_list_idx_2<std::forward_list<int>> cl(bc, eps);
   cl.create(p_arr);
@@ -201,6 +203,12 @@ void dbscan_wall(std::vector<Cluster_w_xlim> &c_arr,
   double x_right = bc.get_xmin() + bc.get_lx() - height_min;
   const auto n_par = p_arr.size();
   c_arr.reserve(n_par);
+  flag_clustered.reserve(n_par);
+  flag_wetting.reserve(n_par);
+  for (size_t i = 0; i < n_par; i++) {
+    flag_clustered.push_back(false);
+    flag_wetting.push_back('V');
+  }
   std::vector<bool> flag_visited(n_par, false);
   Cell_list_idx_2<std::forward_list<int>> cl(bc, eps);
   cl.create(p_arr);
@@ -286,9 +294,9 @@ void cal_wetting_profile(std::vector<float> &thickness_profile,
 }
 
 /* Export the data about wetting transition */
-class WetDataExporter : public BaseExporter_2 {
+class WetDataExporter : public BaseExporter_2 {  // NOLINT
 public:
-  WetDataExporter(const cmdline::parser &cmd);
+  explicit WetDataExporter(const cmdline::parser &cmd);
   ~WetDataExporter();
 
   void dump_frame(int i_step,
@@ -300,12 +308,21 @@ public:
   void write_frame(int i_step, const std::vector<TPar> &p_arr,
                    const std::vector<char> &flag_wetting, const TBc &bc);
 
+  template <typename TPar, typename TBc>
+  void cal_cluster(std::vector<Cluster_w_xlim> &c_arr,
+                   std::vector<bool> &flag_clustered,
+                   std::vector<char> &flag_wetting,
+                   const std::vector<TPar> &p_arr,
+                   const TBc &bc) const {
+    dbscan_wall(c_arr, flag_clustered, flag_wetting,
+                eps_, min_pts_, height_min_, p_arr, bc);
+  }
+
 private:
-  void set_chunk_and_deflate();
+  void set_chunk_and_deflate() const;
   int deflate_level_;
 
   int ncid_;
-  int row_id_;
   int time_id_;
   int wetting_frac_id_;
   int thickness_profile_id_;

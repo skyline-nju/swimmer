@@ -1,10 +1,17 @@
 #include "cellList2D.h"
 
-Cell_list_base_2::Cell_list_base_2(const Vec_2<double>& l_domain,
+Cell_list_base_2::Cell_list_base_2(const Vec_2<double>& l_domain,  // NOLINT
                                    const Vec_2<double>& origin,
                                    double r_cut,
                                    const Vec_2<bool>& flag_comm):
                                    flag_comm_(flag_comm), r_cut_(r_cut) {
+  set_para(l_domain, origin, r_cut, flag_comm);
+}
+
+void Cell_list_base_2::set_para(const Vec_2<double>& l_domain,
+                                const Vec_2<double>& origin,
+                                double r_cut,
+                                const Vec_2<bool>& flag_comm) {
   if (!flag_comm.x && !flag_comm.y) {
     origin_ = origin;
     n_.x = int(l_domain.x / r_cut);

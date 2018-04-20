@@ -17,6 +17,8 @@ public:
   Cell_list_base_2(const TBc& bc, double r_cut,
                    const Vec_2<bool>& flag_comm = Vec_2<bool>());
 
+  void set_para(const Vec_2<double> &l_domain, const Vec_2<double> &origin,
+                double r_cut, const Vec_2<bool> &flag_comm);
   int get_row(double y) const {return int((y - origin_.y) * inverse_l_cell_.y);}
 
   int get_col(double x) const {return int((x - origin_.x) * inverse_l_cell_.x);}
@@ -143,9 +145,11 @@ protected:
 template <typename TBc>
 Cell_list_base_2::Cell_list_base_2(const TBc& bc, double r_cut,
                                    const Vec_2<bool>& flag_comm):
-    Cell_list_base_2(Vec_2<double>(bc.get_lx(), bc.get_ly()),
-                     Vec_2<double>(bc.get_xmin(), bc.get_ymin()),
-                     r_cut, flag_comm) {}
+                                   flag_comm_(flag_comm), r_cut_(r_cut) {
+  const Vec_2<double> l_domain(bc.get_lx(), bc.get_ly());
+  const Vec_2<double> origin(bc.get_xmin(), bc.get_ymin());
+  set_para(l_domain, origin, r_cut, flag_comm);
+}
 
 template <typename UniFunc>
 void Cell_list_base_2::visit_nearby_cell(int my_row, int my_col, UniFunc f) const {
