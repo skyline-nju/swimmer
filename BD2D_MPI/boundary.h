@@ -60,14 +60,18 @@ void PBC_x_2::wrap(T &p) const {
 class Wall_x_2 : public PBC_x_2 {
 public:
   Wall_x_2() { k_ = xl_ = xr_= 0; }
+
   Wall_x_2(double k, double a, double lx, double ly, double x0=0, double y0=0)
     : PBC_x_2(lx, ly, x0, y0), k_(k), xl_(x0 + a), xr_(x0 + lx - a) {}
   explicit Wall_x_2(const cmdline::parser &cmd);
+
   void new_rand_pos(double &x, double &y, Ran &myran) const;
-  template <typename T> void wrap(const T &p) const {}
+
+  template <typename T>
+  void wrap(const T &p) const {}
   
   template<typename TPar>
-  void force(TPar &p) const;
+  void wall_force(TPar &p) const;
   
 protected:
   double k_;
@@ -76,7 +80,7 @@ protected:
 };
 
 template<typename TPar>
-void Wall_x_2::force(TPar &p) const {
+void Wall_x_2::wall_force(TPar &p) const {
   if (p.x < xl_) {
     p.fx += (xl_ - p.x) * k_;
   } else if (p.x > xr_) {

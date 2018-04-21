@@ -38,21 +38,27 @@ public:
 private:
   // parameters
   Ran myran_;
-  TBc bc_;
-  Cell_list_2<TNode> cell_list_;
-  std::vector<TNode> p_arr_;
   int n_par_;
   double packing_frac_;
 
-  // output
+  // boundary condition
+  TBc bc_;
+
+  // cell list;
+  Cell_list_2<TNode> cell_list_;
+
+  // particle data
+  std::vector<TNode> p_arr_;
+
+  // exporters
   LogExporter_2 *log_;
   XyExporter *xy_;
   NcParExporter_2 *nc_;
-  WetDataExporter *profile_;
+  ProfileExporter *profile_;
 };
 
 template<typename TNode, typename TBc>
-Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
+Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser &cmd):
     myran_(cmd.get<unsigned long long>("seed")), bc_(cmd),
     cell_list_(bc_, cmd.get<double>("sigma")),
     log_(nullptr), xy_(nullptr), nc_(nullptr), profile_(nullptr) {
@@ -76,7 +82,7 @@ Single_domain_2<TNode, TBc>::Single_domain_2(const cmdline::parser & cmd):
       nc_ = new NcParExporter_2(cmd);
     }
     if (cmd.exist("profile")) {
-      profile_ = new WetDataExporter(cmd);
+      profile_ = new ProfileExporter(cmd);
     }
   }
 }

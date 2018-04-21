@@ -19,7 +19,7 @@ elif [ ${USER} == "dy" ]; then
     export NCDIR=/cluster/tool/netcdf-4.6.1-mpicc-3.0.4
     export H5DIR=/cluster/tool/hdf5-1.8.20-mpicc-3.0.4
     export CURLDIR=/home/dy/local/anaconda3/lib
-    export CMLINE_DIR=/home/dy/local/include
+    export CMDLINE_DIR=/home/dy/local/include
 else
     echo "export nothing"
 fi

@@ -1,8 +1,7 @@
 #ifndef NETCDFEXPORTER_H
 #define NETCDFEXPORTER_H
 #include "exporter.h"
-
-void check_err(const int stat, const int line, const char * file);
+#include "wetting.h"
 
 /* Transform the 2D particle's coordinates into a 3D array by setting z=1 */
 template <typename TPar, typename T>
@@ -86,6 +85,61 @@ void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr,
     put_atom_types(&p_type[0]);
   }
   time_idx_[0] = time_idx_[0] + 1;
+}
+
+/* Export the data about wetting transition */
+class ProfileExporter : public BaseExporter_2 {  // NOLINT
+public:
+  explicit ProfileExporter(const cmdline::parser &cmd);
+  ~ProfileExporter();
+
+  void dump_frame(int i_step,
+                  const std::vector<float> &thickness_profile,
+                  const std::vector<unsigned short> &num_profile,
+                  const std::vector<double> &packing_frac);
+
+  template <typename TPar, typename TBc>
+  void write_frame(int i_step, const std::vector<TPar> &p_arr,
+                   const std::vector<char> &flag_wetting, const TBc &bc);
+
+  template <typename TPar, typename TBc>
+  void cal_cluster(std::vector<Cluster_w_xlim> &c_arr,
+                   std::vector<bool> &flag_clustered,
+                   std::vector<char> &flag_wetting,
+                   const std::vector<TPar> &p_arr,
+                   const TBc &bc) const {
+    dbscan_wall(c_arr, flag_clustered, flag_wetting,
+                eps_, min_pts_, height_min_, p_arr, bc);
+  }
+
+private:
+  void set_chunk_and_deflate() const;
+  int deflate_level_;
+
+  int ncid_;
+  int time_id_;
+  int wetting_frac_id_;
+  int thickness_profile_id_;
+  int num_profile_id_;
+
+  size_t row_len_;
+  size_t frame_len_;
+  size_t time_idx_[1];
+
+  std::ofstream fout_;
+};
+
+
+template<typename TPar, typename TBc>
+void ProfileExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
+                                  const std::vector<char>& flag_wetting,
+                                  const TBc & bc) {
+  std::vector<float> thickness_profile(row_len_ * 2, 0);
+  std::vector<unsigned short> num_profile(row_len_ * 2, 0);
+  std::vector<double> packing_frac(2, 0);
+  cal_wetting_profile(thickness_profile, num_profile, packing_frac,
+                      p_arr, flag_wetting, bc);
+  dump_frame(i_step, thickness_profile, num_profile, packing_frac);
 }
 
 #endif

@@ -3,14 +3,14 @@
 #include <netcdf.h>
 
 WetDataExporter::WetDataExporter(const cmdline::parser & cmd):  // NOLINT
-  BaseExporter_2(cmd), time_idx_{0} {
+  BaseExporter_2(cmd), time_idx_{0}, fout_(folder_ + "profile_" + path_ + ".dat") {
   frame_len_ = NC_UNLIMITED;
   row_len_ = int(domain_length_.y);
   deflate_level_ = 6;
 
   set_lin_frame(cmd.get<int>("profile_dt"));
   char str[100];
-  snprintf(str, 100, "%sprofile.nc", folder_.c_str());
+  snprintf(str, 100, "%sprofile_%s.nc", folder_.c_str(), path_.c_str());
   auto stat = nc_create(str, NC_NETCDF4, &ncid_);
   check_err(stat, __LINE__, __FILE__);
 
@@ -84,6 +84,7 @@ WetDataExporter::WetDataExporter(const cmdline::parser & cmd):  // NOLINT
 WetDataExporter::~WetDataExporter() {
   const auto stat = nc_close(ncid_);
   check_err(stat, __LINE__, __FILE__);
+  fout_.close();
 }
 
 void WetDataExporter::dump_frame(int i_step,
@@ -102,6 +103,7 @@ void WetDataExporter::dump_frame(int i_step,
     auto stat = nc_put_vara(ncid_, wetting_frac_id_,
                             startset, countset, &packing_frac[0]);
     check_err(stat, __LINE__, __FILE__);
+    fout_ << i_step << "\t" << packing_frac[0] << "\t" << packing_frac[1] << std::endl;
   }
   /* thickness and particle number profile */
   {

@@ -13,7 +13,7 @@ class BaseExporter_2 {
 public:
   typedef unsigned long long ull;
 
-  explicit BaseExporter_2(const cmdline::parser &cmd, int mode=0);
+  explicit BaseExporter_2(const cmdline::parser &cmd);
 
   void set_lin_frame(int sep);
 
@@ -52,7 +52,7 @@ private:
 class LogExporter_2: public BaseExporter_2 {
 public:
   explicit LogExporter_2(const cmdline::parser &cmd);
-  ~LogExporter_2();
+  ~LogExporter_2() { fout_.close(); }
   void record(int i_step);
 
 private:
@@ -66,7 +66,7 @@ private:
 class XyExporter: public BaseExporter_2 {
 public:
   explicit XyExporter(const cmdline::parser &cmd);
-
+  ~XyExporter() { fout_.close(); }
   template <typename TPar>
   void write_frame(int i_step, const std::vector<TPar> &p_arr);
 

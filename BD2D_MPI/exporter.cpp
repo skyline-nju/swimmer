@@ -1,7 +1,7 @@
 #include "exporter.h"
 #include "comn.h"
 
-BaseExporter_2::BaseExporter_2(const cmdline::parser & cmd, int mode):  // NOLINT
+BaseExporter_2::BaseExporter_2(const cmdline::parser & cmd):  // NOLINT
   frame_interval_(0), iframe_(0) {
   domain_length_.x = cmd.get<double>("Lx");
   domain_length_.y = cmd.exist("Ly")? cmd.get<double>("Ly"): domain_length_.x;
@@ -27,16 +27,10 @@ BaseExporter_2::BaseExporter_2(const cmdline::parser & cmd, int mode):  // NOLIN
     exit(1);
   }
 
-  if (mode == 1) {
-    char t_str[100];
-    const auto now = std::chrono::system_clock::now();
-    auto t_now = std::chrono::system_clock::to_time_t(now);
-    // ReSharper disable once CppDeprecatedEntity
-    std::strftime(t_str, 100, "%F_%H-%M-%S", std::localtime(&t_now));
-    path_ = folder_ + t_str + ".log";
-  } else if (mode == 2) {
-    path_ = folder_ + "traj.extxyz";
-  }
+  char str[100];
+  snprintf(str, 100, "%g_%g_%g", tumbling_rate_, particle_hardness_, pack_frac_);
+  path_ = str;
+
 }
 
 void BaseExporter_2::set_lin_frame(int sep) {
@@ -56,7 +50,8 @@ bool BaseExporter_2::need_export(int i_step) {
 }
 
 LogExporter_2::LogExporter_2(const cmdline::parser & cmd):
-                             BaseExporter_2(cmd, 1), fout_(path_) {
+                             BaseExporter_2(cmd),
+                             fout_(folder_ + path_ + ".log") {
   t_start_ = std::chrono::system_clock::now();
   auto start_time = std::chrono::system_clock::to_time_t(t_start_);
   char str[100];
@@ -81,7 +76,6 @@ LogExporter_2::LogExporter_2(const cmdline::parser & cmd):
     fout_ << "\ntime step\telapsed time" << std::endl;    
   }
   set_lin_frame(cmd.get<int>("log_dt"));
-
 }
 
 LogExporter_2::~LogExporter_2() {
@@ -110,7 +104,8 @@ void LogExporter_2::record(int i_step) {
 }
 
 XyExporter::XyExporter(const cmdline::parser& cmd):
-  BaseExporter_2(cmd, 2), fout_(path_) {
+                       BaseExporter_2(cmd),
+                       fout_(folder_ + "traj_" + path_ + ".extxyz") {
   set_lin_frame(cmd.get<int>("snap_dt"));
 }
 

@@ -17,7 +17,7 @@ public:
 
   template<typename TPar>
   void operator()(TPar &p, const Wall_x_PBC_y_2 &bc, Ran &myran) const {
-    bc.force(p);
+    bc.wall_force(p);
     update(p, bc, myran);
   }
 
