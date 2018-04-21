@@ -1,7 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
-#include "rand.h"
-#include "comn.h"
+#include <rand.h>
+#include <comn.h>
 
 /**
  * \brief check whether the new particle is overlapped with existed particle.
@@ -99,6 +99,7 @@ public:
 
 template<typename TBc>
 BrownPar_2::BrownPar_2(Ran &myran, const TBc & bc) {
+  x = y = 0;
   bc.new_rand_pos(x, y, myran);
   fx = fy = 0;
 }

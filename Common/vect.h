@@ -299,7 +299,7 @@ void Vec_3<T>::normalize() {
   z *= one_over_r;
 }
 
-template <typename T>
+template <typename T> // this is just a 2D rotation
 void Vec_3<T>::rotate(double theta) {
   const auto c = std::cos(theta);
   const auto s = std::sin(theta);

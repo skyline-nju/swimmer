@@ -1,5 +1,5 @@
 #include "netCDFExporter.h"
-#include "comn.h"
+#include <comn.h>
 #include <cstdio>
 #include <cstdlib>
 #include <netcdf.h>

@@ -4,7 +4,7 @@
 #include <chrono>
 #include <iomanip>
 #include <cmdline.h>
-#include "vect.h"
+#include <vect.h>
 
 /**
  * \brief Basic class for exporter
@@ -52,7 +52,7 @@ private:
 class LogExporter_2: public BaseExporter_2 {
 public:
   explicit LogExporter_2(const cmdline::parser &cmd);
-  ~LogExporter_2() { fout_.close(); }
+  ~LogExporter_2();
   void record(int i_step);
 
 private:

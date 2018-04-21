@@ -1,6 +1,6 @@
 #ifndef INTEGRATE_H
 #define INTEGRATE_H
-#include "rand.h"
+#include <rand.h>
 #include "boundary.h"
 
 class Run_and_tumble {

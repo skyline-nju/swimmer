@@ -21,22 +21,13 @@
     <ClInclude Include="cellList2D.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="comn.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="node.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="particle.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="rand.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="singleDomain2D.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="vect.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="force.h">
@@ -56,9 +47,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="comn.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

@@ -1,6 +1,6 @@
 #ifndef FORCE_H
 #define FORCE_H
-#include "vect.h"
+#include <vect.h>
 #include <cmath>
 
 class SpringForce {

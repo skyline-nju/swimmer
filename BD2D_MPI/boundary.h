@@ -1,7 +1,7 @@
 #ifndef BOUNDARY_H
 #define BOUNDARY_H
-#include "vect.h"
-#include "rand.h"
+#include <vect.h>
+#include <rand.h>
 #include <cmdline.h>
 
 /**

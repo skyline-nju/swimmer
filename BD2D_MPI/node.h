@@ -1,6 +1,6 @@
 #ifndef NODE_H
 #define NODE_H
-#include "rand.h"
+#include <rand.h>
 #include <list>
 
 template <class TPar>

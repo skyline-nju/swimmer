@@ -2,7 +2,7 @@
 #define SINGLE_DOMAIN_2_H
 #include <functional>
 #include "cellList2D.h"
-#include "rand.h"
+#include <rand.h>
 #include "particle.h"
 #include "integrate.h"
 #include "force.h"
@@ -139,7 +139,8 @@ void Single_domain_2<TNode, TBc>::integrate3(const TIntegrate &integ) {
 
 template <typename TNode, typename TBc>
 void Single_domain_2<TNode, TBc>::output(int i_step) {
-  log_->record(i_step);
+  if (log_)
+    log_->record(i_step);
   if (profile_) {
     std::vector<Cluster_w_xlim> c_arr;
     std::vector<bool> flag_clustered;

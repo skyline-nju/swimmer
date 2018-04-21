@@ -1,7 +1,7 @@
 #ifndef CELLLIST2D_H
 #define CELLLIST2D_H
 #include <vector>
-#include "vect.h"
+#include <vect.h>
 #include "node.h"
 
 /**

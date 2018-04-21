@@ -1,5 +1,5 @@
 #include "exporter.h"
-#include "comn.h"
+#include <comn.h>
 
 BaseExporter_2::BaseExporter_2(const cmdline::parser & cmd):  // NOLINT
   frame_interval_(0), iframe_(0) {
@@ -89,6 +89,7 @@ LogExporter_2::~LogExporter_2() {
   std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
   fout_ << "speed=" << n_step_ * n_par_ / elapsed_seconds.count()
         << " particle time step per seconds\n";
+  fout_.close();
 }
 
 void LogExporter_2::record(int i_step) {
