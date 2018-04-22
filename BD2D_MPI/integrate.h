@@ -21,6 +21,10 @@ public:
     update(p, bc, myran);
   }
 
+  template <typename TPar, typename UniFunc1, typename UniFunc2>
+  void operator() (TPar &p, Ran &myran, UniFunc1 wrap,
+                   UniFunc2 wall_force) const;
+
 private:
   double h_;
   double tumbling_rate_;
@@ -43,6 +47,19 @@ void Run_and_tumble::update(TPar & p, const TBc & bc, Ran & myran) const {
   p.x += (p.ux * v0_ + mu_ * p.fx) * h_;
   p.y += (p.uy * v0_ + mu_ * p.fy) * h_;
   bc.wrap(p);
+  p.fx = p.fy = 0;
+}
+
+template <typename TPar, typename UniFunc1, typename UniFunc2>
+void Run_and_tumble::operator()(TPar& p, Ran& myran,
+                                UniFunc1 wrap, UniFunc2 wall_force) const {
+  wall_force(p);
+  if (myran.doub() < reduced_tumbling_rate_) {
+    circle_point_picking(p.ux, p.uy, myran);
+  }
+  p.x += (p.ux * v0_ + mu_ * p.fx) * h_;
+  p.y += (p.uy * v0_ + mu_ * p.fy) * h_;
+  wrap(p);
   p.fx = p.fy = 0;
 }
 

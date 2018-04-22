@@ -145,18 +145,27 @@ void Single_domain_2<TNode, TBc>::output(int i_step) {
     std::vector<Cluster_w_xlim> c_arr;
     std::vector<bool> flag_clustered;
     std::vector<char> flag_wetting;
+    auto cal_cluster = [this, &c_arr, &flag_clustered, &flag_wetting]() {
+      dbscan_wall(c_arr, flag_clustered, flag_wetting, profile_->get_eps(),
+                  profile_->get_min_pts(), profile_->get_height_min(), p_arr_, bc_);
+    };
     if (profile_->need_export(i_step)) {
-      profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
-      profile_->write_frame(i_step, p_arr_, flag_wetting, bc_);
+      cal_cluster();
+      auto lambda = [this, &flag_wetting](std::vector<float> &thickness,
+                                          std::vector<unsigned short> &num,
+                                          std::vector<double> &frac) {
+        cal_wetting_profile(thickness, num, frac, p_arr_, flag_wetting, bc_);
+      };
+      profile_->write_frame(i_step, lambda);
     }
     if (xy_ && xy_->need_export(i_step)) {
       if (c_arr.empty())
-        profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
+        cal_cluster();
       xy_->write_frame(i_step, p_arr_, flag_wetting);
     }
     if (nc_ && nc_->need_export(i_step)) {
       if (c_arr.empty())
-        profile_->cal_cluster(c_arr, flag_clustered, flag_wetting, p_arr_, bc_);
+        cal_cluster();
       nc_->write_frame(i_step, p_arr_, flag_wetting);
     }
   } else {
@@ -180,7 +189,6 @@ void Single_domain_2<TNode, TBc>::run(const cmdline::parser & cmd) {
     integ = [this, &move]() {integrate2(move); };
   else
     integ = [this, &move]() {integrate3(move); };
-
   const auto t1 = std::chrono::system_clock::now();
   for (int i = 1; i <= n_step; i++) {
     cal_force(f_spring);

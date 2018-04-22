@@ -283,7 +283,7 @@ ProfileExporter::ProfileExporter(const cmdline::parser & cmd) :  // NOLINT
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_double(ncid_, NC_GLOBAL, "eps", NC_DOUBLE, 1, &eps_);
     check_err(stat, __LINE__, __FILE__);
-    stat = nc_put_att_int(ncid_, NC_GLOBAL, "min_pts", NC_INT, 1, &min_pts_);
+    stat = nc_put_att_uint(ncid_, NC_GLOBAL, "min_pts", NC_INT, 1, &min_pts_);
     check_err(stat, __LINE__, __FILE__);
     stat = nc_put_att_double(ncid_, NC_GLOBAL, "height_min", NC_DOUBLE, 1, &height_min_);
     check_err(stat, __LINE__, __FILE__);

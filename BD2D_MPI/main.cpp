@@ -3,8 +3,8 @@
 #include <cmdline.h>
 #include "node.h"
 #include "particle.h"
-#include "singleDomain2D.h"
-#include "boundary.h"
+//#include "singleDomain2D.h"
+#include "uniDomain.h"
 //#define USE_MPI
 #ifdef USE_MPI
 #include "mpi.h"
@@ -37,6 +37,10 @@ int main(int argc, char* argv[]) {
   cmd.add<int>("int_mode", '\0', "integration mode", false, 0);
   cmd.add<double>("k_wall", '\0', "hardness of the wall", false, 100);
 
+  /* boundary condition */
+  cmd.add<int>("bc_x", '\0', "boundary condition in the x direction", false, 0);
+  cmd.add<int>("bc_y", '\0', "boundary condition in the y direction", false, 0);
+
   /* output settings */
   cmd.add<string>("output", 'o', "path for outputting", false);
   cmd.add<string>("snap_fmt", '\0', "format for snapshot", false, "nc",
@@ -52,9 +56,15 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("height_min", '\0', "min distance for a wetting particle", false, 0.55);
   cmd.parse_check(argc, argv);
 
-  Single_domain_2<BiNode<ActiveBrownPar_2>, Wall_x_PBC_y_2> s(cmd);
-  s.ini_rand();
-  s.run(cmd);
+  //Single_domain_2<BiNode<ActiveBrownPar_2>, Wall_x_PBC_y_2> s(cmd);
+  //s.ini_rand();
+  //s.run(cmd);
+
+  std::vector<BiNode<ActiveBrownPar_2>> p_arr;
+  CellListNode_2<BiNode<ActiveBrownPar_2>> *cl;
+  UniDomain_2 domain(cmd);
+  domain.ini_rand(p_arr, &cl);
+  domain.run(cmd, p_arr, cl);
 
 #else
   MPI_Finalize();

@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cellList.h" />
+    <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="vect.h" />

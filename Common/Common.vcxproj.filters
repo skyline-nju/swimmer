@@ -24,6 +24,12 @@
     <ClInclude Include="rand.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cellList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp">

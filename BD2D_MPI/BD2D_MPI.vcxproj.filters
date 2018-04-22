@@ -45,6 +45,12 @@
     <ClInclude Include="exporter.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="uniDomain.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="wet_profile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="exporter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="uniDomain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

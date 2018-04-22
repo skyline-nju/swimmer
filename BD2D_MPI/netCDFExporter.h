@@ -1,7 +1,6 @@
 #ifndef NETCDFEXPORTER_H
 #define NETCDFEXPORTER_H
 #include "exporter.h"
-#include "wetting.h"
 
 /* Transform the 2D particle's coordinates into a 3D array by setting z=1 */
 template <typename TPar, typename T>
@@ -98,20 +97,16 @@ public:
                   const std::vector<unsigned short> &num_profile,
                   const std::vector<double> &packing_frac);
 
-  template <typename TPar, typename TBc>
-  void write_frame(int i_step, const std::vector<TPar> &p_arr,
-                   const std::vector<char> &flag_wetting, const TBc &bc);
+  //template <typename TPar, typename TBc>
+  //void write_frame(int i_step, const std::vector<TPar> &p_arr,
+  //                 const std::vector<char> &flag_wetting, const TBc &bc);
 
-  template <typename TPar, typename TBc>
-  void cal_cluster(std::vector<Cluster_w_xlim> &c_arr,
-                   std::vector<bool> &flag_clustered,
-                   std::vector<char> &flag_wetting,
-                   const std::vector<TPar> &p_arr,
-                   const TBc &bc) const {
-    dbscan_wall(c_arr, flag_clustered, flag_wetting,
-                eps_, min_pts_, height_min_, p_arr, bc);
-  }
+  template <typename TriFunc>
+  void write_frame(int i_step, TriFunc cal_profile);
 
+  double get_eps() const { return eps_; }
+  unsigned int get_min_pts() const { return min_pts_; }
+  double get_height_min() const { return height_min_; }
 private:
   void set_chunk_and_deflate() const;
   int deflate_level_;
@@ -130,15 +125,24 @@ private:
 };
 
 
-template<typename TPar, typename TBc>
-void ProfileExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
-                                  const std::vector<char>& flag_wetting,
-                                  const TBc & bc) {
+//template<typename TPar, typename TBc>
+//void ProfileExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
+//                                  const std::vector<char>& flag_wetting,
+//                                  const TBc & bc) {
+//  std::vector<float> thickness_profile(row_len_ * 2, 0);
+//  std::vector<unsigned short> num_profile(row_len_ * 2, 0);
+//  std::vector<double> packing_frac(2, 0);
+//  cal_wetting_profile(thickness_profile, num_profile, packing_frac,
+//                      p_arr, flag_wetting, bc);
+//  dump_frame(i_step, thickness_profile, num_profile, packing_frac);
+//}
+
+template <typename TriFunc>
+void ProfileExporter::write_frame(int i_step, TriFunc cal_profile) {
   std::vector<float> thickness_profile(row_len_ * 2, 0);
   std::vector<unsigned short> num_profile(row_len_ * 2, 0);
   std::vector<double> packing_frac(2, 0);
-  cal_wetting_profile(thickness_profile, num_profile, packing_frac,
-                      p_arr, flag_wetting, bc);
+  cal_profile(thickness_profile, num_profile, packing_frac);
   dump_frame(i_step, thickness_profile, num_profile, packing_frac);
 }
 

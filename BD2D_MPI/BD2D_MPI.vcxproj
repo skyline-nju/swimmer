@@ -146,12 +146,14 @@
     <ClInclude Include="cellList2D.h" />
     <ClInclude Include="exporter.h" />
     <ClInclude Include="netCDFExporter.h" />
+    <ClInclude Include="uniDomain.h" />
     <ClInclude Include="wetting.h" />
     <ClInclude Include="force.h" />
     <ClInclude Include="integrate.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="singleDomain2D.h" />
+    <ClInclude Include="wet_profile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="boundary.cpp" />
@@ -159,6 +161,7 @@
     <ClCompile Include="exporter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netCDFExporter.cpp" />
+    <ClCompile Include="uniDomain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

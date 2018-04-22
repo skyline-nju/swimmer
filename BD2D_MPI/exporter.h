@@ -38,7 +38,7 @@ protected:
   int frame_interval_;
 
   double eps_;  // two particle are treated as neighbors within eps.
-  int min_pts_; // the minimum neighbors that one core point should have.
+  unsigned int min_pts_; // the minimum neighbors that one core point should have.
   double height_min_;  // the minimum distance from the "wetting" particle to the wall.
 private:
   int iframe_;

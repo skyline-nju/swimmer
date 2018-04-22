@@ -1,6 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
-#include <rand.h>
+#include "rand.h"
+#include "vect.h"
 #include <list>
 
 template <class TPar>
@@ -40,7 +41,9 @@ public:
   (x0, y0, vx0, vy0), prev(nullptr), next(nullptr) {}
   template <typename TBc>
   BiNode(Ran &myran, const TBc &bc): TPar(myran, bc), prev(nullptr), next(nullptr) {}
-  
+
+  BiNode(Ran &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
+    : TPar(myran, l, origin), prev(nullptr), next(nullptr) {}
   void append_at_front(BiNode<TPar> ** head);
 
   void break_away() const;
