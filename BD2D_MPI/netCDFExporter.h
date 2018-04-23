@@ -14,7 +14,6 @@ void par2_to_coord3(const std::vector<TPar> &p_arr, std::vector<T> &coord) {
   }
 }
 
-/* Export particle data into netCDF file*/
 class NcParExporter_2 :public BaseExporter_2 {
 public:
   explicit NcParExporter_2(const cmdline::parser &cmd);

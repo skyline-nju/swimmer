@@ -142,8 +142,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="boundary.h" />
-    <ClInclude Include="cellList2D.h" />
     <ClInclude Include="exporter.h" />
     <ClInclude Include="netCDFExporter.h" />
     <ClInclude Include="uniDomain.h" />
@@ -152,12 +150,8 @@
     <ClInclude Include="integrate.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="particle.h" />
-    <ClInclude Include="singleDomain2D.h" />
-    <ClInclude Include="wet_profile.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="boundary.cpp" />
-    <ClCompile Include="cellList2D.cpp" />
     <ClCompile Include="exporter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netCDFExporter.cpp" />

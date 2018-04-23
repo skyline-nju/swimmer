@@ -15,19 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="boundary.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cellList2D.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="node.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="particle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="singleDomain2D.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="force.h">
@@ -48,18 +39,9 @@
     <ClInclude Include="uniDomain.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="wet_profile.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="boundary.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cellList2D.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="netCDFExporter.cpp">

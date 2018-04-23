@@ -1,12 +1,36 @@
+/**
+ * @brief Linked-cell list
+ * 
+ * @file cellList.h
+ * @author skyline-nju
+ * @date 2018-04-23
+ */
 #ifndef CELLLIST_H
 #define CELLLIST_H
 #include <vector>
 #include "vect.h"
 
+/**
+ * \brief Base class for 2d linked-cell list.
+ */
 class CellListBase_2 {
 public:
+  /**
+   * \brief Constructor 
+   * \param l Domain size, 2d vector.
+   * \param r_cut Cutoff radius
+   * \param origin Origin point of the damain, 2d vector.
+   */
   CellListBase_2(const Vec_2<double> &l, double r_cut,
                  const Vec_2<double> &origin);
+  /**
+   * \brief Visit the nearest cells and itself.
+   * \param my_row The row index of the cell.
+   * \param my_col The column index of the cell.
+   * \param f Template function: void(int).
+   */
+  template<typename UniFunc>
+  void visit_nearby_cell(int my_row, int my_col, UniFunc f) const;
 
   int get_row(double y) const {
     return int((y - origin_.y) * inverse_lc_.y);
@@ -32,26 +56,50 @@ public:
   int get_row(int my_row, int row_offset) const;
 
   int get_col(int my_col, int col_offset) const;
-
-  template<typename UniFunc>
-  void visit_nearby_cell(int my_row, int my_col, UniFunc f) const;
 protected:
-  int ncells_;
-  Vec_2<int> n_;
-  Vec_2<double> origin_;
-  Vec_2<double> inverse_lc_;
+  int ncells_;                //!< number of cells
+  Vec_2<int> n_;              //!< number of rows, columns
+  Vec_2<double> origin_;      //!< origin point of the domain
+  Vec_2<double> inverse_lc_;  //!< inverse length of one cell
 };
-
+/*****************************************************************************/
+/**
+ * \brief Linked-cell list recording the index of the particles.
+ * 
+ * Use the STL container such as std::list or std::forward_list to record the
+ * index of particles. Each cell is one such container.
+ * \tparam TContainer Contain the indexs of particles located in one cell. 
+ */
+/****************************************************************************/
 template <typename TContainer>
 class CellListIdx_2: public CellListBase_2 {
 public:
+  /**
+  * \brief Constructor
+  * \param l Domain size, 2d vector.
+  * \param r_cut Cutoff radius
+  * \param origin Origin point of the damain, 2d vector, default zero.
+  */
   CellListIdx_2(const Vec_2<double> &l, double r_cut,
                 const Vec_2<double> &origin = Vec_2<double>())
     : CellListBase_2(l, r_cut, origin), head_(ncells_) {}
 
+  /**
+   * \brief Create cell list
+   * \tparam TPar Template particle.
+   * \param p_arr Array of particles.
+   */
   template <typename TPar>
-  void create(const TPar &p_arr);
+  void create(const std::vector<TPar> &p_arr);
 
+  /**
+   * \brief Visit nearby particles sorrounding one particle.
+   * \tparam TPar   Template particle.
+   * \tparam BiFunc Template function: void(TPar*, TPar*)
+   * \param p       Pointer of the target particle
+   * \param p_arr   Array of particles.
+   * \param f_ij A  Function acting on the target particle and its' neighbor.
+   */
   template <typename TPar, typename BiFunc>
   void for_nearby_par(const TPar* p, const std::vector<TPar> &p_arr,
                       BiFunc f_ij) const;
@@ -59,50 +107,124 @@ public:
 protected:
   std::vector<TContainer> head_;
 };
-
+/*****************************************************************************/
+/**
+ * \brief Linked-cell list constituted by bidirectional nodes.
+ * 
+ * Each cell contains one pointer of bidirectional node. Then first node has the
+ * pointer pointing the second one, and so on. 
+ * \tparam TNode Template node, which should contain two pointers: prev, next.
+ */
+/*****************************************************************************/
 template <typename TNode>
 class CellListNode_2:public CellListBase_2 {
 public:
   typedef typename std::vector<TNode*>::iterator IT;
   typedef typename std::vector<TNode*>::const_iterator CIT;
-
+  /**
+  * \brief Constructor
+  * \param l Domain size, 2d vector.
+  * \param r_cut Cutoff radius
+  * \param origin Origin point of the damain, 2d vector, defalut zero.
+  */
   CellListNode_2(const Vec_2<double> &l, double r_cut,
                  const Vec_2<double> &origin = Vec_2<double>())
     : CellListBase_2(l, r_cut, origin), head_(ncells_) {}
 
+  /**
+  * \brief Visit particle pairs located in cell[row_beg: row_end, col_beg: col_end].
+  * \tparam BiFunc   Template function: void(TNode*, TNode*)
+  * \param f_ij      Function acting on two particles.
+  * \param row_beg   Beginning row index.
+  * \param row_end   Ending row index.
+  * \param col_beg   Beginnig column index.
+  * \param col_end   Ending column index.
+  */
   template <typename BiFunc>
   void for_each_pair(BiFunc f_ij, int row_beg, int row_end,
                      int col_beg, int col_end);
 
+  /**
+   * \brief Visit all particle pairs.
+   * \tparam BiFunc Template function: void(TNode*, TNode*)
+   * \param f_ij    Function acting on two particles.
+   */
   template <typename BiFunc>
   void for_each_pair(BiFunc f_ij) {
     for_each_pair(f_ij, 0, n_.y, 0, n_.x);
   }
-
+  /**
+  * \brief Visit nearby particles surronding one particle
+  * \tparam BiFunc Template function: void(TPar*, TPar*)
+  * \param p       Pointer of the target particle
+  * \param f_ij A  Function acting on the target particle and its' neighbor.
+  */
   template <typename BiFunc>
   void for_nearby_par(const TNode *p, BiFunc f_ij) const;
-
+  /**
+  * \brief Create cell list
+  * \tparam TPar Template particle.
+  * \param p_arr Array of particles.
+  */
   void create(std::vector<TNode> &p_arr);
 
+  /**
+   * \brief Recreate cell list
+   * \param p_arr Array of particles.
+   */
   void recreate(std::vector<TNode> &p_arr);
 
+  /**
+   * \brief Update particles in cell ic.
+   * \tparam UniFunc Template function: void(TNode *)
+   * \param move     Function to update the coordinates of a particle.
+   * \param ic       Index of the target cell.
+   * \param head0    The head pointer of cell ic before updating nearby cells.
+   */
   template <typename UniFunc>
   void update(UniFunc move, int ic, TNode* head0);
 
+  /**
+   * \brief Update particles in cells from first to last
+   * \tparam UniFunc Template function: void(TNode *)
+   * \param move     Function to update the coordinates of a particle.
+   * \param first_ic Index of the first cell.
+   * \param first    Iterator of the first head pointer.
+   * \param last     Iterator of the last head pointer.
+   */
   template <typename UniFunc>
   void update(UniFunc move, int first_ic, CIT first, CIT last);
 
+  /**
+   * \brief Update particles in an array of cells.
+   * \tparam UniFunc Template function: void(TNode *)
+   * \param move     Function to update the coordinates of a particle.
+   * \param first_ic Index of the first cell.
+   * \param head0    Vector of head pointer.
+   */
   template <typename UniFunc>
   void update(UniFunc move, int first_ic, const std::vector<TNode*> &head0) {
     update(move, first_ic, head0.cbegin(), head0.cend());
   }
 
+  /**
+   * \brief Update all particles.
+   * \tparam UniFunc Template function: void(TNode *)
+   * \param move     Function to update the coordinates of a particle.
+   */
   template <typename UniFunc>
   void update(UniFunc move) {
     std::vector<TNode*> head_cur(head_);
     update(move, 0, head_cur.cbegin(), head_cur.cend());
   }
 
+  /**
+   * \brief Update all particles row by row.
+   * 
+   * Update the cells row by row, so that less memories are requried.
+   * \tparam UniFunc Template function: void(TNode *)
+   * \param move     Function to update the coordinates of a particle.
+   */
   template <typename UniFunc>
   void update_by_row(UniFunc move);
 
@@ -163,7 +285,6 @@ inline int CellListBase_2::get_col(int my_col, int col_offset) const {
   return col;
 }
 
-
 template<typename UniFunc>
 void CellListBase_2::visit_nearby_cell(int my_row, int my_col, UniFunc f) const {
   for (int drow = -1; drow <= 1; drow++) {
@@ -177,12 +298,11 @@ void CellListBase_2::visit_nearby_cell(int my_row, int my_col, UniFunc f) const 
 
 template<typename TContainer>
 template<typename TPar>
-void CellListIdx_2<TContainer>::create(const TPar & p_arr) {
+void CellListIdx_2<TContainer>::create(const std::vector<TPar> & p_arr) {
   for (unsigned int i = 0; i < p_arr.size(); i++) {
     int ic = get_ic(p_arr[i]);
     head_[ic].push_front(i);
-  }
-  
+  } 
 }
 
 template<typename TContainer>

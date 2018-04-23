@@ -8,9 +8,11 @@ template <class TPar>
 class UniNode : public TPar {
 public:
   UniNode() : TPar(), next(nullptr) {}
+
   UniNode(double x0, double y0, double vx0, double vy0): TPar(x0, y0, vx0, vy0), next(nullptr) {}
-  template <typename TBc> 
-  UniNode(Ran &myran, const TBc &bc): TPar(myran, bc), next(nullptr) {}
+
+  UniNode(Ran &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
+    : TPar(myran, l, origin), next(nullptr) {}
 
   void append_at_front(UniNode<TPar> ** head) {
     next = *head;
@@ -37,13 +39,13 @@ template <class TPar>
 class BiNode : public TPar {
 public:
   BiNode() : TPar(), prev(nullptr), next(nullptr) {}
-  BiNode(double x0, double y0, double vx0, double vy0): TPar
-  (x0, y0, vx0, vy0), prev(nullptr), next(nullptr) {}
-  template <typename TBc>
-  BiNode(Ran &myran, const TBc &bc): TPar(myran, bc), prev(nullptr), next(nullptr) {}
+
+  BiNode(double x0, double y0, double vx0, double vy0)
+    : TPar(x0, y0, vx0, vy0), prev(nullptr), next(nullptr) {}
 
   BiNode(Ran &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
     : TPar(myran, l, origin), prev(nullptr), next(nullptr) {}
+
   void append_at_front(BiNode<TPar> ** head);
 
   void break_away() const;

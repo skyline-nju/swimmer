@@ -28,3 +28,11 @@ UniDomain_2::UniDomain_2(const cmdline::parser & cmd)
   }
 }
 
+
+UniDomain_2::~UniDomain_2() {
+  delete log_;
+  delete xy_;
+  delete nc_;
+  delete profile_;
+}
+

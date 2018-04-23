@@ -3,7 +3,6 @@
 #include <cmdline.h>
 #include "node.h"
 #include "particle.h"
-//#include "singleDomain2D.h"
 #include "uniDomain.h"
 //#define USE_MPI
 #ifdef USE_MPI
@@ -56,15 +55,12 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("height_min", '\0', "min distance for a wetting particle", false, 0.55);
   cmd.parse_check(argc, argv);
 
-  //Single_domain_2<BiNode<ActiveBrownPar_2>, Wall_x_PBC_y_2> s(cmd);
-  //s.ini_rand();
-  //s.run(cmd);
-
   std::vector<BiNode<ActiveBrownPar_2>> p_arr;
   CellListNode_2<BiNode<ActiveBrownPar_2>> *cl;
   UniDomain_2 domain(cmd);
   domain.ini_rand(p_arr, &cl);
   domain.run(cmd, p_arr, cl);
+  delete cl;
 
 #else
   MPI_Finalize();

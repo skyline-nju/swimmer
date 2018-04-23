@@ -322,7 +322,8 @@ void ProfileExporter::dump_frame(int i_step,
    auto stat = nc_put_vara(ncid_, wetting_frac_id_,
                            startset, countset, &packing_frac[0]);
    check_err(stat, __LINE__, __FILE__);
-   fout_ << i_step << "\t" << packing_frac[0] << "\t" << packing_frac[1] << std::endl;
+   fout_ << i_step << std::fixed << std::setprecision(8) << "\t" 
+         << packing_frac[0] << "\t" << packing_frac[1] << std::endl;
  }
  /* thickness and particle number profile */
  {
