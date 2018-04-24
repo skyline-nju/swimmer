@@ -148,7 +148,6 @@
     <ClInclude Include="wetting.h" />
     <ClInclude Include="force.h" />
     <ClInclude Include="integrate.h" />
-    <ClInclude Include="node.h" />
     <ClInclude Include="particle.h" />
   </ItemGroup>
   <ItemGroup>

@@ -4,22 +4,6 @@
 #include "comn.h"
 #include "vect.h"
 
-inline void tangle_1(double &x, double x_min, double x_max, double l) {
-  if (x < x_min) {
-    x += l;
-  } else if (x >= x_max) {
-    x -= l;
-  }
-}
-
-inline void untangle_1(double &dx, double l, double half_l) {
-  if (dx < -half_l) {
-    dx += l;
-  } else if (dx > half_l) {
-    dx -= l;
-  }
-}
-
 /* Check whether the new particle is overlapped with existed particle. */
 template <typename TPar>
 bool check_overlap_2(const TPar &p_new, const std::vector<TPar> &p_arr,
@@ -89,6 +73,9 @@ public:
 
   BrownPar_2(double x0, double y0) : x(x0), y(y0) { fx = fy = 0; }
 
+  BrownPar_2(double x0, double y0, double fx0, double fy0)
+    : x(x0), y(y0), fx(fx0), fy(fy0) {}
+
   BrownPar_2(Ran &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
     : x(origin.x + myran.doub() * l.x), y(origin.y + myran.doub() * l.y),
       fx(0), fy(0) {}
@@ -106,8 +93,8 @@ class ActiveBrownPar_2: public BrownPar_2{
 public:
   ActiveBrownPar_2() { ux = uy = 0; }
 
-  ActiveBrownPar_2(double x0, double y0, double ux0, double uy0) :
-    BrownPar_2(x0, y0), ux(ux0), uy(uy0) {}
+  ActiveBrownPar_2(double x0, double y0, double ux0, double uy0)
+    : BrownPar_2(x0, y0), ux(ux0), uy(uy0) {}
 
   ActiveBrownPar_2(Ran &myran, const Vec_2<double> &l,
                    const Vec_2<double> &origin);

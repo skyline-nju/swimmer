@@ -16,14 +16,30 @@ const std::string delimiter("\\");
 const std::string delimiter("/");
 #endif
 
+
+inline void tangle_1(double &x, double x_min, double x_max, double l) {
+  if (x < x_min) {
+    x += l;
+  } else if (x >= x_max) {
+    x -= l;
+  }
+}
+
+inline void untangle_1(double &dx, double l, double half_l) {
+  if (dx < -half_l) {
+    dx += l;
+  } else if (dx > half_l) {
+    dx -= l;
+  }
+}
+
 // create folder
 void mkdir(const char *folder);
 
 inline void mkdir(const std::string &folder) {mkdir(folder.c_str());}
 
 // split string by a delimiter
-std::vector<std::string> split(
-  const std::string &str, const std::string &dlm);
+std::vector<std::string> split(const std::string &str, const std::string &dlm);
 
 template <class T>
 void str_to_num(const std::string str, T &num) {
@@ -39,10 +55,10 @@ void num_to_str(const T &num, std::string str) {
   ss >> str;
 }
 
-// Calculate packing fraction from particle number
+// Calculate packing fraction from particle number in 2D domain
 double cal_packing_fraction_2(int n, double Lx, double Ly, double sigma);
 
-// Calculate particle number from packing fraction
+// Calculate particle number from packing fraction in 2D domain
 int cal_particle_number_2(double phi, double Lx, double Ly, double sigma);
 
 // Calculate the elapsed time to run a function
@@ -53,7 +69,6 @@ void cal_elapsed_time(TFunc f) {
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
   std::cout << "elapsed time: " << elapsed_time.count() << std::endl;
-
 }
 
 //#define SPATIAL_SORT

@@ -1,8 +1,22 @@
+/**
+ * @brief Exporter the data as netCDF format
+ * 
+ * @file netCDFExporter.h
+ * @author skyline-nju
+ * @date 2018-04-24
+ */
 #ifndef NETCDFEXPORTER_H
 #define NETCDFEXPORTER_H
 #include "exporter.h"
 
-/* Transform the 2D particle's coordinates into a 3D array by setting z=1 */
+
+/**
+ * \brief Transform the 2D particle's coordinates into a 3D array by setting z=1
+ * \tparam TPar Template type for inputing particles
+ * \tparam T    Type of outputing data.
+ * \param p_arr Particle array as input
+ * \param coord Coordinate array as output
+ */
 template <typename TPar, typename T>
 void par2_to_coord3(const std::vector<TPar> &p_arr, std::vector<T> &coord) {
   auto n = p_arr.size();
@@ -14,6 +28,9 @@ void par2_to_coord3(const std::vector<TPar> &p_arr, std::vector<T> &coord) {
   }
 }
 
+/*************************************************************************//**
+ * \brief Particle snapshot exporter with netCDF format
+ ****************************************************************************/
 class NcParExporter_2 :public BaseExporter_2 {
 public:
   explicit NcParExporter_2(const cmdline::parser &cmd);
@@ -85,7 +102,10 @@ void NcParExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr,
   time_idx_[0] = time_idx_[0] + 1;
 }
 
-/* Export the data about wetting transition */
+
+/*************************************************************************//**
+ * \brief Wetting data exporter
+ ****************************************************************************/
 class ProfileExporter : public BaseExporter_2 {  // NOLINT
 public:
   explicit ProfileExporter(const cmdline::parser &cmd);
@@ -95,10 +115,6 @@ public:
                   const std::vector<float> &thickness_profile,
                   const std::vector<unsigned short> &num_profile,
                   const std::vector<double> &packing_frac);
-
-  //template <typename TPar, typename TBc>
-  //void write_frame(int i_step, const std::vector<TPar> &p_arr,
-  //                 const std::vector<char> &flag_wetting, const TBc &bc);
 
   template <typename TriFunc>
   void write_frame(int i_step, TriFunc cal_profile);
@@ -122,19 +138,6 @@ private:
 
   std::ofstream fout_;
 };
-
-
-//template<typename TPar, typename TBc>
-//void ProfileExporter::write_frame(int i_step, const std::vector<TPar>& p_arr,
-//                                  const std::vector<char>& flag_wetting,
-//                                  const TBc & bc) {
-//  std::vector<float> thickness_profile(row_len_ * 2, 0);
-//  std::vector<unsigned short> num_profile(row_len_ * 2, 0);
-//  std::vector<double> packing_frac(2, 0);
-//  cal_wetting_profile(thickness_profile, num_profile, packing_frac,
-//                      p_arr, flag_wetting, bc);
-//  dump_frame(i_step, thickness_profile, num_profile, packing_frac);
-//}
 
 template <typename TriFunc>
 void ProfileExporter::write_frame(int i_step, TriFunc cal_profile) {

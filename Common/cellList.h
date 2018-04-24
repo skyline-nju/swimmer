@@ -1,6 +1,5 @@
 /**
  * @brief Linked-cell list
- * 
  * @file cellList.h
  * @author skyline-nju
  * @date 2018-04-23
@@ -9,6 +8,7 @@
 #define CELLLIST_H
 #include <vector>
 #include "vect.h"
+#include "node.h"
 
 /**
  * \brief Base class for 2d linked-cell list.

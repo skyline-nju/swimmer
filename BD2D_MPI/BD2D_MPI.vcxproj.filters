@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="node.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="particle.h">
       <Filter>头文件</Filter>
     </ClInclude>

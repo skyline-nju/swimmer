@@ -1,7 +1,6 @@
 #ifndef UNIDOMAIN_H
 #define UNIDOMAIN_H
 #include <functional>
-#include <memory>
 #include "rand.h"
 #include "cmdline.h"
 #include "cellList.h"

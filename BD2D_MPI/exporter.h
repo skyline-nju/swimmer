@@ -1,3 +1,10 @@
+/**
+ * @brief Simulation data exporter
+ * 
+ * @file exporter.h
+ * @author skyline-nju
+ * @date 2018-04-24
+ */
 #ifndef EXPORT_H
 #define EXPORT_H
 #include <fstream>
@@ -6,9 +13,9 @@
 #include <cmdline.h>
 #include <vect.h>
 
-/**
+/*************************************************************************//**
  * \brief Basic class for exporter
- */
+ ****************************************************************************/
 class BaseExporter_2 {
 public:
   typedef unsigned long long ull;
@@ -37,18 +44,18 @@ protected:
   std::string path_;
   int frame_interval_;
 
-  double eps_;  // two particle are treated as neighbors within eps.
-  unsigned int min_pts_; // the minimum neighbors that one core point should have.
-  double height_min_;  // the minimum distance from the "wetting" particle to the wall.
+  double eps_;              //!> two particle are treated as neighbors when their spacing is smaller than eps_.
+  unsigned int min_pts_;    //!> the minimum neighbors that one core point should have.
+  double height_min_;       //!> the minimum distance from the "wetting" particle to the wall.
 private:
   int iframe_;
   std::vector<int> frames_arr_;
 };
 
 
-/**
+/*************************************************************************//**
  * \brief Class for writting the log file
- */
+ ****************************************************************************/
 class LogExporter_2: public BaseExporter_2 {
 public:
   explicit LogExporter_2(const cmdline::parser &cmd);
@@ -60,9 +67,9 @@ private:
   std::ofstream fout_;
 };
 
-/**
+/*************************************************************************//**
  * \brief Class for outputing the snapshot as XYZ format.
- */
+ ****************************************************************************/
 class XyExporter: public BaseExporter_2 {
 public:
   explicit XyExporter(const cmdline::parser &cmd);

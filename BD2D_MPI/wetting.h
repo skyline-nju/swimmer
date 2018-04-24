@@ -1,3 +1,12 @@
+/**
+ * @brief Cal wetting profile, packing fraction, correlation length, etc...
+ * 
+ * Study the wetting transition of active Brownian colloids / run-and-tumble swimmers.
+ * 
+ * @file wetting.h
+ * @author skyline-nju
+ * @date 2018-04-24
+ */
 #ifndef WETTING_H
 #define WETTING_H
 #include "cellList.h"
@@ -29,11 +38,9 @@ void find_neighbors(int i, double eps_square, const std::vector<TPar> &p_arr,
   cl.for_nearby_par(&p_arr[i], p_arr, add_neighbor);
 }
 
-/****************************************************************************/
-/**
+/************************************************************************//**
  * \brief Class for cluster
- */
-/***************************************************************************/
+ ***************************************************************************/
 class Cluster {
 public:
   Cluster() = default;
@@ -99,11 +106,9 @@ protected:
   std::vector<int> idx_arr_;  //!< index of particls of this cluster.
 };
 
-/*****************************************************************************/
-/**
+/*************************************************************************//**
  * \brief Cluster with x_min and x_max.
- */
-/****************************************************************************/
+ ****************************************************************************/
 class Cluster_w_xlim : public Cluster {
 public:
   Cluster_w_xlim() { x_min_ = x_max_ = 0; }
