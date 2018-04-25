@@ -1,6 +1,7 @@
 #ifndef RAND_H
 #define RAND_H
 #include <cmath>
+#include <vector>
 /********************Uniform Random number generator*************************/
 // Ref: Numerical Recipes, The Art of Scientific Computing, 3rd
 // Uniform Random number generator with period 3.138e57
@@ -144,7 +145,7 @@ void hypersphere_point_picking(double *X, MyRan &myran) {
 // Shuffle a array randomly
 template<class T, class MyRan>
 void shuffle(T *a, int n, MyRan &myran) {
-  for (int i = n - 1; i >= 0; i--) {
+  for (int i = n - 1; i > 0; i--) {
     // generate a random int j that 0 <= j <= i  
     int j = int(myran.doub() * (i + 1));
     if (j > i)
@@ -155,6 +156,30 @@ void shuffle(T *a, int n, MyRan &myran) {
     a[i] = a[j];
     a[j] = tmp;
   }
+}
+
+template<class T, class MyRan>
+void shuffle(std::vector<T> &arr, MyRan &myran) {
+  const unsigned int n = arr.size();
+  for (unsigned int i = n - 1; i > 0; i--) {
+    unsigned int j = myran.doub() * (i + 1);
+    T tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+}
+
+template<class T, class Myran, class UniFunc>
+void shuffle_and_do(std::vector<T> &arr, Myran &myran, UniFunc f) {
+  const unsigned int n = arr.size();
+  for (unsigned int i = n - 1; i > 0; i--) {
+    unsigned int j = myran.doub() * (i + 1);
+    T tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+    f(arr[i]);
+  }
+  f(arr[0]);
 }
 #endif
 

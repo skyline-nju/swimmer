@@ -34,6 +34,10 @@ class Profile:
 
 def plot_wetting_frac_vs_alpha(k, ncut=1000):
     # tumbling rate
+    # alpha = np.array([
+    #     0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.013, 0.016, 0.02, 0.025,
+    #     0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1
+    # ])
     alpha = np.array([
         0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.013, 0.016, 0.02, 0.025,
         0.03
@@ -61,4 +65,4 @@ if __name__ == "__main__":
     os.chdir(r"E:\data\roughening\wetting\1500_1500")
     # pro = Profile("profile_0.005_15_0.04.nc")
     # pro.show_wetting_frac()
-    plot_wetting_frac_vs_alpha(5, 1500)
+    plot_wetting_frac_vs_alpha(15, 1000)

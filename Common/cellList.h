@@ -10,9 +10,9 @@
 #include "vect.h"
 #include "node.h"
 
-/**
+/*************************************************************************//**
  * \brief Base class for 2d linked-cell list.
- */
+ ****************************************************************************/
 class CellListBase_2 {
 public:
   /**
@@ -62,15 +62,15 @@ protected:
   Vec_2<double> origin_;      //!< origin point of the domain
   Vec_2<double> inverse_lc_;  //!< inverse length of one cell
 };
-/*****************************************************************************/
-/**
+
+/*************************************************************************//**
  * \brief Linked-cell list recording the index of the particles.
  * 
  * Use the STL container such as std::list or std::forward_list to record the
  * index of particles. Each cell is one such container.
+ * 
  * \tparam TContainer Contain the indexs of particles located in one cell. 
- */
-/****************************************************************************/
+ ***************************************************************************/
 template <typename TContainer>
 class CellListIdx_2: public CellListBase_2 {
 public:
@@ -107,15 +107,15 @@ public:
 protected:
   std::vector<TContainer> head_;
 };
-/*****************************************************************************/
-/**
+
+/*************************************************************************//**
  * \brief Linked-cell list constituted by bidirectional nodes.
  * 
  * Each cell contains one pointer of bidirectional node. Then first node has the
  * pointer pointing the second one, and so on. 
+ * 
  * \tparam TNode Template node, which should contain two pointers: prev, next.
- */
-/*****************************************************************************/
+ ****************************************************************************/
 template <typename TNode>
 class CellListNode_2:public CellListBase_2 {
 public:

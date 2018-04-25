@@ -16,20 +16,21 @@ const std::string delimiter("\\");
 const std::string delimiter("/");
 #endif
 
-
-inline void tangle_1(double &x, double x_min, double x_max, double l) {
+template <typename T1, typename T2>
+void tangle_1(T1 &x, T1 x_min, T2 x_max, T2 len) {
   if (x < x_min) {
-    x += l;
+    x += len;
   } else if (x >= x_max) {
-    x -= l;
+    x -= len;
   }
 }
 
-inline void untangle_1(double &dx, double l, double half_l) {
-  if (dx < -half_l) {
-    dx += l;
-  } else if (dx > half_l) {
-    dx -= l;
+template <typename T>
+void untangle_1(T &dx, T len, T half_len) {
+  if (dx < -half_len) {
+    dx += len;
+  } else if (dx > half_len) {
+    dx -= len;
   }
 }
 
