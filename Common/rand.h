@@ -170,7 +170,7 @@ void shuffle(std::vector<T> &arr, MyRan &myran) {
 }
 
 template<class T, class Myran, class UniFunc>
-void shuffle_and_do(std::vector<T> &arr, Myran &myran, UniFunc f) {
+void for_each_shuffle(std::vector<T> &arr, Myran &myran, UniFunc f) {
   const unsigned int n = arr.size();
   for (unsigned int i = n - 1; i > 0; i--) {
     unsigned int j = myran.doub() * (i + 1);

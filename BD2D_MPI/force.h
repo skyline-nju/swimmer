@@ -1,3 +1,10 @@
+/**
+ * @brief Force between colloidal particles
+ * 
+ * @file force.h
+ * @author skyline-nju
+ * @date 2018-04-26
+ */
 #ifndef FORCE_H
 #define FORCE_H
 #include <vect.h>

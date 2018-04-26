@@ -8,16 +8,33 @@
 #include <string>
 #include <chrono>
 
-const double PI = 3.14159265358979;
+/*************************************************************************//**
+ *                      Global constans
+ *****************************************************************************/
 
+const double PI = 3.14159265358979323846; //!< pi
+
+//!< path delimiter, "\\" for windows and '/' for linux
 #ifdef _MSC_VER
 const std::string delimiter("\\");
 #else
 const std::string delimiter("/");
 #endif
 
-template <typename T1, typename T2>
-void tangle_1(T1 &x, T1 x_min, T2 x_max, T2 len) {
+/*************************************************************************//**
+ *              Periodic boundary condition in 1d
+ *****************************************************************************/
+
+/*
+ * \brief Shift the x if out of the range.
+ * \tparam T      Template type
+ * \param x       Input/output coordinate
+ * \param x_min   Min of x
+ * \param x_max   Max of x
+ * \param len     Distance from x_min to x_max
+ */
+template <typename T>
+void tangle_1(T &x, T x_min, T x_max, T len) {
   if (x < x_min) {
     x += len;
   } else if (x >= x_max) {
@@ -25,6 +42,13 @@ void tangle_1(T1 &x, T1 x_min, T2 x_max, T2 len) {
   }
 }
 
+/**
+ * \brief Cal nearest distance under the periodic boundary condition
+ * \tparam T       Template type
+ * \param dx       Input/output distance
+ * \param len      Length of the domain 
+ * \param half_len Half length of the domain
+ */
 template <typename T>
 void untangle_1(T &dx, T len, T half_len) {
   if (dx < -half_len) {
@@ -34,7 +58,28 @@ void untangle_1(T &dx, T len, T half_len) {
   }
 }
 
-// create folder
+/*************************************************************************//**
+ * \brief Base class for data exporter.
+ ****************************************************************************/
+class BaseExporter {
+public:
+  BaseExporter(): n_step_(0), frame_interval_(0), iframe_(0) {}
+  BaseExporter(int n_step, int sep, int start = 0);
+  void set_lin_frame(int sep, int n_step, int start  = 0);
+  bool need_export(int i_step);
+  size_t get_n_frames() const { return frames_arr_.size(); }
+protected:
+  int n_step_;
+  int frame_interval_;
+private:
+  int iframe_;
+  std::vector<int> frames_arr_;
+
+};
+/*************************************************************************//**
+ * \brief Create a folder
+ * \param folder The name of the folder to be created
+ ****************************************************************************/
 void mkdir(const char *folder);
 
 inline void mkdir(const std::string &folder) {mkdir(folder.c_str());}

@@ -42,12 +42,9 @@ int main(int argc, char* argv[]) {
 
   /* output settings */
   cmd.add<string>("output", 'o', "path for outputting", false);
-  cmd.add<string>("snap_fmt", '\0', "format for snapshot", false, "nc",
-                  cmdline::oneof<string>("xy", "nc", "none", "both"));
-  cmd.add("profile", '\0', "whether to output profile");
-  cmd.add<int>("log_dt", '\0', "interval to update log", false, 1000);
-  cmd.add<int>("snap_dt", '\0', "interval to save snapshot", false, 1000);
-  cmd.add<int>("profile_dt", '\0', "interval to calculate wetting profile", false, 200);
+  cmd.add<int>("log_dt", '\0', "interval to update log", false, 0);
+  cmd.add<int>("snap_dt", '\0', "interval to save snapshot", false, 0);
+  cmd.add<int>("profile_dt", '\0', "interval to calculate wetting profile", false, 0);
 
   /* setting for calculating wetting profile */
   cmd.add<double>("eps", '\0', "min spacing between two neighbors", false, 1.1);
@@ -61,7 +58,6 @@ int main(int argc, char* argv[]) {
   domain.ini_rand(p_arr, &cl);
   domain.run(cmd, p_arr, cl);
   delete cl;
-
 #else
   MPI_Finalize();
 #endif

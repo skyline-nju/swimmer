@@ -145,6 +145,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="latticeExporter.h" />
     <ClInclude Include="latticeParticle.h" />
     <ClInclude Include="latticeDomain.h" />
   </ItemGroup>

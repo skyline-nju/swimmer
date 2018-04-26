@@ -8,8 +8,8 @@ public:
   LatticePar_2() = default;
 
   template <typename TRan>
-  LatticePar_2(TRan &myran, const Vec_2<unsigned int> &l,
-               const Vec_2<unsigned int> &origin = Vec_2<unsigned int>());
+  LatticePar_2(TRan &myran, const Vec_2<int> &l,
+               const Vec_2<int> &origin = Vec_2<int>());
 
   template <typename TRan>
   void tumble(TRan &myran);
@@ -21,8 +21,8 @@ public:
 };
 
 template <typename TRan>
-LatticePar_2::LatticePar_2(TRan& myran, const Vec_2<unsigned>& l,
-                           const Vec_2<unsigned>& origin) {
+LatticePar_2::LatticePar_2(TRan& myran, const Vec_2<int>& l,
+                           const Vec_2<int>& origin): ux(0), uy(0) {
   x = origin.x + int(myran.doub() * l.x);
   y = origin.y + int(myran.doub() * l.y);
   tumble(myran);

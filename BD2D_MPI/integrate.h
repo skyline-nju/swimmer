@@ -1,3 +1,10 @@
+/**
+ * @brief Integration methods for swimmers.
+ * 
+ * @file integrate.h
+ * @author your name
+ * @date 2018-04-26
+ */
 #ifndef INTEGRATE_H
 #define INTEGRATE_H
 #include "rand.h"

@@ -143,7 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="exporter.h" />
-    <ClInclude Include="netCDFExporter.h" />
     <ClInclude Include="uniDomain.h" />
     <ClInclude Include="wetting.h" />
     <ClInclude Include="force.h" />
@@ -153,7 +152,6 @@
   <ItemGroup>
     <ClCompile Include="exporter.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="netCDFExporter.cpp" />
     <ClCompile Include="uniDomain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

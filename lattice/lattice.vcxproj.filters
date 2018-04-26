@@ -26,5 +26,8 @@
     <ClInclude Include="latticeParticle.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="latticeExporter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
