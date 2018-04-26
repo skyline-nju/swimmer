@@ -60,14 +60,8 @@ void set_output_2(const cmdline::parser& cmd,
     min_pts = cmd.get<int>("min_pts");
     height_thres = cmd.get<double>("height_min");
 
-    if (cmd.exist("output")) {
-      folder = cmd.get<std::string>("output") + delimiter;
-      mkdir(folder);
-    } else {
-      std::cout << "Please specify the outputting folder!\n";
-      exit(1);
-    }
-
+    folder = cmd.get<std::string>("output") + delimiter;
+    mkdir(folder);
     char str[100];
     snprintf(str, 100, "%g_%g_%g", tumbling_rate, particle_hardness, pack_frac);
     base_name = str;
@@ -97,19 +91,10 @@ void get_profile_para(double& eps_out, int& min_pts_out,
 /*************************************************************************//**
  * \brief Constructor of LogExporter
  * \param cmd Cmdline parser
- ***************************************************************************/
+ ****************************************************************************/
 LogExporter::LogExporter(const cmdline::parser& cmd)
-  : BaseExporter(n_step, cmd.get<int>("log_dt")),
-    fout_(folder + base_name + ".log") {
-
-  t_start_ = std::chrono::system_clock::now();
-  auto start_time = std::chrono::system_clock::to_time_t(t_start_);
-  char str[100];
-  // ReSharper disable CppDeprecatedEntity
-  std::strftime(str, 100, "%c", std::localtime(&start_time));
-  // ReSharper restore CppDeprecatedEntity
-
-  fout_ << "Started simulation at " << str << "\n";
+  : BaseLogExporter(folder + base_name + ".log", n_par, n_step,
+                    cmd.get<int>("log_dt")) {
   fout_ << "\n-------- Parameters --------";
   fout_ << "\nParticle number=" << n_par;;
   fout_ << "\nPacking fraction=" << pack_frac;
@@ -128,32 +113,6 @@ LogExporter::LogExporter(const cmdline::parser& cmd)
   fout_ << "\ntime step\telapsed time" << std::endl;
 }
 
-LogExporter::~LogExporter() {
-  const auto t_now = std::chrono::system_clock::now();
-  auto end_time = std::chrono::system_clock::to_time_t(t_now);
-  char str[100];
-  // ReSharper disable CppDeprecatedEntity
-  std::strftime(str, 100, "%c", std::localtime(&end_time));
-  // ReSharper restore CppDeprecatedEntity
-  fout_ << "Finished simulation at " << str << "\n";
-  std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
-  fout_ << "speed=" << n_step_ * n_par / elapsed_seconds.count()
-    << " particle time step per seconds\n";
-  fout_.close();
-}
-
-void LogExporter::record(int i_step) {
-  if (need_export(i_step)) {
-    const auto t_now = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
-    const auto dt = elapsed_seconds.count();
-    const auto hour = int(dt / 3600);
-    const auto min = int((dt - hour * 3600) / 60);
-    const int sec = dt - hour * 3600 - min * 60;
-    fout_ << i_step << "\t" << hour << ":" << min << ":" << sec << std::endl;
-  }
-}
-
 void check_err(const int stat, const int line, const char * file) {
   if (stat != NC_NOERR) {
     (void)fprintf(stderr, "line %d of %s: %s\n", line, file, nc_strerror(stat));
@@ -167,9 +126,8 @@ void check_err(const int stat, const int line, const char * file) {
  * \param cmd Cmdline parser
  ****************************************************************************/
 NcParExporter_2::NcParExporter_2(const cmdline::parser& cmd) // NOLINT
-  : frame_len_(NC_UNLIMITED),
-  spatial_len_(3), atom_len_(n_par),
-  cell_spatial_len_(3), time_idx_{0} {
+  : frame_len_(NC_UNLIMITED), spatial_len_(3), atom_len_(n_par),
+    cell_spatial_len_(3), time_idx_{0} {
   flag_nc4_ = true;   // If true, use netCDF-4 format, else use 64bit-offset format
   deflate_level_ = 6;
   atom_types_on_ = true;

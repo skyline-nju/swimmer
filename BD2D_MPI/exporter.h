@@ -17,17 +17,9 @@
 /*************************************************************************//**
  * \brief Log exporter
  ****************************************************************************/
-class LogExporter: public BaseExporter {
+class LogExporter: public BaseLogExporter {
 public:
   explicit LogExporter(const cmdline::parser &cmd);
-
-  ~LogExporter();
-
-  void record(int i_step);
-
-private:
-  std::chrono::time_point<std::chrono::system_clock> t_start_;
-  std::ofstream fout_;
 };
 
 /**

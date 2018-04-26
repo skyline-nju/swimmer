@@ -1,3 +1,4 @@
+#include <ctime>
 #include "comn.h"
 #ifdef _MSC_VER
 #include <io.h>
@@ -57,7 +58,13 @@ int cal_particle_number_2(double phi, double Lx, double Ly, double sigma) {
     return int(round(phi * Lx * Ly / (PI * a * a)));
   }
 }
-
+/**************************************************************************//**
+ * @brief Construct a new Base Exporter:: Base Exporter object
+ * 
+ * @param n_step Total time steps to run
+ * @param sep    Time seperation to dump frame.
+ * @param start  Starting time step to dump frame.
+ ****************************************************************************/
 BaseExporter::BaseExporter(int n_step, int sep, int start)
   : n_step_(n_step), frame_interval_(sep), iframe_(0) {
   frames_arr_.reserve((n_step - start) / sep);
@@ -81,4 +88,50 @@ bool BaseExporter::need_export(int i_step) {
     flag = true;
   }
   return flag;
+}
+/*************************************************************************//**
+ * @brief Construct a new Base Log Exporter:: Base Log Exporter object
+ * 
+ * @param filename    Filename of log file.
+ * @param n_par       Num of particles
+ * @param n_step      Total time steps to run.
+ * @param sep         Frame spacing
+ * @param start       First time step to dump frame.
+ ***************************************************************************/
+BaseLogExporter::BaseLogExporter(const std::string& filename, int n_par,
+                                 int n_step, int sep, int start)
+  : BaseExporter(n_step, sep, start), fout_(filename), n_par_(n_par) {
+  t_start_ = std::chrono::system_clock::now();
+  auto start_time = std::chrono::system_clock::to_time_t(t_start_);
+  char str[100];
+  // ReSharper disable CppDeprecatedEntity
+  std::strftime(str, 100, "%c", std::localtime(&start_time));
+  // ReSharper restore CppDeprecatedEntity
+  fout_ << "Started simulation at " << str << "\n";
+}
+
+BaseLogExporter::~BaseLogExporter() {
+  const auto t_now = std::chrono::system_clock::now();
+  auto end_time = std::chrono::system_clock::to_time_t(t_now);
+  char str[100];
+  // ReSharper disable CppDeprecatedEntity
+  std::strftime(str, 100, "%c", std::localtime(&end_time));
+  // ReSharper restore CppDeprecatedEntity
+  fout_ << "Finished simulation at " << str << "\n";
+  std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
+  fout_ << "speed=" << n_step_ * n_par_ / elapsed_seconds.count()
+    << " particle time step per seconds\n";
+  fout_.close();
+}
+
+void BaseLogExporter::record(int i_step) {
+  if (need_export(i_step)) {
+    const auto t_now = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
+    const auto dt = elapsed_seconds.count();
+    const auto hour = int(dt / 3600);
+    const auto min = int((dt - hour * 3600) / 60);
+    const int sec = dt - hour * 3600 - min * 60;
+    fout_ << i_step << "\t" << hour << ":" << min << ":" << sec << std::endl;
+  } 
 }

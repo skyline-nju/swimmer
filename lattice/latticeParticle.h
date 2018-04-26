@@ -3,13 +3,14 @@
 #include <cstdint>
 #include "vect.h"
 
-class LatticePar_2 {
+namespace lattice {
+class Par_2 {
 public:
-  LatticePar_2() = default;
+  Par_2() = default;
 
   template <typename TRan>
-  LatticePar_2(TRan &myran, const Vec_2<int> &l,
-               const Vec_2<int> &origin = Vec_2<int>());
+  Par_2(TRan &myran, const Vec_2<int> &l,
+        const Vec_2<int> &origin = Vec_2<int>());
 
   template <typename TRan>
   void tumble(TRan &myran);
@@ -20,16 +21,17 @@ public:
   int8_t uy;
 };
 
+
 template <typename TRan>
-LatticePar_2::LatticePar_2(TRan& myran, const Vec_2<int>& l,
-                           const Vec_2<int>& origin): ux(0), uy(0) {
+Par_2::Par_2(TRan& myran, const Vec_2<int>& l, const Vec_2<int>& origin)
+  : ux(0), uy(0) {
   x = origin.x + int(myran.doub() * l.x);
   y = origin.y + int(myran.doub() * l.y);
   tumble(myran);
 }
 
 template<typename TRan>
-void LatticePar_2::tumble(TRan & myran) {
+void Par_2::tumble(TRan & myran) {
   const auto state = int(myran.doub() * 4);
   switch (state) {
   case 0: ux = -1; uy = 0;  break;
@@ -39,4 +41,6 @@ void LatticePar_2::tumble(TRan & myran) {
   default: break;
   }
 }
+
+} // end of namespace
 #endif

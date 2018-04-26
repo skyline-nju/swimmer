@@ -3,6 +3,7 @@
 //#define USE_MPI
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
@@ -74,7 +75,21 @@ protected:
 private:
   int iframe_;
   std::vector<int> frames_arr_;
+};
 
+class BaseLogExporter:public BaseExporter {
+public:
+  explicit BaseLogExporter(const std::string &filename, int n_par,
+                           int n_step, int sep, int start=0);
+
+  ~BaseLogExporter();
+
+  void record(int i_step);
+protected:
+  std::chrono::time_point<std::chrono::system_clock> t_start_;
+  std::ofstream fout_;
+private:
+  int n_par_;
 };
 /*************************************************************************//**
  * \brief Create a folder

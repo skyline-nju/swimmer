@@ -19,6 +19,3 @@ UniDomain_2::~UniDomain_2() {
   delete nc_;
   delete profile_;
 }
-
-
-
