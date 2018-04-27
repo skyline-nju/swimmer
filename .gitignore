@@ -12,6 +12,7 @@ BD2D/XY
 BD2D_MPI/log
 BD2D_MPI/XY
 BD2D_MPI/data
+lattice/data
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

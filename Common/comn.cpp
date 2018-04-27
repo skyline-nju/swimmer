@@ -1,5 +1,10 @@
-#include <ctime>
 #include "comn.h"
+#include <ctime>
+#include <cmath>
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <chrono>
 #ifdef _MSC_VER
 #include <io.h>
 #else
@@ -119,7 +124,7 @@ BaseLogExporter::~BaseLogExporter() {
   // ReSharper restore CppDeprecatedEntity
   fout_ << "Finished simulation at " << str << "\n";
   std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
-  fout_ << "speed=" << n_step_ * n_par_ / elapsed_seconds.count()
+  fout_ << "speed=" << n_step_ * double(n_par_) / elapsed_seconds.count()
     << " particle time step per seconds\n";
   fout_.close();
 }

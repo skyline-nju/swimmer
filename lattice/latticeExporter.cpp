@@ -27,7 +27,7 @@ void lattice::set_output_2(const cmdline::parser& cmd, LogExporter** log_ex,
     ly = cmd.exist("Ly") ? cmd.get<int>("Ly") : lx;
     lz = 0;
 
-    pack_frac = cmd.get<double>("phi");
+    pack_frac = cmd.get<double>("pack_frac");
     n_par = lx * ly * pack_frac;
     n_step = cmd.get<unsigned int>("n_step");
     seed = cmd.get<unsigned long long>("seed");
@@ -56,6 +56,52 @@ void lattice::set_output_2(const cmdline::parser& cmd, LogExporter** log_ex,
 }
 
 /*************************************************************************//**
+* \brief  Cal wetting profile and order parameters
+* \param cell                Cell lattices
+* \param thickness_profile   Thickness profile
+* \param num_profile         Particle number profile
+* \param packing_frac        Fraction of wetting sites
+*****************************************************************************/
+void lattice::cal_profile(const std::vector<uint8_t>& cell,
+                          std::vector<uint16_t>& thickness_profile,
+                          std::vector<uint16_t>& num_profile,
+                          std::vector<double>& packing_frac) {
+  int count_lt = 0;
+  int count_rt = 0;
+  for (auto row = 0; row < ly; row++) {
+    const size_t row_lx = row * lx;
+    const auto i_lt = row * 2;
+    const auto i_rt = i_lt + 1;
+    for (auto col = 0; col < lx; col++) {
+      const auto ic = col + row_lx;
+      if (cell[ic]) {
+        ++thickness_profile[i_lt];
+        num_profile[i_lt] += cell[ic];
+      } else {
+        if (thickness_profile[i_lt]) {
+          count_lt++;
+        }
+        break;
+      }
+    }
+    for (auto col = lx - 1; col >= 0; col--) {
+      const auto ic = col + row_lx;
+      if (cell[ic]) {
+        ++thickness_profile[i_rt];
+        num_profile[i_rt] += cell[ic];
+      } else {
+        if (thickness_profile[i_rt]) {
+          count_rt++;
+        }
+        break;
+      }
+    }
+  }
+  packing_frac[0] = double(count_lt) / ly;
+  packing_frac[1] = double(count_rt) / ly;
+}
+
+/*************************************************************************//**
 * \brief Constructor of LogExporter
 * \param cmd Cmdline parser
 *****************************************************************************/
@@ -71,6 +117,7 @@ lattice::LogExporter::LogExporter(const cmdline::parser& cmd)
   fout_ << "\ntumbling_rate=" << tumbling_rate;
   fout_ << "\nn_step=" << n_step;;
   fout_ << "\nseed=" << seed;
+  fout_ << "\nmax_capacity=" << max_capacity;
   fout_ << "\n\n-------- RUN --------";
   fout_ << "\ntime step\telapsed time" << std::endl;
 }
@@ -159,6 +206,8 @@ void lattice::SnapExporter_2::open(const cmdline::parser& cmd) {
   check_err(stat, __LINE__, __FILE__);
   stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed);
   check_err(stat, __LINE__, __FILE__);
+  stat = nc_put_att_int(ncid_, NC_GLOBAL, "max_capacity", NC_INT, 1, &max_capacity);
+  check_err(stat, __LINE__, __FILE__);
 
   /* assign per-variable attributes */
   stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1, &frame_interval_);
@@ -239,7 +288,7 @@ lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   : time_idx_{0}, fout_(folder + "profile_" + base_name + ".dat") {
   frame_len_ = NC_UNLIMITED;
   row_len_ = int(ly);
-  deflate_level_ = 6;
+  deflate_level_ = 0;
 
   set_lin_frame(cmd.get<int>("profile_dt"), n_step);
   char str[100];
@@ -266,29 +315,37 @@ lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   check_err(stat, __LINE__, __FILE__);
 
   int wetting_frac_dims[2] = {frame_dim, left_right_dim};
-  stat = nc_def_var(ncid_, "wetting_fraction", NC_DOUBLE, 2, wetting_frac_dims, &wetting_frac_id_);
+  stat = nc_def_var(ncid_, "wetting_fraction", NC_DOUBLE, 2, wetting_frac_dims,
+                    &wetting_frac_id_);
   check_err(stat, __LINE__, __FILE__);
 
   int thickness_profile_dims[3] = {frame_dim, left_right_dim, row_dim};
-  stat = nc_def_var(ncid_, "thickness_profile", NC_USHORT, 3, thickness_profile_dims, &thickness_profile_id_);
+  stat = nc_def_var(ncid_, "thickness_profile", NC_USHORT, 3,
+                    thickness_profile_dims, &thickness_profile_id_);
   check_err(stat, __LINE__, __FILE__);
 
   int num_profile_dims[3] = {frame_dim, left_right_dim, row_dim};
-  stat = nc_def_var(ncid_, "particle_number_profile", NC_USHORT, 3, num_profile_dims, &num_profile_id_);
+  stat = nc_def_var(ncid_, "particle_number_profile", NC_USHORT, 3,
+                    num_profile_dims, &num_profile_id_);
   check_err(stat, __LINE__, __FILE__);
 
   set_chunk_and_deflate();
 
   /* write simulating parameters as global attributes */
-  stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1, &pack_frac);
+  stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1,
+                           &pack_frac);
   check_err(stat, __LINE__, __FILE__);
-  stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate);
+  stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1,
+                           &tumbling_rate);
   check_err(stat, __LINE__, __FILE__);
   stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed);
   check_err(stat, __LINE__, __FILE__);
+  stat = nc_put_att_int(ncid_, NC_GLOBAL, "max_capacity", NC_INT, 1, &max_capacity);
+  check_err(stat, __LINE__, __FILE__);
 
   /* assign per-variable attributes */
-  stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1, &frame_interval_);
+  stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1,
+                        &frame_interval_);
   check_err(stat, __LINE__, __FILE__);
 
   /* leave define mode */
@@ -303,9 +360,9 @@ lattice::ProfileExporter::~ProfileExporter() {
 }
 
 void lattice::ProfileExporter::write_frame(int i_step,
-    const std::vector<unsigned short>& thickness_profile,
-    const std::vector<unsigned short>& num_profile,
-    const std::vector<double>& packing_frac) {
+                                           const std::vector<uint16_t>& thickness_profile,
+                                           const std::vector<uint16_t>& num_profile,
+                                           const std::vector<double>& packing_frac) {
   /* time step */
   {
     auto stat = nc_put_var1(ncid_, time_id_, time_idx_, &i_step);
@@ -335,13 +392,13 @@ void lattice::ProfileExporter::write_frame(int i_step,
   time_idx_[0] = time_idx_[0] + 1;
 }
 
-void lattice::ProfileExporter::cal_profile(const std::vector<uint8_t>& cell,
-                                           std::vector<unsigned short>& thickness_profile,
-                                           std::vector<unsigned short>& num_profile,
-                                           std::vector<double>& packing_frac) const {
-  
-
-
+void lattice::ProfileExporter::write_frame(int i_step,
+                                           const std::vector<uint8_t>& cell) {
+  std::vector<uint16_t> thickness_profile(ly * 2, 0);
+  std::vector<uint16_t> num_profile(ly * 2, 0);
+  std::vector<double> packing_frac(2, 0.);
+  cal_profile(cell, thickness_profile, num_profile, packing_frac);
+  write_frame(i_step, thickness_profile, num_profile, packing_frac);
 }
 
 void lattice::ProfileExporter::set_chunk_and_deflate() const {

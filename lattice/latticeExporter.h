@@ -3,9 +3,9 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
+#include <cstdint>
 #include "cmdline.h"
 #include "comn.h"
-#include "../BD2D_MPI/exporter.h"
 
 namespace lattice {
 
@@ -67,6 +67,7 @@ void SnapExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
     ori[i * 2 + 1]  = p_arr[i].uy;
   }
   put_data(coor, ori);
+  time_idx_[0] = time_idx_[0] + 1;
   delete[] coor;
   delete[] ori;
 }
@@ -80,20 +81,12 @@ public:
   ~ProfileExporter();
 
   void write_frame(int i_step,
-                   const std::vector<unsigned short> &thickness_profile,
-                   const std::vector<unsigned short> &num_profile,
+                   const std::vector<uint16_t> &thickness_profile,
+                   const std::vector<uint16_t> &num_profile,
                    const std::vector<double> &packing_frac);
-  /**
-  * \brief  Cal wetting profile and order parameters
-  * \param cell                Cell lattices
-  * \param thickness_profile   Thickness profile
-  * \param num_profile         Particle number profile
-  * \param packing_frac        Fraction of wetting sites
-  */
-  void cal_profile(const std::vector<uint8_t> &cell,
-                   std::vector<unsigned short> &thickness_profile,
-                   std::vector<unsigned short> &num_profile,
-                   std::vector<double> &packing_frac) const;
+
+  void write_frame(int i_step, const std::vector<uint8_t> &cell);
+
   size_t get_row_len() const { return row_len_; }
 private:
   void set_chunk_and_deflate() const;
@@ -141,13 +134,25 @@ void output_2(int i_step, const std::vector<TPar> &p_arr,
   if (log_ex)
     log_ex->record(i_step);
   if (pf_ex && pf_ex->need_export(i_step)) {
-
-    
+    pf_ex->write_frame(i_step, cell);
   }
   if (snap_ex && snap_ex->need_export(i_step)) {
     snap_ex->write_frame(i_step, p_arr);
   }
 }
+
+/*************************************************************************//**
+ * \brief  Cal wetting profile and order parameters
+ * \param cell                Cell lattices
+ * \param thickness_profile   Thickness profile
+ * \param num_profile         Particle number profile
+ * \param packing_frac        Fraction of wetting sites
+ *****************************************************************************/
+void cal_profile(const std::vector<uint8_t> &cell,
+                 std::vector<uint16_t> &thickness_profile,
+                 std::vector<uint16_t> &num_profile,
+                 std::vector<double> &packing_frac);
+
 } // end of namespace lattice
 
 #endif
