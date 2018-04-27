@@ -1,3 +1,10 @@
+/**
+ * @brief lattice domain
+ * 
+ * @file latticeDomain.h
+ * @author skyline-nju
+ * @date 2018-04-27
+ */
 #ifndef LATTICLEDOMAIN_H
 #define LATTICLEDOMAIN_H
 
@@ -33,9 +40,7 @@ public:
   template<typename TPar>
   explicit UniDomain_2(const cmdline::parser &cmd, std::vector<TPar> &p_arr);
 
-  ~UniDomain_2() {
-    delete log_; delete snap_; delete pf_;
-  }
+  ~UniDomain_2() {delete log_; delete snap_; delete pf_;}
 
   template <typename TPar>
   void run(const cmdline::parser &cmd, std::vector<TPar>& p_arr, int shuffle_mode=0);
@@ -148,6 +153,7 @@ void UniDomain_2::run_and_tumble_1(TPar& p, double alpha, int max_capacity) {
     tangle_1(y_new, 0, l_.y, l_.y);
     const auto ic_new = get_ic(p.x, y_new);
     if (cell_[ic_new] < max_capacity) {
+      --cell_[get_ic(p)];
       p.y = y_new;
       ++cell_[ic_new];
     }
@@ -155,6 +161,7 @@ void UniDomain_2::run_and_tumble_1(TPar& p, double alpha, int max_capacity) {
     const auto x_new = p.x + p.ux;
     const auto ic_new = get_ic(x_new, p.y);
     if (cell_[ic_new] < max_capacity) {
+      --cell_[get_ic(p)];
       p.x = x_new;
       ++cell_[ic_new];
     }
@@ -164,6 +171,4 @@ void UniDomain_2::run_and_tumble_1(TPar& p, double alpha, int max_capacity) {
 }
 
 } // end of namespace lattice.
-
-
 #endif

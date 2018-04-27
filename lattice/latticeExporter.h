@@ -1,3 +1,10 @@
+/**
+ * @brief Data exporter for the lattice model
+ * 
+ * @file latticeExporter.h
+ * @author skyline-nju
+ * @date 2018-04-27
+ */
 #ifndef LATTICEEXPORTER_H
 #define LATTICEEXPORTER_H
 #include <fstream>
@@ -56,7 +63,6 @@ private:
 template <typename TPar>
 void SnapExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
   put_time_step(i_step);
-
   const size_t n = p_arr.size();
   int *coor = new int[n * 2];
   int8_t *ori = new int8_t[n * 2];
@@ -67,7 +73,7 @@ void SnapExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
     ori[i * 2 + 1]  = p_arr[i].uy;
   }
   put_data(coor, ori);
-  time_idx_[0] = time_idx_[0] + 1;
+  ++time_idx_[0];
   delete[] coor;
   delete[] ori;
 }

@@ -1,8 +1,23 @@
+/**
+ * @brief lattice particles
+ * 
+ * @file latticeParticle.h
+ * @author skyline-nju
+ * @date 2018-04-27
+ */
 #ifndef LATTICEPARTICLE_H
 #define LATTICEPARTICLE_H
 #include "vect.h"
 
 namespace lattice {
+/**
+ * @brief Simple lattice particle
+ * 
+ * For saving memories, use uint16_t and int8_t for T1, T2 respectively.
+ * 
+ * @tparam T1  Integer type of coordinates
+ * @tparam T2  Integer type of orientations
+ */
 template <typename T1, typename T2>
 class Par_2 {
 public:
@@ -44,4 +59,11 @@ void Par_2<T1, T2>::tumble(TRan & myran) {
 }
 
 } // end of namespace
+
+template <typename T1, typename T2>
+std::ostream &operator << (std::ostream &os, const lattice::Par_2<T1, T2> &p) {
+  os << "x=" << int(p.x) << "\ty=" << int(p.y)
+     << "\tux=" << int(p.ux) << "\tuy=" << int(p.uy);
+  return os;
+}
 #endif

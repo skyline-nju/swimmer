@@ -77,6 +77,16 @@ private:
   std::vector<int> frames_arr_;
 };
 
+/*************************************************************************//**
+ * \brief Base class for log exporter
+ * 
+ * To output parameters, the constructor of the derived class should contains
+ * some lines:
+ * fout_ << "\n-------- Parameters --------";
+ * fout_ << "\npara_name=" << para_value;
+ * fout_ << "\n\n-------- RUN --------";
+ * fout_ << "\ntime step\telapsed time" << std::endl;
+ ****************************************************************************/
 class BaseLogExporter:public BaseExporter {
 public:
   explicit BaseLogExporter(const std::string &filename, int n_par,
@@ -91,6 +101,7 @@ protected:
 private:
   int n_par_;
 };
+
 /*************************************************************************//**
  * \brief Create a folder
  * \param folder The name of the folder to be created

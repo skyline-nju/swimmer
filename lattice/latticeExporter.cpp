@@ -1,3 +1,10 @@
+/**
+ * @brief lattice domain
+ * 
+ * @file latticeExporter.cpp
+ * @author skyline-nju
+ * @date 2018-04-27
+ */
 #include "latticeExporter.h"
 #include <netcdf.h>
 
@@ -66,8 +73,6 @@ void lattice::cal_profile(const std::vector<uint8_t>& cell,
                           std::vector<uint16_t>& thickness_profile,
                           std::vector<uint16_t>& num_profile,
                           std::vector<double>& packing_frac) {
-  int count_lt = 0;
-  int count_rt = 0;
   for (auto row = 0; row < ly; row++) {
     const size_t row_lx = row * lx;
     const auto i_lt = row * 2;
@@ -79,7 +84,7 @@ void lattice::cal_profile(const std::vector<uint8_t>& cell,
         num_profile[i_lt] += cell[ic];
       } else {
         if (thickness_profile[i_lt]) {
-          count_lt++;
+          packing_frac[0] += 1;
         }
         break;
       }
@@ -91,14 +96,14 @@ void lattice::cal_profile(const std::vector<uint8_t>& cell,
         num_profile[i_rt] += cell[ic];
       } else {
         if (thickness_profile[i_rt]) {
-          count_rt++;
+          packing_frac[1] += 1;
         }
         break;
       }
     }
   }
-  packing_frac[0] = double(count_lt) / ly;
-  packing_frac[1] = double(count_rt) / ly;
+  packing_frac[0] /= ly;
+  packing_frac[1] /= ly;
 }
 
 /*************************************************************************//**
@@ -281,14 +286,15 @@ void lattice::SnapExporter_2::put_data(const int* coor, const int8_t* ori) const
 }
 
 /*************************************************************************//**
- * \brief Wetting profile exporter
- * \param cmd Cmdline parser
- ****************************************************************************/
+ * @brief Construct a new lattice::Profile Exporter::Profile Exporter object
+ * 
+ * @param cmd  Cmdline parser
+ ***************************************************************************/
 lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   : time_idx_{0}, fout_(folder + "profile_" + base_name + ".dat") {
   frame_len_ = NC_UNLIMITED;
   row_len_ = int(ly);
-  deflate_level_ = 0;
+  deflate_level_ = 6;
 
   set_lin_frame(cmd.get<int>("profile_dt"), n_step);
   char str[100];
@@ -389,7 +395,7 @@ void lattice::ProfileExporter::write_frame(int i_step,
                        startset, countset, &num_profile[0]);
     check_err(stat, __LINE__, __FILE__);
   }
-  time_idx_[0] = time_idx_[0] + 1;
+  ++time_idx_[0]; //! update time frame
 }
 
 void lattice::ProfileExporter::write_frame(int i_step,
