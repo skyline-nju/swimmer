@@ -1,6 +1,7 @@
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import numpy as np
+import glob
 import os
 
 
@@ -32,27 +33,28 @@ class Profile:
         plt.close()
 
 
-def plot_wetting_frac_vs_alpha(k, ncut=1000):
-    # tumbling rate
-    # alpha = np.array([
-    #     0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.013, 0.016, 0.02, 0.025,
-    #     0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1
-    # ])
-    alpha = np.array([
-        0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.013, 0.016, 0.02, 0.025,
-        0.03
-    ])
+def plot_wetting_frac_vs_alpha(k, ncut=1000, fmt="dat"):
+    pat = r"profile_*_%g_%d.%s" % (0.01, k, fmt)
+    files = glob.glob(pat)
     # order para for the wetting to partial-wetting trasition
-    Zm = np.zeros_like(alpha)
-    for i in range(alpha.size):
-        filename = r"profile_%g_%d_0.04.nc" % (alpha[i], k)
-        if os.path.exists(filename):
-            prof = Profile(filename)
+    Zm = np.zeros(len(files))
+    alpha = np.zeros_like(Zm)
+    for i, file_i in enumerate(files):
+        if fmt == "nc":
+            prof = Profile(file_i)
             frac_arr = prof.get_wetting_frac(ncut)
         else:
-            frac_arr = read_dat(filename.replace("nc", "dat"), ncut)
+            frac_arr = read_dat(file_i)
         Zm[i] = 1 - np.mean(frac_arr)
+        alpha[i] = float(file_i.split("_")[1])
+
+    arg_sort = np.argsort(Zm)
+    alpha = alpha[arg_sort]
+    Zm = Zm[arg_sort]
+
+    for i in range(alpha.size):
         print(alpha[i], Zm[i])
+
     plt.loglog(alpha, Zm, "o")
     plt.show()
     plt.close()
@@ -62,7 +64,8 @@ if __name__ == "__main__":
     # path = r"D:/code/Swimmer/BD2D_MPI/data/0.005_0.04_10/"
     # x = Profile(path + "profile.nc")
     # x.show_wetting_frac()
-    os.chdir(r"E:\data\roughening\wetting\1500_1500")
+    # os.chdir(r"E:\data\roughening\wetting\1500_1500")
+    os.chdir(r"E:/data/roughening/wetting/lattice/6000_1000")
     # pro = Profile("profile_0.005_15_0.04.nc")
     # pro.show_wetting_frac()
-    plot_wetting_frac_vs_alpha(15, 1000)
+    plot_wetting_frac_vs_alpha(1, 400)

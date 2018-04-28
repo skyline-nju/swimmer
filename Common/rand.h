@@ -163,6 +163,7 @@ void shuffle(std::vector<T> &arr, MyRan &myran) {
   const unsigned int n = arr.size();
   for (unsigned int i = n - 1; i > 0; i--) {
     unsigned int j = myran.doub() * (i + 1);
+    //auto j = myran.int64() % (i + 1);
     T tmp = arr[i];
     arr[i] = arr[j];
     arr[j] = tmp;

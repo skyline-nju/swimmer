@@ -28,14 +28,15 @@ const std::string delimiter("/");
 
 /*
  * \brief Shift the x if out of the range.
- * \tparam T      Template type
+ * \tparam T1     Template type 1
+ * \tparam T2     Template type 2
  * \param x       Input/output coordinate
  * \param x_min   Min of x
  * \param x_max   Max of x
  * \param len     Distance from x_min to x_max
  */
-template <typename T>
-void tangle_1(T &x, T x_min, T x_max, T len) {
+template <typename T1, typename T2>
+void tangle_1(T1 &x, T2 x_min, T2 x_max, T2 len) {
   if (x < x_min) {
     x += len;
   } else if (x >= x_max) {
