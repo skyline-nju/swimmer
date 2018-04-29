@@ -117,9 +117,10 @@ private:
  * \param log_ex          Log exporter
  * \param snap_ex         Snapshot exporter
  * \param pf_ex           Exporter for wetting data
+ * \param is_rt           Is run-and-tumble case ?
  ***************************************************************************/
 void set_output_2(const cmdline::parser &cmd, LogExporter **log_ex,
-                  SnapExporter_2 ** snap_ex, ProfileExporter **pf_ex);
+                  SnapExporter_2 ** snap_ex, ProfileExporter **pf_ex, bool is_rt);
 
 /***********************************************************************//**
  * \brief Output data at each proper time step

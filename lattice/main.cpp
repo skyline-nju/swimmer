@@ -30,36 +30,48 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("D_rot", '\0', "rate of rotational diffusion", false, 0.1);
   cmd.parse_check(argc, argv);
 
-  {
-    std::cout << "Ranq2:\n";
-    Ranq2 myran(cmd.get<unsigned long long>("seed"));
-    std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
-    lattice::UniDomain_2 domain(cmd, p_arr, myran);
-    domain.run(cmd, p_arr, myran, 0);
-  }
+
+  int n_step = cmd.get<unsigned int>("n_step");
+  //{
+  //  std::cout << "Ranq2:\n";
+  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  //  lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
+  //  domain.run(p_arr, myran, n_step, 0);
+  //}
+
+  //{
+  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  //  lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
+  //  domain.run(p_arr, myran, n_step, 1);
+  //}
+
+  //{
+  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  //  lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
+  //  domain.run(p_arr, myran, n_step, 2);
+  //}
 
   {
-    std::cout << "Ranq2:\n";
     Ranq2 myran(cmd.get<unsigned long long>("seed"));
     std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
-    lattice::UniDomain_2 domain(cmd, p_arr, myran);
-    domain.run(cmd, p_arr, myran, 1);
+    lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
+    domain.run(p_arr, myran, n_step, 0);
   }
 
-  {
-    std::cout << "Ranq2:\n";
-    Ranq2 myran(cmd.get<unsigned long long>("seed"));
-    std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
-    lattice::UniDomain_2 domain(cmd, p_arr, myran);
-    domain.run(cmd, p_arr, myran, 2);
-  }
+  //{
+  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  //  lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
+  //  domain.run(p_arr, myran, n_step, 1);
+  //}
 
-  {
-    std::cout << "Ranq2:\n";
-    Ranq2 myran(cmd.get<unsigned long long>("seed"));
-    std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
-    lattice::UniDomain_2 domain(cmd, p_arr, myran);
-    domain.run(cmd, p_arr, myran, 3);
-  }
-
+  //{
+  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  //  lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
+  //  domain.run(p_arr, myran, n_step, 2);
+  //}
 }

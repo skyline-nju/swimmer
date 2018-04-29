@@ -15,8 +15,13 @@ double pack_frac;
 size_t n_par;
 int n_step;
 unsigned long long seed;
-double tumbling_rate;
 int max_capacity;
+bool rt_on;
+double tumbling_rate;
+double nu_f;
+double nu_b;
+double nu_t;
+double D_rot;
 std::string folder;
 std::string base_name;
 
@@ -26,9 +31,11 @@ std::string base_name;
 * \param log_ex          Log exporter
 * \param snap_ex         Snapshot exporter
 * \param pf_ex           Exporter for wetting data
+* \param is_rt           Is run-and-tumble case ?
 ***************************************************************************/
 void lattice::set_output_2(const cmdline::parser& cmd, LogExporter** log_ex,
-                           SnapExporter_2** snap_ex, ProfileExporter **pf_ex) {
+                           SnapExporter_2** snap_ex, ProfileExporter **pf_ex,
+                           bool is_rt) {
   if (cmd.exist("output")) {
     lx = cmd.get<int>("Lx");
     ly = cmd.exist("Ly") ? cmd.get<int>("Ly") : lx;
@@ -38,14 +45,29 @@ void lattice::set_output_2(const cmdline::parser& cmd, LogExporter** log_ex,
     n_par = lx * ly * pack_frac;
     n_step = cmd.get<unsigned int>("n_step");
     seed = cmd.get<unsigned long long>("seed");
-    tumbling_rate = cmd.get<double>("alpha");
     max_capacity = cmd.get<int>("n_max");
+    if (is_rt) {
+      rt_on = true;
+      tumbling_rate = cmd.get<double>("alpha");
+    } else {
+      rt_on = false;
+      nu_f = cmd.get<double>("nu_f");
+      nu_b = cmd.get<double>("nu_b");
+      nu_t = cmd.get<double>("nu_t");
+      D_rot = cmd.get<double>("D_rot");
+    }
 
     folder = cmd.get<std::string>("output") + delimiter;
     mkdir(folder);
     char str[100];
-    snprintf(str, 100, "%g_%g_%d", tumbling_rate, pack_frac, max_capacity);
-    base_name = str;
+    if (is_rt) {
+      snprintf(str, 100, "rt_%g_%g_%d", tumbling_rate, pack_frac, max_capacity);
+      base_name = str;
+    }
+    else {
+      snprintf(str, 100, "ab_%g_%g_%d", nu_f, pack_frac, max_capacity);
+      base_name = str;
+    }
 
     if (cmd.exist("log_dt"))
       *log_ex = new LogExporter(cmd);
@@ -119,7 +141,14 @@ lattice::LogExporter::LogExporter(const cmdline::parser& cmd)
   fout_ << "\nLx=" << lx;
   fout_ << "\nLy=" << ly;
   fout_ << "\nLz=" << lz;
-  fout_ << "\ntumbling_rate=" << tumbling_rate;
+  if (rt_on) {
+    fout_ << "\ntumbling rate=" << tumbling_rate;
+  } else {
+    fout_ << "\nforward rate=" << nu_f;
+    fout_ << "\nbackward rate=" << nu_b;
+    fout_ << "\ntransverse rate=" << nu_t;
+    fout_ << "\nrotational diffusion rate=" << D_rot;
+  }
   fout_ << "\nn_step=" << n_step;;
   fout_ << "\nseed=" << seed;
   fout_ << "\nmax_capacity=" << max_capacity;
@@ -207,8 +236,19 @@ void lattice::SnapExporter_2::open(const cmdline::parser& cmd) {
 
   stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1, &pack_frac);
   check_err(stat, __LINE__, __FILE__);
-  stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate);
-  check_err(stat, __LINE__, __FILE__);
+  if (rt_on) {
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate);
+    check_err(stat, __LINE__, __FILE__);
+  } else {
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "forward_rate", NC_DOUBLE, 1, &nu_f);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "backward_rate", NC_DOUBLE, 1, &nu_b);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "transverse_rate", NC_DOUBLE, 1, &nu_t);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "rot_rate", NC_DOUBLE, 1, &D_rot);
+    check_err(stat, __LINE__, __FILE__);
+  }
   stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed);
   check_err(stat, __LINE__, __FILE__);
   stat = nc_put_att_int(ncid_, NC_GLOBAL, "max_capacity", NC_INT, 1, &max_capacity);
@@ -321,8 +361,8 @@ lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   check_err(stat, __LINE__, __FILE__);
 
   int wetting_frac_dims[2] = {frame_dim, left_right_dim};
-  stat = nc_def_var(ncid_, "wetting_fraction", NC_DOUBLE, 2, wetting_frac_dims,
-                    &wetting_frac_id_);
+  stat = nc_def_var(ncid_, "wetting_fraction", NC_DOUBLE, 2,
+                    wetting_frac_dims, &wetting_frac_id_);
   check_err(stat, __LINE__, __FILE__);
 
   int thickness_profile_dims[3] = {frame_dim, left_right_dim, row_dim};
@@ -338,11 +378,21 @@ lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   set_chunk_and_deflate();
 
   /* write simulating parameters as global attributes */
-  stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1,
-                           &pack_frac);
+  stat = nc_put_att_double(ncid_, NC_GLOBAL, "packing_frac", NC_DOUBLE, 1, &pack_frac);
   check_err(stat, __LINE__, __FILE__);
-  stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1,
-                           &tumbling_rate);
+  if (rt_on) {
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "tumbling_rate", NC_DOUBLE, 1, &tumbling_rate);
+    check_err(stat, __LINE__, __FILE__);
+  } else {
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "forward_rate", NC_DOUBLE, 1, &nu_f);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "backward_rate", NC_DOUBLE, 1, &nu_b);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "transverse_rate", NC_DOUBLE, 1, &nu_t);
+    check_err(stat, __LINE__, __FILE__);
+    stat = nc_put_att_double(ncid_, NC_GLOBAL, "rot_rate", NC_DOUBLE, 1, &D_rot);
+    check_err(stat, __LINE__, __FILE__);
+  }
   check_err(stat, __LINE__, __FILE__);
   stat = nc_put_att_ulonglong(ncid_, NC_GLOBAL, "seed", NC_UINT64, 1, &seed);
   check_err(stat, __LINE__, __FILE__);
@@ -350,8 +400,7 @@ lattice::ProfileExporter::ProfileExporter(const cmdline::parser& cmd) // NOLINT
   check_err(stat, __LINE__, __FILE__);
 
   /* assign per-variable attributes */
-  stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1,
-                        &frame_interval_);
+  stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1, &frame_interval_);
   check_err(stat, __LINE__, __FILE__);
 
   /* leave define mode */
@@ -425,8 +474,7 @@ void lattice::ProfileExporter::set_chunk_and_deflate() const {
     if (time_block >= 4096)
       time_block = 4096;
     size_t chunk[2] = {time_block, 2};
-    auto stat = nc_def_var_chunking(ncid_, wetting_frac_id_,
-                                    NC_CHUNKED, chunk);
+    auto stat = nc_def_var_chunking(ncid_, wetting_frac_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
     stat = nc_def_var_deflate(ncid_, time_id_, 0, 1, deflate_level_);
     check_err(stat, __LINE__, __FILE__);
@@ -440,17 +488,14 @@ void lattice::ProfileExporter::set_chunk_and_deflate() const {
       time_block = 1;
     }
     size_t chunk[3] = {time_block, 2, row_len_};
-    auto stat = nc_def_var_chunking(ncid_, thickness_profile_id_,
-                                    NC_CHUNKED, chunk);
+    auto stat = nc_def_var_chunking(ncid_, thickness_profile_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_deflate(ncid_, thickness_profile_id_, NC_SHUFFLE, 1,
-                              deflate_level_);
+    stat = nc_def_var_deflate(ncid_, thickness_profile_id_, NC_SHUFFLE, 1, deflate_level_);
     check_err(stat, __LINE__, __FILE__);
 
     stat = nc_def_var_chunking(ncid_, num_profile_id_, NC_CHUNKED, chunk);
     check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_deflate(ncid_, num_profile_id_, NC_SHUFFLE, 1,
-                              deflate_level_);
+    stat = nc_def_var_deflate(ncid_, num_profile_id_, NC_SHUFFLE, 1, deflate_level_);
     check_err(stat, __LINE__, __FILE__);
   }
 }
