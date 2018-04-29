@@ -13,6 +13,7 @@
 #include <cstdint>
 #include "cmdline.h"
 #include "comn.h"
+#include "latticeParticle.h"
 
 namespace lattice {
 
@@ -69,8 +70,8 @@ void SnapExporter_2::write_frame(int i_step, const std::vector<TPar>& p_arr) {
   for (size_t i = 0; i < n; i++) {
     coor[i * 2]     = p_arr[i].x;
     coor[i * 2 + 1] = p_arr[i].y;
-    ori[i * 2]      = p_arr[i].ux;
-    ori[i * 2 + 1]  = p_arr[i].uy;
+    ori[i * 2]      = p_arr[i].get_ux();
+    ori[i * 2 + 1]  = p_arr[i].get_uy();
   }
   put_data(coor, ori);
   ++time_idx_[0];

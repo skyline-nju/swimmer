@@ -15,6 +15,7 @@
 #include "vect.h"
 #include "comn.h"
 #include "cmdline.h"
+#include "latticeParticle.h"
 
 namespace lattice {
 
@@ -225,72 +226,35 @@ void UniDomain_2::base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
  ***************************************************************************/
 class UniDomain_RT_2:public UniDomain_2 {
 public:
-  /**
-   * @brief Construct a new UniDomain_RT_2 object
-   * 
-   * @tparam TPar     Template of particle
-   * @tparam TRan     Template of random number generator
-   * @param cmd       cmdline parser
-   * @param p_arr     particle array
-   * @param myran     random number generator
-   */
   template <typename TPar, typename TRan>
   UniDomain_RT_2(const cmdline::parser &cmd, std::vector<TPar> &p_arr,
                  TRan &myran);
-  /**
-  * @brief Run simulation with periodic boundary condition
-  *
-  * @tparam TPar       Template of particle
-  * @tparam TRan       Template of random number generator
-  * @param p_arr       Array of particles
-  * @param myran       Random number generator
-  * @param n_step      Total steps to run
-  * @param seq_mode    Updating sequences for each time step
-  */
+
   template <typename TPar, typename TRan>
   void run(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
-  /**
-  * @brief Run simulation with two walls at xmin and xmax
-  *
-  * @tparam TPar       Template of particle
-  * @tparam TRan       Template of random number generator
-  * @param p_arr       Array of particles
-  * @param myran       Random number generator
-  * @param n_step      Total steps to run
-  * @param seq_mode    Updating sequences for each time step
-  */
+
   template <typename TPar, typename TRan>
   void run_wx(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
 
 private:
-  /**
-   * @brief  Jump forward by one site under PBC
-   * 
-   * @tparam TPar  Template of particle
-   * @param p      The particle to jump 
-   */
   template <typename TPar>
   void jump_forward(TPar &p);
-  /**
-   * @brief  Jump forward by one site, avoding collide to the walls at xmin, xmax
-   * 
-   * @tparam TPar  Template of particle
-   * @param p      The particle to jump 
-   */
+
   template <typename TPar>
   void jump_forward_wall_x(TPar &p);
 
   const double alpha_;  //!< tumbling rate  
 };
-  /**
-   * @brief Construct a new UniDomain_RT_2 object
-   * 
-   * @tparam TPar     Template of particle
-   * @tparam TRan     Template of random number generator
-   * @param cmd       cmdline parser
-   * @param p_arr     particle array
-   * @param myran     random number generator
-   */
+
+/**
+ * @brief Construct a new UniDomain_RT_2 object
+ * 
+ * @tparam TPar     Template of particle
+ * @tparam TRan     Template of random number generator
+ * @param cmd       cmdline parser
+ * @param p_arr     particle array
+ * @param myran     random number generator
+ */
 template<typename TPar, typename TRan>
 UniDomain_RT_2::UniDomain_RT_2(const cmdline::parser &cmd,
                                std::vector<TPar>& p_arr,
@@ -340,16 +304,16 @@ void UniDomain_RT_2::run_wx(std::vector<TPar>& p_arr, TRan & myran,
 }
 
 /**
- * @brief  Jump forward by one site under PBC
+ * @brief Jump forward by one size under PBC
  * 
  * @tparam TPar  Template of particle
- * @param p      The particle to jump 
+ * @param p      The particle to jump
  */
 template <typename TPar>
 void UniDomain_RT_2::jump_forward(TPar& p) {
-  int x_new = p.x + p.ux;
+  int x_new = p.x + p.get_ux();
   tangle_x(x_new);
-  int y_new = p.y + p.uy;
+  int y_new = p.y + p.get_uy();
   tangle_y(y_new);
   const auto ic_new = get_ic(x_new, y_new);
   if (cell_[ic_new] < max_capacity_) {
@@ -360,17 +324,18 @@ void UniDomain_RT_2::jump_forward(TPar& p) {
     ++cell_[ic_new];
   }
 }
+
 /**
- * @brief  Jump forward by one site, avoding collide to the walls at xmin, xmax
+ * @brief Jump forward by one size under PBC
  * 
  * @tparam TPar  Template of particle
- * @param p      The particle to jump 
+ * @param p      The particle to jump
  */
 template <typename TPar>
 void UniDomain_RT_2::jump_forward_wall_x(TPar& p) {
-  const int x_new = p.x + p.ux;
+  const int x_new = p.x + p.get_ux();
   if (x_new >= 0 && x_new < l_.x) {
-    int y_new = p.y + p.uy;
+    int y_new = p.y + p.get_uy();
     tangle_y(y_new);
     const auto ic_new = get_ic(x_new, y_new);
     if (cell_[ic_new] < max_capacity_) {
@@ -389,76 +354,38 @@ void UniDomain_RT_2::jump_forward_wall_x(TPar& p) {
  ***************************************************************************/
 class UniDomain_AB_2: public UniDomain_2 {
 public:
-  /**
-   * @brief Construct a new UniDomain_AB_2 object
-   * 
-   * @tparam TPar     Template of particle
-   * @tparam TRan     Template of random number generator
-   * @param cmd       cmdline parser
-   * @param p_arr     particle array
-   * @param myran     random number generator
-   */
   template <typename TPar, typename TRan>
   UniDomain_AB_2(const cmdline::parser &cmd, std::vector<TPar> &p_arr,
                  TRan &myran);
-  /**
-   * @brief Run simulation with periodic boundary condition
-   * 
-   * @tparam TPar       Template of particle
-   * @tparam TRan       Template of random number generator
-   * @param p_arr       Array of particles
-   * @param myran       Random number generator
-   * @param n_step      Total steps to run
-   * @param seq_mode    Updating sequences for each time step
-   */
+
   template <typename TPar, typename TRan>
   void run(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
-  /**
-   * @brief Run simulation with two walls at xmin and xmax
-   * 
-   * @tparam TPar       Template of particle
-   * @tparam TRan       Template of random number generator
-   * @param p_arr       Array of particles
-   * @param myran       Random number generator
-   * @param n_step      Total steps to run
-   * @param seq_mode    Updating sequences for each time step
-   */
+
   template <typename TPar, typename TRan>
   void run_wx(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
+
 protected:
-  /**
-   * @brief Rotation of on-lattice particles
-   *
-   * @tparam TPar       Template of particles
-   * @param p           One particle
-   * @param rand_value  Random number range from 0 to 1
-   */
-  template <typename TPar>
-  void rot_diffuse(TPar &p, double rand_value) const;
+  template <typename Tx, typename Tu>
+  void rot_diffuse(Par_2<Tx, Tu> &p, double rand_value) const;
 
-  /**
-   * @brief Translational motion of on-lattive active particles under PBC
-   *
-   * @tparam TPar           Template of particles
-   * @param p               One particle
-   * @param rand_value      Random number range from 0 to 1
-   */
-  template <typename TPar>
-  void trans_diffuse(TPar &p, double rand_value);
+  template <typename Tx>
+  void rot_diffuse(Par_s_2<Tx> &p, double rand_value) const;
 
-  /**
-   * @brief Translational motion of on-lattive active particles with walls
-   * at xmin and xmax
-   *
-   * @tparam TPar          Template of particles
-   * @param p              One particle
-   * @param rand_value     Random number range from 0 to 1
-   */
-  template <typename TPar>
-  void trans_diffuse_wx(TPar &p, double rand_value);
+  template <typename Tx, typename Tu>
+  void trans_diffuse(Par_2<Tx, Tu> &p, double rand_value);
+
+  template <typename Tx>
+  void trans_diffuse(Par_s_2<Tx> &p, double rand_value);
+
+  template <typename Tx, typename Tu>
+  void trans_diffuse_wx(Par_2<Tx, Tu> &p, double rand_value);
+
+  template <typename Tx>
+  void trans_diffuse_wx(Par_s_2<Tx> &p, double rand_value);
 
 private:
   const double D_rot_;
+  const double D_rot_2_;
   double prob_slice_[3];
 };
 
@@ -475,7 +402,7 @@ template <typename TPar, typename TRan>
 UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd,
                                std::vector<TPar>& p_arr, TRan& myran)
   : UniDomain_2(cmd, p_arr, myran, false),
-    D_rot_(cmd.get<double>("D_rot")), prob_slice_{} {
+    D_rot_(cmd.get<double>("D_rot")), D_rot_2_(D_rot_ * 2), prob_slice_{} {
   const auto nu_f = cmd.get<double>("nu_f");
   const auto nu_b = cmd.get<double>("nu_b");
   const auto nu_t = cmd.get<double>("nu_t");
@@ -488,30 +415,56 @@ UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd,
 /**
  * @brief Rotation of on-lattice particles
  *
- * @tparam TPar       Template of particles
+ * @tparam Tx         Template type of x, y
+ * @tparam Tu         Template type of ux, uy
  * @param p           One particle
  * @param rand_value  Random number range from 0 to 1
  */
-template <typename TPar>
-void UniDomain_AB_2::rot_diffuse(TPar& p, double rand_value) const {
+template <typename Tx, typename Tu>
+void UniDomain_AB_2::rot_diffuse(Par_2<Tx, Tu>& p, double rand_value) const {
   auto tmp = p.ux;
-  if (rand_value < D_rot_) {
-    p.ux = -p.uy;
-    p.uy = tmp;
-  } else if (rand_value > 1 - D_rot_) {
-    p.ux = p.uy;
-    p.uy = -tmp;
+  if (rand_value < D_rot_2_) {
+    if (rand_value < D_rot_) {
+      p.ux = p.uy;
+      p.uy = -tmp;
+    } else {
+      p.ux = -p.uy;
+      p.uy = tmp;
+    }
   }
 }
 /**
+* @brief Rotation of on-lattice particles
+*
+* @tparam Tx         Template type of x, y
+* @param p           One particle
+* @param rand_value  Random number range from 0 to 1
+*/
+template <typename Tx>
+void UniDomain_AB_2::rot_diffuse(Par_s_2<Tx>& p, double rand_value) const {
+  if (rand_value < D_rot_2_) {
+    if (rand_value < D_rot_) {
+      p.s -= 1;
+      if (p.s < 0)
+        p.s = 3;
+    } else {
+      p.s += 1;
+      if (p.s > 3)
+        p.s = 0;
+    }
+  }
+}
+
+  /**
  * @brief Translational motion of on-lattive active particles under PBC
  *
- * @tparam TPar           Template of particles
+ * @tparam Tx             Template type of x, y
+ * @tparam Tu             Template type of ux, uy
  * @param p               One particle
  * @param rand_value      Random number range from 0 to 1
  */
-template <typename TPar>
-void UniDomain_AB_2::trans_diffuse(TPar& p, double rand_value) {
+template <typename Tx, typename Tu>
+void UniDomain_AB_2::trans_diffuse(Par_2<Tx, Tu>& p, double rand_value) {
   int ux, uy;
   if (rand_value < prob_slice_[0]) {
     ux = p.ux;
@@ -533,23 +486,63 @@ void UniDomain_AB_2::trans_diffuse(TPar& p, double rand_value) {
   const auto ic_new = get_ic(x_new, y_new);
   if (cell_[ic_new] < max_capacity_) {
     const auto ic = get_ic(p);
-    --cell_[ic];
+    cell_[ic] -= 1;
     p.x = x_new;
     p.y = y_new;
-    ++cell_[ic_new];
+    cell_[ic_new] += 1;
   }
 }
 
 /**
+* @brief Translational motion of on-lattive active particles under PBC
+*
+* @tparam Tx             Template type of x, y
+* @param p               One particle
+* @param rand_value      Random number range from 0 to 1
+*/
+template <typename Tx>
+void UniDomain_AB_2::trans_diffuse(Par_s_2<Tx>& p, double rand_value) {
+  int s;
+  if (rand_value < prob_slice_[0]) {
+    s = p.s;
+  } else if (rand_value < prob_slice_[1]) {
+    s = p.s + 2;
+    if (s > 3)
+      s -= 4;
+  } else if (rand_value < prob_slice_[2]) {
+    s = p.s + 1;
+    if (s == 4)
+      s = 0;
+  } else {
+    s = p.s - 1;
+    if (s < 0)
+      s = 3;
+  }
+  int x_new = p.x + state_2[s][0];
+  tangle_x(x_new);
+  int y_new = p.y + state_2[s][1];
+  tangle_y(y_new);
+  const auto ic_new = get_ic(x_new, y_new);
+  if (cell_[ic_new] < max_capacity_) {
+    const auto ic = get_ic(p);
+    cell_[ic] -= 1;
+    p.x = x_new;
+    p.y = y_new;
+    cell_[ic_new] += 1;
+  }
+}
+
+  /**
  * @brief Translational motion of on-lattive active particles with walls
  * at xmin and xmax
  *
- * @tparam TPar          Template of particles
+ * @tparam Tx            Template type of x, y
+ * @tparam Tu            Template type of ux, uy
  * @param p              One particle
  * @param rand_value     Random number range from 0 to 1
  */
-template <typename TPar>
-void UniDomain_AB_2::trans_diffuse_wx(TPar& p, double rand_value) {
+template <typename Tx, typename Tu>
+void UniDomain_AB_2::trans_diffuse_wx(Par_2<Tx, Tu>& p, double rand_value) {
   int ux, uy;
   if (rand_value < prob_slice_[0]) {
     ux = p.ux;
@@ -564,7 +557,7 @@ void UniDomain_AB_2::trans_diffuse_wx(TPar& p, double rand_value) {
     ux = p.uy;
     uy = -p.ux;
   }
-  int x_new = p.x + ux;
+  const int x_new = p.x + ux;
   if (x_new >= 0 && x_new < l_.x) {
     int y_new = p.y + uy;
     tangle_y(y_new);
@@ -578,7 +571,49 @@ void UniDomain_AB_2::trans_diffuse_wx(TPar& p, double rand_value) {
     }
   }
 }
+
 /**
+* @brief Translational motion of on-lattive active particles with walls
+* at xmin and xmax
+*
+* @tparam Tx            Template type of x, y
+* @param p              One particle
+* @param rand_value     Random number range from 0 to 1
+*/
+template <typename Tx>
+void UniDomain_AB_2::trans_diffuse_wx(Par_s_2<Tx>& p, double rand_value) {
+  int s;
+  if (rand_value < prob_slice_[0]) {
+    s = p.s;
+  } else if (rand_value < prob_slice_[1]) {
+    s = p.s + 2;
+    if (s > 3)
+      s -= 4;
+  } else if (rand_value < prob_slice_[2]) {
+    s = p.s + 1;
+    if (s == 4)
+      s = 0;
+  } else {
+    s = p.s - 1;
+    if (s < 0)
+      s = 3;
+  }
+  const int x_new = p.x + state_2[s][0];
+  if (x_new >= 0 && x_new < l_.x) {
+    int y_new = p.y + state_2[s][1];
+    tangle_y(y_new);
+    const auto ic_new = get_ic(x_new, y_new);
+    if (cell_[ic_new] < max_capacity_) {
+      const auto ic = get_ic(p);
+      --cell_[ic];
+      p.x = x_new;
+      p.y = y_new;
+      ++cell_[ic_new];
+    }
+  }
+}
+
+  /**
  * @brief Run simulation with periodic boundary condition
  * 
  * @tparam TPar       Template of particle
