@@ -65,7 +65,7 @@ void lattice::set_output_2(const cmdline::parser& cmd, LogExporter** log_ex,
       base_name = str;
     }
     else {
-      snprintf(str, 100, "ab_%g_%g_%d", nu_f, pack_frac, max_capacity);
+      snprintf(str, 100, "ab_%g_%g_%g_%d", nu_f, D_rot, pack_frac, max_capacity);
       base_name = str;
     }
 

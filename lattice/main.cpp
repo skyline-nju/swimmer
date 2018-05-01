@@ -33,35 +33,11 @@ int main(int argc, char* argv[]) {
 
   const int n_step = cmd.get<unsigned int>("n_step");
 
-  //{
-  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
-  //  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
-  //  lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
-  //  domain.run(p_arr, myran, n_step, 0);
-  //}
-
-
-  //{
-  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
-  //  std::vector<lattice::Par_s_2<uint16_t>> p_arr;
-  //  lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
-  //  domain.run(p_arr, myran, n_step, 0);
-  //}
-
-
   {
     Ranq2 myran(cmd.get<unsigned long long>("seed"));
     std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
     lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
     domain.run(p_arr, myran, n_step, 0);
   }
-
-
-  //{
-  //  Ranq2 myran(cmd.get<unsigned long long>("seed"));
-  //  std::vector<lattice::Par_s_2<uint16_t>> p_arr;
-  //  lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
-  //  domain.run(p_arr, myran, n_step, 0);
-  //}
 
 }

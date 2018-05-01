@@ -30,7 +30,7 @@ private:
 
   double sigma_;             //!< particle diameter
   int n_par_;                //!< particle number
-  Ran myran_;                //!< random number generator
+  Ranq2 myran_;              //!< random number generator
 
   LogExporter *log_;         //!< log exporter
   NcParExporter_2 *nc_;      //!< snapshto exporter with netcdf format

@@ -34,7 +34,9 @@ class Profile:
 
 
 def plot_wetting_frac_vs_alpha(k, ncut=1000, fmt="dat"):
-    pat = r"profile_*_%g_%d.%s" % (0.01, k, fmt)
+    # pat = r"profile_*_%g_%d.%s" % (0.01, k, fmt)
+    # pat = r"profile_*_%d_0.04.%s" % (k, fmt)
+    pat = r"profile_ab_*_%g_0.01_1.%s" % (k, fmt)
     files = glob.glob(pat)
     # order para for the wetting to partial-wetting trasition
     Zm = np.zeros(len(files))
@@ -46,7 +48,7 @@ def plot_wetting_frac_vs_alpha(k, ncut=1000, fmt="dat"):
         else:
             frac_arr = read_dat(file_i)
         Zm[i] = 1 - np.mean(frac_arr)
-        alpha[i] = float(file_i.split("_")[1])
+        alpha[i] = k / (float(file_i.split("_")[2]) - 1)
 
     arg_sort = np.argsort(Zm)
     alpha = alpha[arg_sort]
@@ -65,7 +67,8 @@ if __name__ == "__main__":
     # x = Profile(path + "profile.nc")
     # x.show_wetting_frac()
     # os.chdir(r"E:\data\roughening\wetting\1500_1500")
-    os.chdir(r"E:/data/roughening/wetting/lattice/6000_1000")
+    # os.chdir(r"E:/data/roughening/wetting/lattice/6000_1000")
+    os.chdir(r"E:\data\roughening\wetting\lattice\ab_6000_1000")
     # pro = Profile("profile_0.005_15_0.04.nc")
     # pro.show_wetting_frac()
-    plot_wetting_frac_vs_alpha(1, 400)
+    plot_wetting_frac_vs_alpha(0.1, 500)

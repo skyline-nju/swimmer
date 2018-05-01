@@ -29,7 +29,7 @@ bool check_overlap_2(const TPar &p_new, const std::vector<TPar> &p_arr,
 /* Add new particle with random position, avoiding overlapped with existed. */
 template <typename TPar>
 bool add_new_rand_2(std::vector<TPar> &p_arr, int n, double sigma_square,
-                    Ran &myran, const Vec_2<double> &l,
+                    Ranq2 &myran, const Vec_2<double> &l,
                     const Vec_2<double> &origin,
                     const Vec_2<int> &flag_bc) {
   bool flag = false;
@@ -50,7 +50,7 @@ bool add_new_rand_2(std::vector<TPar> &p_arr, int n, double sigma_square,
  /* Create particle randomly without overlapping. */
 template <class TPar>
 void create_rand_2(std::vector<TPar> &p_arr, int n, double sigma,
-                   Ran &myran, const Vec_2<double> &l,
+                   Ranq2 &myran, const Vec_2<double> &l,
                    const Vec_2<double> &origin,
                    const Vec_2<int> &flag_bc) {
   auto sigma_square = sigma * sigma;
@@ -76,7 +76,7 @@ public:
   BrownPar_2(double x0, double y0, double fx0, double fy0)
     : x(x0), y(y0), fx(fx0), fy(fy0) {}
 
-  BrownPar_2(Ran &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
+  BrownPar_2(Ranq2 &myran, const Vec_2<double> &l, const Vec_2<double> &origin)
     : x(origin.x + myran.doub() * l.x), y(origin.y + myran.doub() * l.y),
       fx(0), fy(0) {}
 
@@ -96,14 +96,14 @@ public:
   ActiveBrownPar_2(double x0, double y0, double ux0, double uy0)
     : BrownPar_2(x0, y0), ux(ux0), uy(uy0) {}
 
-  ActiveBrownPar_2(Ran &myran, const Vec_2<double> &l,
+  ActiveBrownPar_2(Ranq2 &myran, const Vec_2<double> &l,
                    const Vec_2<double> &origin);
 
   double ux;
   double uy;
 };
 
-inline ActiveBrownPar_2::ActiveBrownPar_2(Ran& myran, const Vec_2<double>& l,
+inline ActiveBrownPar_2::ActiveBrownPar_2(Ranq2& myran, const Vec_2<double>& l,
                                           const Vec_2<double>& origin)
     : BrownPar_2(myran, l, origin) {
   const auto theta = 2 * PI * myran.doub();

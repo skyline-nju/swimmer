@@ -15,7 +15,6 @@
 #include "vect.h"
 #include "comn.h"
 #include "cmdline.h"
-#include "latticeParticle.h"
 
 namespace lattice {
 
@@ -99,16 +98,6 @@ void set_sampling_seque(TFunc1 &mc_move, TFunc2 trival_move,
  ***************************************************************************/
 class UniDomain_2 {
 public:
-  /**
-   * @brief Construct a new UniDomain_2 object
-   * 
-   * @tparam TPar     Template of particle
-   * @tparam TRan     Template of random number generator
-   * @param cmd       cmdline parser
-   * @param p_arr     particle array
-   * @param myran     random number generator
-   * @param is_rt     is run-and-tumble case?
-   */
   template<typename TPar, typename TRan>
   explicit UniDomain_2(const cmdline::parser &cmd, std::vector<TPar> &p_arr,
                        TRan &myran, bool is_rt);
@@ -130,21 +119,12 @@ protected:
   template <typename T>
   void tangle_y(T &y) const { tangle_1(y, 0, l_.y, l_.y); }
 
-  /**
-   * @brief Base function to run the simulation.
-   * 
-   * @tparam TPar     Template of particle
-   * @tparam TRan     Template of random number generator
-   * @tparam TMove    Template function of trival moves
-   * @param p_arr     Array of particles
-   * @param myran     Random number generator
-   * @param f_move    Trival moves
-   * @param n_step    Total steps to run 
-   * @param seq_mode  For each step, the sequences to update particles
-   */
   template<typename TPar, typename TRan, typename TMove>
   void base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
                 int n_step, int seq_mode);
+
+  template<typename TPar>
+  void try_move_to_new_cell(TPar &p, int x_new, int y_new);
 
   Vec_2<int> l_;              //!> domain lengths
   std::vector<uint8_t> cell_; //!> number of particles at each cell
@@ -219,6 +199,25 @@ void UniDomain_2::base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
   std::chrono::duration<double> elapsed_time = t2 - t1;
   std::cout << "elapsed time: " << elapsed_time.count() << std::endl;
 }
+/**
+* @brief Try to move to a new cell.
+*
+* @tparam TPar      Template of particle
+* @param  p         Particle to move  
+* @param  x_new     New x
+* @param y_new      New y
+*/
+template<typename TPar>
+void UniDomain_2::try_move_to_new_cell(TPar & p, int x_new, int y_new) {
+  const auto ic_new = get_ic(x_new, y_new);
+  if (cell_[ic_new] < max_capacity_) {
+    const auto ic = get_ic(p);
+    --cell_[ic];
+    p.x = x_new;
+    p.y = y_new;
+    ++cell_[ic_new];
+  }
+}
 
 /*************************************************************************//**
  * @brief 2D domain where lattice particles perform run-and-tumble motions
@@ -237,12 +236,6 @@ public:
   void run_wx(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
 
 private:
-  template <typename TPar>
-  void jump_forward(TPar &p);
-
-  template <typename TPar>
-  void jump_forward_wall_x(TPar &p);
-
   const double alpha_;  //!< tumbling rate  
 };
 
@@ -260,7 +253,7 @@ UniDomain_RT_2::UniDomain_RT_2(const cmdline::parser &cmd,
                                std::vector<TPar>& p_arr,
                                TRan & myran)
   : UniDomain_2(cmd, p_arr, myran, true), alpha_(cmd.get<double>("alpha")) {
-  std::cout << "Run-and-tumble lattice particle\n";
+  std::cout << "Run-and-tumble lattice particle with tumbling rate " << alpha_ << "\n";
 }
 /**
 * @brief Run simulation with periodic boundary condition
@@ -276,7 +269,11 @@ template <typename TPar, typename TRan>
 void UniDomain_RT_2::run(std::vector<TPar>& p_arr, TRan& myran,
                          int n_step, int seq_mode) {
   auto trival_move = [this](TPar &p, TRan &ran) {
-    jump_forward(p);
+    int x_new = p.x + p.get_ux();
+    tangle_x(x_new);
+    int y_new = p.y + p.get_uy();
+    tangle_y(y_new);
+    try_move_to_new_cell(p, x_new, y_new);
     if (ran.doub() < alpha_)
       p.tumble(ran);
   };
@@ -296,56 +293,16 @@ template<typename TPar, typename TRan>
 void UniDomain_RT_2::run_wx(std::vector<TPar>& p_arr, TRan & myran,
                             int n_step, int seq_mode) {
   auto trival_move = [this](TPar &p, TRan &ran) {
-    jump_forward_wall_x(p);
+    const int x_new = p.x + p.get_ux();
+    if (x_new >= 0 && x_new < l_.x) {
+      int y_new = p.y + p.get_uy();
+      tangle_y(y_new);
+      try_move_to_new_cell(p, x_new, y_new);
+    }
     if (ran.doub() < alpha_)
       p.tumble(ran);
   };
   base_run(p_arr, myran, trival_move, n_step, seq_mode);
-}
-
-/**
- * @brief Jump forward by one size under PBC
- * 
- * @tparam TPar  Template of particle
- * @param p      The particle to jump
- */
-template <typename TPar>
-void UniDomain_RT_2::jump_forward(TPar& p) {
-  int x_new = p.x + p.get_ux();
-  tangle_x(x_new);
-  int y_new = p.y + p.get_uy();
-  tangle_y(y_new);
-  const auto ic_new = get_ic(x_new, y_new);
-  if (cell_[ic_new] < max_capacity_) {
-    const auto ic = get_ic(p);
-    --cell_[ic];
-    p.x = x_new;
-    p.y = y_new;
-    ++cell_[ic_new];
-  }
-}
-
-/**
- * @brief Jump forward by one size under PBC
- * 
- * @tparam TPar  Template of particle
- * @param p      The particle to jump
- */
-template <typename TPar>
-void UniDomain_RT_2::jump_forward_wall_x(TPar& p) {
-  const int x_new = p.x + p.get_ux();
-  if (x_new >= 0 && x_new < l_.x) {
-    int y_new = p.y + p.get_uy();
-    tangle_y(y_new);
-    const auto ic_new = get_ic(x_new, y_new);
-    if (cell_[ic_new] < max_capacity_) {
-      const auto ic = get_ic(p);
-      --cell_[ic];
-      p.x = x_new;
-      p.y = y_new;
-      ++cell_[ic_new];
-    }
-  }
 }
 
 /*************************************************************************//**
@@ -364,29 +321,8 @@ public:
   template <typename TPar, typename TRan>
   void run_wx(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
 
-protected:
-  template <typename Tx, typename Tu>
-  void rot_diffuse(Par_2<Tx, Tu> &p, double rand_value) const;
-
-  template <typename Tx>
-  void rot_diffuse(Par_s_2<Tx> &p, double rand_value) const;
-
-  template <typename Tx, typename Tu>
-  void trans_diffuse(Par_2<Tx, Tu> &p, double rand_value);
-
-  template <typename Tx>
-  void trans_diffuse(Par_s_2<Tx> &p, double rand_value);
-
-  template <typename Tx, typename Tu>
-  void trans_diffuse_wx(Par_2<Tx, Tu> &p, double rand_value);
-
-  template <typename Tx>
-  void trans_diffuse_wx(Par_s_2<Tx> &p, double rand_value);
-
 private:
-  const double D_rot_;
-  const double D_rot_2_;
-  double prob_slice_[3];
+  double prob_arr_[5];
 };
 
 /**
@@ -401,219 +337,31 @@ private:
 template <typename TPar, typename TRan>
 UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd,
                                std::vector<TPar>& p_arr, TRan& myran)
-  : UniDomain_2(cmd, p_arr, myran, false),
-    D_rot_(cmd.get<double>("D_rot")), D_rot_2_(D_rot_ * 2), prob_slice_{} {
+  : UniDomain_2(cmd, p_arr, myran, false), prob_arr_{} {
   const auto nu_f = cmd.get<double>("nu_f");
   const auto nu_b = cmd.get<double>("nu_b");
   const auto nu_t = cmd.get<double>("nu_t");
-  const auto rate_tot = nu_f + nu_b + 2 * nu_t;
-  prob_slice_[0] = nu_f / rate_tot;
-  prob_slice_[1] = prob_slice_[0] + nu_b / rate_tot;
-  prob_slice_[2] = prob_slice_[1] + nu_t / rate_tot;
+  const auto D_rot = cmd.get<double>("D_rot");
   std::cout << "active Brownain on-lattice particles\n";
-}
-/**
- * @brief Rotation of on-lattice particles
- *
- * @tparam Tx         Template type of x, y
- * @tparam Tu         Template type of ux, uy
- * @param p           One particle
- * @param rand_value  Random number range from 0 to 1
- */
-template <typename Tx, typename Tu>
-void UniDomain_AB_2::rot_diffuse(Par_2<Tx, Tu>& p, double rand_value) const {
-  auto tmp = p.ux;
-  if (rand_value < D_rot_2_) {
-    if (rand_value < D_rot_) {
-      p.ux = p.uy;
-      p.uy = -tmp;
-    } else {
-      p.ux = -p.uy;
-      p.uy = tmp;
-    }
-  }
-}
-/**
-* @brief Rotation of on-lattice particles
-*
-* @tparam Tx         Template type of x, y
-* @param p           One particle
-* @param rand_value  Random number range from 0 to 1
-*/
-template <typename Tx>
-void UniDomain_AB_2::rot_diffuse(Par_s_2<Tx>& p, double rand_value) const {
-  if (rand_value < D_rot_2_) {
-    if (rand_value < D_rot_) {
-      p.s -= 1;
-      if (p.s < 0)
-        p.s = 3;
-    } else {
-      p.s += 1;
-      if (p.s > 3)
-        p.s = 0;
-    }
-  }
-}
+  std::cout << "forward rate=" << nu_f << "\n";
+  std::cout << "backward rate=" << nu_b << "\n";
+  std::cout << "transverse rate=" << nu_t << "\n";
+  std::cout << "rotational diffusion rate=" << D_rot << "\n";
 
-  /**
- * @brief Translational motion of on-lattive active particles under PBC
- *
- * @tparam Tx             Template type of x, y
- * @tparam Tu             Template type of ux, uy
- * @param p               One particle
- * @param rand_value      Random number range from 0 to 1
- */
-template <typename Tx, typename Tu>
-void UniDomain_AB_2::trans_diffuse(Par_2<Tx, Tu>& p, double rand_value) {
-  int ux, uy;
-  if (rand_value < prob_slice_[0]) {
-    ux = p.ux;
-    uy = p.uy;
-  } else if (rand_value < prob_slice_[1]) {
-    ux = -p.ux;
-    uy = -p.uy;
-  }else if (rand_value < prob_slice_[2]) {
-    ux = -p.uy;
-    uy = p.ux;
-  }else {
-    ux = p.uy;
-    uy = -p.ux;
+  const auto tot = nu_f + nu_b + 2 * nu_t + 2 * D_rot;
+  std::cout << "total rate=" << tot << "\n";
+  prob_arr_[0] = nu_f / tot;
+  prob_arr_[1] = nu_b / tot + prob_arr_[0];
+  prob_arr_[2] = nu_t / tot + prob_arr_[1];
+  prob_arr_[3] = nu_t / tot + prob_arr_[2];
+  prob_arr_[4] = D_rot / tot + prob_arr_[3];
+  for (auto i : prob_arr_) {
+    std::cout << i << "\t";
   }
-  int x_new = p.x + ux;
-  tangle_x(x_new);
-  int y_new = p.y + uy;
-  tangle_y(y_new);
-  const auto ic_new = get_ic(x_new, y_new);
-  if (cell_[ic_new] < max_capacity_) {
-    const auto ic = get_ic(p);
-    cell_[ic] -= 1;
-    p.x = x_new;
-    p.y = y_new;
-    cell_[ic_new] += 1;
-  }
+  std::cout << "\n";
 }
 
 /**
-* @brief Translational motion of on-lattive active particles under PBC
-*
-* @tparam Tx             Template type of x, y
-* @param p               One particle
-* @param rand_value      Random number range from 0 to 1
-*/
-template <typename Tx>
-void UniDomain_AB_2::trans_diffuse(Par_s_2<Tx>& p, double rand_value) {
-  int s;
-  if (rand_value < prob_slice_[0]) {
-    s = p.s;
-  } else if (rand_value < prob_slice_[1]) {
-    s = p.s + 2;
-    if (s > 3)
-      s -= 4;
-  } else if (rand_value < prob_slice_[2]) {
-    s = p.s + 1;
-    if (s == 4)
-      s = 0;
-  } else {
-    s = p.s - 1;
-    if (s < 0)
-      s = 3;
-  }
-  int x_new = p.x + state_2[s][0];
-  tangle_x(x_new);
-  int y_new = p.y + state_2[s][1];
-  tangle_y(y_new);
-  const auto ic_new = get_ic(x_new, y_new);
-  if (cell_[ic_new] < max_capacity_) {
-    const auto ic = get_ic(p);
-    cell_[ic] -= 1;
-    p.x = x_new;
-    p.y = y_new;
-    cell_[ic_new] += 1;
-  }
-}
-
-  /**
- * @brief Translational motion of on-lattive active particles with walls
- * at xmin and xmax
- *
- * @tparam Tx            Template type of x, y
- * @tparam Tu            Template type of ux, uy
- * @param p              One particle
- * @param rand_value     Random number range from 0 to 1
- */
-template <typename Tx, typename Tu>
-void UniDomain_AB_2::trans_diffuse_wx(Par_2<Tx, Tu>& p, double rand_value) {
-  int ux, uy;
-  if (rand_value < prob_slice_[0]) {
-    ux = p.ux;
-    uy = p.uy;
-  } else if (rand_value < prob_slice_[1]) {
-    ux = -p.ux;
-    uy = -p.uy;
-  } else if (rand_value < prob_slice_[2]) {
-    ux = -p.uy;
-    uy = p.ux;
-  } else {
-    ux = p.uy;
-    uy = -p.ux;
-  }
-  const int x_new = p.x + ux;
-  if (x_new >= 0 && x_new < l_.x) {
-    int y_new = p.y + uy;
-    tangle_y(y_new);
-    const auto ic_new = get_ic(x_new, y_new);
-    if (cell_[ic_new] < max_capacity_) {
-      const auto ic = get_ic(p);
-      --cell_[ic];
-      p.x = x_new;
-      p.y = y_new;
-      ++cell_[ic_new];
-    }
-  }
-}
-
-/**
-* @brief Translational motion of on-lattive active particles with walls
-* at xmin and xmax
-*
-* @tparam Tx            Template type of x, y
-* @param p              One particle
-* @param rand_value     Random number range from 0 to 1
-*/
-template <typename Tx>
-void UniDomain_AB_2::trans_diffuse_wx(Par_s_2<Tx>& p, double rand_value) {
-  int s;
-  if (rand_value < prob_slice_[0]) {
-    s = p.s;
-  } else if (rand_value < prob_slice_[1]) {
-    s = p.s + 2;
-    if (s > 3)
-      s -= 4;
-  } else if (rand_value < prob_slice_[2]) {
-    s = p.s + 1;
-    if (s == 4)
-      s = 0;
-  } else {
-    s = p.s - 1;
-    if (s < 0)
-      s = 3;
-  }
-  const int x_new = p.x + state_2[s][0];
-  if (x_new >= 0 && x_new < l_.x) {
-    int y_new = p.y + state_2[s][1];
-    tangle_y(y_new);
-    const auto ic_new = get_ic(x_new, y_new);
-    if (cell_[ic_new] < max_capacity_) {
-      const auto ic = get_ic(p);
-      --cell_[ic];
-      p.x = x_new;
-      p.y = y_new;
-      ++cell_[ic_new];
-    }
-  }
-}
-
-  /**
  * @brief Run simulation with periodic boundary condition
  * 
  * @tparam TPar       Template of particle
@@ -627,17 +375,16 @@ template <typename TPar, typename TRan>
 void UniDomain_AB_2::run(std::vector<TPar>& p_arr, TRan& myran,
                          int n_step, int seq_mode) {
   auto trival_move = [this](TPar &p, TRan &ran) {
-    const auto r1 = ran.doub() * 2;
-    const auto r2 = ran.doub();
-    if (r1 > 1) {
-      rot_diffuse(p, r1 * 0.5);
-      trans_diffuse(p, r2);
+    double rand_val = ran.doub();
+    if (rand_val < prob_arr_[3]) {
+      int x_new, y_new;
+      p.jump_rand(x_new, y_new, rand_val, prob_arr_);
+      tangle_x(x_new);
+      tangle_y(y_new);
+      try_move_to_new_cell(p, x_new, y_new);
     } else {
-      trans_diffuse(p, r2);
-      rot_diffuse(p, r1);
+      p.rot90(rand_val, prob_arr_[4]);
     }
-    //trans_diffuse(p, ran.doub());
-    //rot_diffuse(p, ran.doub());
   };
   base_run(p_arr, myran, trival_move, n_step, seq_mode);
 }
@@ -656,17 +403,17 @@ template <typename TPar, typename TRan>
 void UniDomain_AB_2::run_wx(std::vector<TPar>& p_arr, TRan& myran,
                             int n_step, int seq_mode) {
   auto trival_move = [this](TPar &p, TRan &ran) {
-    const auto r1 = ran.doub() * 2;
-    const auto r2 = ran.doub();
-    if (r1 > 1) {
-      rot_diffuse(p, r1 * 0.5);
-      trans_diffuse_wx(p, r2);
+    double rand_val = ran.doub();
+    if (rand_val < prob_arr_[3]) {
+      int x_new, y_new;
+      p.jump_rand(x_new, y_new, rand_val, prob_arr_);
+      if (x_new >= 0 && x_new < l_.x) {
+        tangle_y(y_new);
+        try_move_to_new_cell(p, x_new, y_new);
+      }
     } else {
-      trans_diffuse_wx(p, r2);
-      rot_diffuse(p, r1);
+      p.rot90(rand_val, prob_arr_[4]);
     }
-    //trans_diffuse(p, ran.doub());
-    //rot_diffuse(p, ran.doub());
   };
   base_run(p_arr, myran, trival_move, n_step, seq_mode);
 }
