@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
   cmd.add<int>("snap_dt", '\0', "Time interval to output snapshort", false, 0);
   cmd.add<int>("profile_dt", '\0', "Time inteval to output wetting profile",
                false, 0);
+  cmd.add<int>("traj_dt", '\0', "Time inteval to output trajectory", false, 0);
 
   /* define motion type */
   //! run and tumble
@@ -32,12 +33,17 @@ int main(int argc, char* argv[]) {
 
 
   const int n_step = cmd.get<unsigned int>("n_step");
+  Ranq2 myran(cmd.get<unsigned long long>("seed"));
+  std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
 
-  {
-    Ranq2 myran(cmd.get<unsigned long long>("seed"));
-    std::vector<lattice::Par_2<uint16_t, int8_t>> p_arr;
+  if (cmd.exist("alpha")) {
+    lattice::UniDomain_RT_2 domain(cmd, p_arr, myran);
+    domain.run_wx(p_arr, myran, n_step, 3);
+  } else {
     lattice::UniDomain_AB_2 domain(cmd, p_arr, myran);
-    domain.run(p_arr, myran, n_step, 0);
+    domain.run_wx(p_arr, myran, n_step, 0);
   }
+
+
 
 }

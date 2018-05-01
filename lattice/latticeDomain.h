@@ -133,6 +133,7 @@ protected:
   LogExporter *log_;          //!> log exporter
   SnapExporter_2 * snap_;     //!> snapshot exporter
   ProfileExporter *pf_;       //!> profile exporter
+  TrajExporter_2 *traj_;
 };
 /**
  * @brief Construct a new UniDomain_2 object
@@ -148,7 +149,7 @@ template <typename TPar, typename TRan>
 UniDomain_2::UniDomain_2(const cmdline::parser& cmd, std::vector<TPar>& p_arr,
                          TRan &myran, bool is_rt)
   : max_capacity_(cmd.get<int>("n_max")),
-    log_(nullptr), snap_(nullptr), pf_(nullptr) {
+    log_(nullptr), snap_(nullptr), pf_(nullptr), traj_(nullptr) {
   l_.x = cmd.get<int>("Lx");
   l_.y = cmd.exist("Ly") ? cmd.get<int>("Ly") : l_.x;
   const auto phi = cmd.get<double>("pack_frac");
@@ -167,7 +168,7 @@ UniDomain_2::UniDomain_2(const cmdline::parser& cmd, std::vector<TPar>& p_arr,
       cell_[ic] += 1;
     }
   }
-  set_output_2(cmd, &log_, &snap_, &pf_, is_rt);
+  set_output_2(cmd, &log_, &snap_, &pf_, &traj_, is_rt);
 }
 
 /**
@@ -193,7 +194,7 @@ void UniDomain_2::base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
   const auto t1 = std::chrono::system_clock::now();
   for (auto i = 1; i <= n_step; i++) {
     mc_move();
-    output_2(i, p_arr, cell_, log_, snap_, pf_);
+    output_2(i, p_arr, cell_, log_, snap_, pf_, traj_);
   }
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;

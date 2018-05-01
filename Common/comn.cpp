@@ -79,6 +79,11 @@ BaseExporter::BaseExporter(int n_step, int sep, int start)
 }
 
 void BaseExporter::set_lin_frame(int sep, int n_step, int start) {
+  if (sep <= 0) {
+    std::cerr << "line " << __LINE__ << " of " << __FILE__
+      << ": sep must be positive!" << std::endl;
+    exit(1);
+  }
   frame_interval_ = sep;
   n_step_ = n_step;
   for (auto i = start + sep; i <= n_step_; i += sep) {

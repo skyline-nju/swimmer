@@ -173,7 +173,7 @@ void Par_s_2<T>::rot90(double r_value, const double* prob_arr) {
       if (s < 0)
         s = 3;
     } else {
-      s += 1;;
+      s += 1;
       if (s > 3)
         s = 0;
     }
