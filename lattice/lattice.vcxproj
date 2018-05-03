@@ -143,12 +143,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="latticeExporter.cpp" />
+    <ClCompile Include="latticeWetting.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="latticeExporter.h" />
     <ClInclude Include="latticeParticle.h" />
     <ClInclude Include="latticeDomain.h" />
+    <ClInclude Include="latticeWetting.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

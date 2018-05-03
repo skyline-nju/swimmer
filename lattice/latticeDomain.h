@@ -101,11 +101,8 @@ public:
   template<typename TPar, typename TRan>
   explicit UniDomain_2(const cmdline::parser &cmd, std::vector<TPar> &p_arr,
                        TRan &myran, bool is_rt);
-  /**
-   * @brief Destroy the UniDomain_2 object
-   * 
-   */
-  ~UniDomain_2() {delete log_; delete snap_; delete pf_;}
+
+  ~UniDomain_2() { delete log_; delete pf_; delete traj_; }
 
 protected:
   template <typename TPar>
@@ -113,25 +110,35 @@ protected:
 
   size_t get_ic(int ix, int iy) const { return ix + iy * l_.x; }
 
+  template <typename TPar>
+  int get_nearby_num(const TPar &p) const;
+
+  template <typename T>
+  void update_nearby_num(int x, int y, int dn, 
+                         std::vector<T> &near_num) const;
+
   template <typename T>
   void tangle_x(T &x) const { tangle_1(x, 0, l_.x, l_.x); }
 
   template <typename T>
   void tangle_y(T &y) const { tangle_1(y, 0, l_.y, l_.y); }
 
-  template<typename TPar, typename TRan, typename TMove>
+  template <typename TPar, typename TRan, typename TMove>
   void base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
                 int n_step, int seq_mode);
 
-  template<typename TPar>
+  template <typename TPar>
   void try_move_to_new_cell(TPar &p, int x_new, int y_new);
+
+  template <typename TPar>
+  void try_move_to_new_cell(TPar &p, int x_new, int y_new,
+                            std::vector<uint8_t> &near_num);
 
   Vec_2<int> l_;              //!> domain lengths
   std::vector<uint8_t> cell_; //!> number of particles at each cell
   const int max_capacity_;    //!> the max number of particle that one cell can hold
 
   LogExporter *log_;          //!> log exporter
-  SnapExporter_2 * snap_;     //!> snapshot exporter
   ProfileExporter *pf_;       //!> profile exporter
   TrajExporter_2 *traj_;
 };
@@ -149,7 +156,7 @@ template <typename TPar, typename TRan>
 UniDomain_2::UniDomain_2(const cmdline::parser& cmd, std::vector<TPar>& p_arr,
                          TRan &myran, bool is_rt)
   : max_capacity_(cmd.get<int>("n_max")),
-    log_(nullptr), snap_(nullptr), pf_(nullptr), traj_(nullptr) {
+    log_(nullptr), pf_(nullptr), traj_(nullptr) {
   l_.x = cmd.get<int>("Lx");
   l_.y = cmd.exist("Ly") ? cmd.get<int>("Ly") : l_.x;
   const auto phi = cmd.get<double>("pack_frac");
@@ -168,10 +175,49 @@ UniDomain_2::UniDomain_2(const cmdline::parser& cmd, std::vector<TPar>& p_arr,
       cell_[ic] += 1;
     }
   }
-  set_output_2(cmd, &log_, &snap_, &pf_, &traj_, is_rt);
+  set_output_2(cmd, &log_, &pf_, &traj_, is_rt);
 }
 
-/**
+template <typename TPar>
+int UniDomain_2::get_nearby_num(const TPar& p) const {
+  int x_l = p.x - 1;
+  if (x_l < 0)
+    x_l += l_.x;
+  int x_r = p.x + 1;
+  if (x_r >= l_.x)
+    x_r = 0;
+  int y_d = p.y - 1;
+  if (y_d < 0)
+    y_d += l_.y;
+  int y_u = p.y + 1;
+  if (y_u >= l_.y)
+    y_u = 0;
+  return cell_[get_ic(x_l, p.y)] + cell_[get_ic(x_r, p.y)]
+    + cell_[get_ic(p.x, y_u)] + cell_[get_ic(p.x, y_d)];
+}
+
+template <typename T>
+void UniDomain_2::update_nearby_num(int x, int y, int dn,
+                                    std::vector<T>& near_num) const {
+  int x_l = x - 1;
+  if (x_l < 0)
+    x_l += l_.x;
+  int x_r = x + 1;
+  if (x_r >= l_.x)
+    x_r = 0;
+  int y_d = y - 1;
+  if (y_d < 0)
+    y_d += l_.y;
+  int y_u = y + 1;
+  if (y_u >= l_.y)
+    y_u = 0;
+  near_num[get_ic(x_l, y)] += dn;
+  near_num[get_ic(x_r, y)] += dn;
+  near_num[get_ic(x, y_d)] += dn;
+  near_num[get_ic(x, y_u)] += dn;
+}
+
+  /**
  * @brief Base function to run the simulation.
  * 
  * @tparam TPar     Template of particle
@@ -194,7 +240,7 @@ void UniDomain_2::base_run(std::vector<TPar>& p_arr, TRan& myran, TMove f_move,
   const auto t1 = std::chrono::system_clock::now();
   for (auto i = 1; i <= n_step; i++) {
     mc_move();
-    output_2(i, p_arr, cell_, log_, snap_, pf_, traj_);
+    output_2(i, p_arr, cell_, log_, pf_, traj_);
   }
   const auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = t2 - t1;
@@ -220,7 +266,22 @@ void UniDomain_2::try_move_to_new_cell(TPar & p, int x_new, int y_new) {
   }
 }
 
-/*************************************************************************//**
+template <typename TPar>
+void UniDomain_2::try_move_to_new_cell(TPar& p, int x_new, int y_new,
+                                       std::vector<uint8_t>& near_num) {
+  const auto ic_new = get_ic(x_new, y_new);
+  if (cell_[ic_new] < max_capacity_) {
+    const auto ic = get_ic(p);
+    --cell_[ic];
+    p.x = x_new;
+    p.y = y_new;
+    ++cell_[ic_new];
+    update_nearby_num(p.x, p.y, -1, near_num);
+    update_nearby_num(x_new, y_new, 1, near_num);
+  }
+}
+
+  /*************************************************************************//**
  * @brief 2D domain where lattice particles perform run-and-tumble motions
  * 
  ***************************************************************************/
@@ -280,6 +341,7 @@ void UniDomain_RT_2::run(std::vector<TPar>& p_arr, TRan& myran,
   };
   base_run(p_arr, myran, trival_move, n_step, seq_mode);
 }
+
 /**
 * @brief Run simulation with two walls at xmin and xmax
 *
@@ -322,8 +384,14 @@ public:
   template <typename TPar, typename TRan>
   void run_wx(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode);
 
+  template <typename TPar, typename TRan>
+  void run(std::vector<TPar> &p_arr, TRan &myran, int n_step, int seq_mode,
+           double prob_slope);
+
+
 private:
   double prob_arr_[5];
+  double tot_rate_;
 };
 
 /**
@@ -349,13 +417,13 @@ UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd,
   std::cout << "transverse rate=" << nu_t << "\n";
   std::cout << "rotational diffusion rate=" << D_rot << "\n";
 
-  const auto tot = nu_f + nu_b + 2 * nu_t + 2 * D_rot;
-  std::cout << "total rate=" << tot << "\n";
-  prob_arr_[0] = nu_f / tot;
-  prob_arr_[1] = nu_b / tot + prob_arr_[0];
-  prob_arr_[2] = nu_t / tot + prob_arr_[1];
-  prob_arr_[3] = nu_t / tot + prob_arr_[2];
-  prob_arr_[4] = D_rot / tot + prob_arr_[3];
+  tot_rate_ = nu_f + nu_b + 2 * nu_t + 2 * D_rot;
+  std::cout << "total rate=" << tot_rate_ << "\n";
+  prob_arr_[0] = nu_f / tot_rate_;
+  prob_arr_[1] = nu_b / tot_rate_ + prob_arr_[0];
+  prob_arr_[2] = nu_t / tot_rate_ + prob_arr_[1];
+  prob_arr_[3] = nu_t / tot_rate_ + prob_arr_[2];
+  prob_arr_[4] = D_rot / tot_rate_ + prob_arr_[3];
   for (auto i : prob_arr_) {
     std::cout << i << "\t";
   }
@@ -414,6 +482,35 @@ void UniDomain_AB_2::run_wx(std::vector<TPar>& p_arr, TRan& myran,
       }
     } else {
       p.rot90(rand_val, prob_arr_[4]);
+    }
+  };
+  base_run(p_arr, myran, trival_move, n_step, seq_mode);
+}
+
+// let the velocity to depend on the local density
+//? two methods give different results
+template <typename TPar, typename TRan>
+void UniDomain_AB_2::run(std::vector<TPar>& p_arr, TRan& myran, int n_step,
+                         int seq_mode, double prob_slope) {
+  //std::vector<uint8_t> near_num(cell_.size(), 0);
+  //for (auto i : p_arr) {
+  //  update_nearby_num(i.x, i.y, 1, near_num);
+  //}
+  prob_slope /= tot_rate_;
+  auto trival_move = [this, prob_slope](TPar &p, TRan &ran) {
+    const double wait_rate = get_nearby_num(p) * prob_slope;
+    //const double wait_rate = near_num[get_ic(p)] * prob_slope;
+    double rand_val = ran.doub();
+    if (rand_val > wait_rate) {
+      if (rand_val < prob_arr_[3]) {
+        int x_new, y_new;
+        p.jump_rand(x_new, y_new, rand_val, prob_arr_);
+        tangle_x(x_new);
+        tangle_y(y_new);
+        try_move_to_new_cell(p, x_new, y_new);
+      } else {
+        p.rot90(rand_val, prob_arr_[4]);
+      }
     }
   };
   base_run(p_arr, myran, trival_move, n_step, seq_mode);

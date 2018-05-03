@@ -6,6 +6,7 @@
  * @date 2018-04-27
  */
 #include "latticeExporter.h"
+#include <iomanip>
 #include <netcdf.h>
 
 int lx;
@@ -29,14 +30,12 @@ std::string base_name;
 * \brief Setting for output
 * \param cmd             Cmdline parser
 * \param log_ex          Log exporter
-* \param snap_ex         Snapshot exporter
 * \param pf_ex           Exporter for wetting data
 * \param traj            Trajectory exporter
 * \param is_rt           Is run-and-tumble case ?
 ***************************************************************************/
 void lattice::set_output_2(const cmdline::parser& cmd,
                            LogExporter** log_ex,
-                           SnapExporter_2** snap_ex,
                            ProfileExporter **pf_ex,
                            TrajExporter_2 ** traj,
                            bool is_rt) {
@@ -73,14 +72,12 @@ void lattice::set_output_2(const cmdline::parser& cmd,
       base_name = str;
     }
 
+    Cluster::domain_len = Vec_2<int>(lx, ly);
+
     if (cmd.exist("log_dt"))
       *log_ex = new LogExporter(cmd);
     else
       *log_ex = nullptr;
-    if (cmd.exist("snap_dt"))
-      *snap_ex = new SnapExporter_2(cmd);
-    else
-      *snap_ex = nullptr;
     if (cmd.exist("profile_dt"))
       *pf_ex = new ProfileExporter(cmd);
     else
@@ -92,49 +89,6 @@ void lattice::set_output_2(const cmdline::parser& cmd,
   }
 }
 
-/*************************************************************************//**
-* \brief  Cal wetting profile and order parameters
-* \param cell                Cell lattices
-* \param thickness_profile   Thickness profile
-* \param num_profile         Particle number profile
-* \param packing_frac        Fraction of wetting sites
-*****************************************************************************/
-void lattice::cal_profile(const std::vector<uint8_t>& cell,
-                          std::vector<uint16_t>& thickness_profile,
-                          std::vector<uint16_t>& num_profile,
-                          std::vector<double>& packing_frac) {
-  for (auto row = 0; row < ly; row++) {
-    const size_t row_lx = row * lx;
-    const auto i_lt = row * 2;
-    const auto i_rt = i_lt + 1;
-    for (auto col = 0; col < lx; col++) {
-      const auto ic = col + row_lx;
-      if (cell[ic]) {
-        ++thickness_profile[i_lt];
-        num_profile[i_lt] += cell[ic];
-      } else {
-        if (thickness_profile[i_lt]) {
-          packing_frac[0] += 1;
-        }
-        break;
-      }
-    }
-    for (auto col = lx - 1; col >= 0; col--) {
-      const auto ic = col + row_lx;
-      if (cell[ic]) {
-        ++thickness_profile[i_rt];
-        num_profile[i_rt] += cell[ic];
-      } else {
-        if (thickness_profile[i_rt]) {
-          packing_frac[1] += 1;
-        }
-        break;
-      }
-    }
-  }
-  packing_frac[0] /= ly;
-  packing_frac[1] /= ly;
-}
 
 using lattice::LogExporter;
 /*************************************************************************//**
@@ -403,156 +357,6 @@ void TrajExporter_2::put_atom_types(const char * data) const {
   check_err(stat, __LINE__, __FILE__);
 }
 
-char TrajExporter_2::get_par_type(int x, int y,
-                                  const std::vector<uint8_t>& cell) const {
-  if (type_mode_==1) {
-    return cell[x + lx * y];
-  } else {
-    return 0;
-  }
-}
-
-using lattice::SnapExporter_2;
-/*************************************************************************//**
- * \brief Constructor of SnapExporter
- * \param cmd Cmdline parser
- *****************************************************************************/
-SnapExporter_2::SnapExporter_2(const cmdline::parser& cmd) // NOLINT
-  : frame_len_(NC_UNLIMITED), spatial_len_(2), atom_len_(n_par),
-    cell_spatial_len_(2), time_idx_{0} {
-  deflate_level_ = 6;
-  set_lin_frame(cmd.get<int>("snap_dt"), n_step);
-  open(cmd);
-}
-
-SnapExporter_2::~SnapExporter_2() {
-  const auto stat = nc_close(ncid_);
-  check_err(stat, __LINE__, __FILE__);
-}
-
-void SnapExporter_2::open(const cmdline::parser& cmd) {
-  char str[100];
-  snprintf(str, 100, "%ssnap_%s.nc", folder.c_str(), base_name.c_str());
-  auto stat = nc_create(str, NC_NETCDF4, &ncid_);
-  check_err(stat, __LINE__, __FILE__);
-
-  /* dimension ids */
-  int frame_dim;
-  int spatial_dim;
-  int atom_dim;
-  int cell_spatial_dim;
-
-  /* define dimensions */
-  stat = nc_def_dim(ncid_, "frame", frame_len_, &frame_dim);
-  check_err(stat, __LINE__, __FILE__);
-  stat = nc_def_dim(ncid_, "spatial", spatial_len_, &spatial_dim);
-  check_err(stat, __LINE__, __FILE__);
-  stat = nc_def_dim(ncid_, "atom", atom_len_, &atom_dim);
-  check_err(stat, __LINE__, __FILE__);
-  stat = nc_def_dim(ncid_, "cell_spatial", cell_spatial_len_, &cell_spatial_dim);
-  check_err(stat, __LINE__, __FILE__);
-
-  /* define variables */
-  int spatial_dims[1] = {spatial_dim};
-  stat = nc_def_var(ncid_, "spatial", NC_CHAR, 1, spatial_dims, &spatial_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  int cell_spatial_dims[1] = {cell_spatial_dim};
-  stat = nc_def_var(ncid_, "cell_spatial", NC_CHAR, 1, cell_spatial_dims, &cell_spatial_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  int cell_lengths_dims[1] = {cell_spatial_dim};
-  stat = nc_def_var(ncid_, "cell_lengths", NC_INT, 1, cell_lengths_dims, &cell_lengths_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  int time_dims[1] = {frame_dim};
-  stat = nc_def_var(ncid_, "time", NC_INT, 1, time_dims, &time_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  int coordinates_dims[3] = {frame_dim, atom_dim, spatial_dim};
-  stat = nc_def_var(ncid_, "coordinates", NC_INT, 3, coordinates_dims, &coordinates_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  int orientaions_dims[3] = {frame_dim, atom_dim, spatial_dim};
-  stat = nc_def_var(ncid_, "orientations", NC_BYTE, 3, orientaions_dims, &orientations_id_);
-  check_err(stat, __LINE__, __FILE__);
-
-  set_chunk_and_deflate();
-
-  /* assign global attributes */
-  put_global_para(ncid_);
-
-  /* assign per-variable attributes */
-  stat = nc_put_att_int(ncid_, time_id_, "frame_inteval", NC_INT, 1, &frame_interval_);
-  check_err(stat, __LINE__, __FILE__);
-
-  /* leave define mode */
-  stat = nc_enddef(ncid_);
-  check_err(stat, __LINE__, __FILE__);
-
-  /* assign variable data */
-  stat = nc_put_var(ncid_, spatial_id_, "xyz");
-  check_err(stat, __LINE__, __FILE__);
-  stat = nc_put_var(ncid_, cell_spatial_id_, "abc");
-  check_err(stat, __LINE__, __FILE__);
-  size_t startset[1] = {0};
-  size_t countset[1] = {2};
-  int lengths[2] = {lx, ly};
-  stat = nc_put_vara(ncid_, cell_lengths_id_, startset, countset, lengths);
-  check_err(stat, __LINE__, __FILE__);
-}
-
-void SnapExporter_2::set_chunk_and_deflate() const {
-  auto time_block = get_n_frames() / 10;
-  if (time_block >= 1000)
-    time_block = 1000;
-  else if (time_block < 1)
-    time_block = 1;
-
-  /* time steps */
-  {
-    size_t chunk[1] = {time_block};
-    auto stat = nc_def_var_chunking(ncid_, time_id_, NC_CHUNKED, chunk);
-    check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_deflate(ncid_, time_id_, NC_SHUFFLE, 1, deflate_level_);
-    check_err(stat, __LINE__, __FILE__);
-  }
-
-  time_block = 48 * 4096 / 8 / n_par;
-  if (time_block > get_n_frames()) {
-    time_block = get_n_frames();
-  } else if (time_block < 1) {
-    time_block = 1;
-  }
-
-  /* coordinates and oritations */
-  {
-    size_t chunk[3] = {time_block, atom_len_, spatial_len_};
-    auto stat = nc_def_var_chunking(ncid_, coordinates_id_, NC_CHUNKED, chunk);
-    check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_deflate(ncid_, coordinates_id_, NC_SHUFFLE, 1, deflate_level_);
-    check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_chunking(ncid_, orientations_id_, NC_CHUNKED, chunk);
-    check_err(stat, __LINE__, __FILE__);
-    stat = nc_def_var_deflate(ncid_, orientations_id_, NC_SHUFFLE, 1, deflate_level_);
-    check_err(stat, __LINE__, __FILE__);
-  }
-}
-
-void SnapExporter_2::put_time_step(int i_step) const {
-  const auto stat = nc_put_var1(ncid_, time_id_, time_idx_, &i_step);
-  check_err(stat, __LINE__, __FILE__);
-}
-
-void SnapExporter_2::put_data(const int* coor, const int8_t* ori) const {
-  size_t startset[3] = {time_idx_[0], 0, 0};
-  size_t countset[3] = {1, atom_len_, spatial_len_};
-  auto stat = nc_put_vara(ncid_, coordinates_id_, startset, countset, coor);
-  check_err(stat, __LINE__, __FILE__);
-  stat = nc_put_vara(ncid_, orientations_id_, startset, countset, ori);
-  check_err(stat, __LINE__, __FILE__);
-}
-
 using lattice::ProfileExporter;
 /*************************************************************************//**
  * @brief Construct a new lattice::Profile Exporter::Profile Exporter object
@@ -640,7 +444,9 @@ void ProfileExporter::write_frame(int i_step,
                             startset, countset, &packing_frac[0]);
     check_err(stat, __LINE__, __FILE__);
     fout_ << i_step << std::fixed << std::setprecision(8) << "\t"
-          << packing_frac[0] << "\t" << packing_frac[1] << std::endl;
+          << packing_frac[0] << "\t" << packing_frac[1] << "\t"
+          << packing_frac[2] << "\t" << packing_frac[3] << "\t"
+          << std::endl;
   }
   /* thickness and particle number profile */
   {
@@ -654,14 +460,6 @@ void ProfileExporter::write_frame(int i_step,
     check_err(stat, __LINE__, __FILE__);
   }
   ++time_idx_[0]; //! update time frame
-}
-
-void ProfileExporter::write_frame(int i_step, const std::vector<uint8_t>& cell) {
-  std::vector<uint16_t> thickness_profile(ly * 2, 0);
-  std::vector<uint16_t> num_profile(ly * 2, 0);
-  std::vector<double> packing_frac(2, 0.);
-  cal_profile(cell, thickness_profile, num_profile, packing_frac);
-  write_frame(i_step, thickness_profile, num_profile, packing_frac);
 }
 
 void ProfileExporter::set_chunk_and_deflate() const {

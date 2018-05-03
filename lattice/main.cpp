@@ -44,6 +44,4 @@ int main(int argc, char* argv[]) {
     domain.run_wx(p_arr, myran, n_step, 0);
   }
 
-
-
 }

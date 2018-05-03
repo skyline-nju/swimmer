@@ -21,6 +21,9 @@
     <ClCompile Include="latticeExporter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="latticeWetting.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="latticeDomain.h">
@@ -30,6 +33,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="latticeExporter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="latticeWetting.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
