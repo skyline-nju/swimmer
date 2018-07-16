@@ -91,7 +91,7 @@ private:
 class BaseLogExporter:public BaseExporter {
 public:
   explicit BaseLogExporter(const std::string &filename, int n_par,
-                           int n_step, int sep, int start=0);
+                           int end, int sep, int start=0);
 
   ~BaseLogExporter();
 

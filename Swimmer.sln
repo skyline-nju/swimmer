@@ -13,10 +13,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lattice", "lattice\lattice.vcxproj", "{F086D8BB-C5A3-4139-BAB1-954EA71E6D6F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LBM", "LBM\LBM.vcxproj", "{7431729D-8AEB-423E-AD40-71E096AF67BD}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -64,11 +63,22 @@ Global
 		{F086D8BB-C5A3-4139-BAB1-954EA71E6D6F}.Release|x64.Build.0 = Release|x64
 		{F086D8BB-C5A3-4139-BAB1-954EA71E6D6F}.Release|x86.ActiveCfg = Release|Win32
 		{F086D8BB-C5A3-4139-BAB1-954EA71E6D6F}.Release|x86.Build.0 = Release|Win32
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Debug|x64.ActiveCfg = Debug|x64
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Debug|x64.Build.0 = Debug|x64
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Debug|x86.ActiveCfg = Debug|Win32
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Debug|x86.Build.0 = Debug|Win32
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Release|x64.ActiveCfg = Release|x64
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Release|x64.Build.0 = Release|x64
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Release|x86.ActiveCfg = Release|Win32
+		{7431729D-8AEB-423E-AD40-71E096AF67BD}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BB5CB299-CF80-4AFD-A0E4-FD9E0D86F5F9}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
