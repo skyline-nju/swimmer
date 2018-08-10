@@ -63,6 +63,70 @@ protected:
   Vec_2<double> inverse_lc_;  //!< inverse length of one cell
 };
 
+inline CellListBase_2::CellListBase_2(const Vec_2<double>& l, double r_cut,
+  const Vec_2<double> &origin)
+  : origin_(origin) {
+  n_.x = int(l.x / r_cut);
+  n_.y = int(l.y / r_cut);
+  inverse_lc_.x = n_.x / l.x;
+  inverse_lc_.y = n_.y / l.y;
+  ncells_ = n_.x * n_.y;
+}
+
+inline int CellListBase_2::get_upper_row(int my_row) const {
+  auto row = my_row + 1;
+  if (row == n_.y)
+    row = 0;
+  return row;
+}
+
+inline int CellListBase_2::get_lower_row(int my_row) const {
+  return my_row == 0 ? n_.y - 1 : my_row - 1;
+}
+
+inline int CellListBase_2::get_left_col(int my_col) const {
+  return my_col == 0 ? n_.x - 1 : my_col - 1;
+}
+
+inline int CellListBase_2::get_right_col(int my_col) const {
+  auto col = my_col + 1;
+  if (col == n_.x) {
+    col = 0;
+  }
+  return col;
+}
+
+inline int CellListBase_2::get_row(int my_row, int row_offset) const {
+  auto row = my_row + row_offset;
+  if (row < 0) {
+    row += n_.y;
+  } else if (row >= n_.y) {
+    row -= n_.y;
+  }
+  return row;
+}
+
+inline int CellListBase_2::get_col(int my_col, int col_offset) const {
+  auto col = my_col + col_offset;
+  if (col < 0) {
+    col += n_.x;
+  } else if (col >= n_.x) {
+    col -= n_.x;
+  }
+  return col;
+}
+
+template<typename UniFunc>
+void CellListBase_2::visit_nearby_cell(int my_row, int my_col, UniFunc f) const {
+  for (int drow = -1; drow <= 1; drow++) {
+    const auto row = get_row(my_row, drow);
+    for (int dcol = -1; dcol <= 1; dcol++) {
+      const auto col = get_col(my_col, dcol);
+      f(col + row * n_.x);
+    }
+  }
+}
+
 /*************************************************************************//**
  * \brief Linked-cell list recording the index of the particles.
  * 
@@ -107,6 +171,34 @@ public:
 protected:
   std::vector<TContainer> head_;
 };
+
+template<typename TContainer>
+template<typename TPar>
+void CellListIdx_2<TContainer>::create(const std::vector<TPar> & p_arr) {
+  for (unsigned int i = 0; i < p_arr.size(); i++) {
+    int ic = get_ic(p_arr[i]);
+    head_[ic].push_front(i);
+  }
+}
+
+template<typename TContainer>
+template<typename TPar, typename BiFunc>
+void CellListIdx_2<TContainer>::for_nearby_par(const TPar * p,
+  const std::vector<TPar>& p_arr,
+  BiFunc f_ij) const {
+  auto lambda = [this, p, &p_arr, f_ij](int ic) {
+    if (!head_[ic].empty()) {
+      const auto end = head_[ic].cend();
+      for (auto it = head_[ic].cbegin(); it != end; ++it) {
+        const TPar* pj = &p_arr[*it];
+        if (p != pj) {
+          f_ij(p, pj);
+        }
+      }
+    }
+  };
+  visit_nearby_cell(get_row(p->y), get_col(p->x), lambda);
+}
 
 /*************************************************************************//**
  * \brief Linked-cell list constituted by bidirectional nodes.
@@ -153,6 +245,7 @@ public:
   void for_each_pair(BiFunc f_ij) {
     for_each_pair(f_ij, 0, n_.y, 0, n_.x);
   }
+
   /**
   * \brief Visit nearby particles surronding one particle
   * \tparam BiFunc Template function: void(TPar*, TPar*)
@@ -161,6 +254,7 @@ public:
   */
   template <typename BiFunc>
   void for_nearby_par(const TNode *p, BiFunc f_ij) const;
+
   /**
   * \brief Create cell list
   * \tparam TPar Template particle.
@@ -231,98 +325,6 @@ public:
 protected:
   std::vector<TNode*> head_;
 };
-
-inline CellListBase_2::CellListBase_2(const Vec_2<double>& l, double r_cut,
-                                      const Vec_2<double> &origin)
-  : origin_(origin) {
-  n_.x = int(l.x / r_cut);
-  n_.y = int(l.y / r_cut);
-  inverse_lc_.x = n_.x / l.x;
-  inverse_lc_.y = n_.y / l.y;
-  ncells_ = n_.x * n_.y;
-}
-
-inline int CellListBase_2::get_upper_row(int my_row) const {
-  auto row = my_row + 1;
-  if (row == n_.y)
-    row = 0;
-  return row;
-}
-
-inline int CellListBase_2::get_lower_row(int my_row) const {
-  return my_row == 0 ? n_.y - 1 : my_row - 1;
-}
-
-inline int CellListBase_2::get_left_col(int my_col) const {
-  return my_col == 0 ? n_.x - 1 : my_col - 1;
-}
-
-inline int CellListBase_2::get_right_col(int my_col) const {
-  auto col = my_col + 1;
-  if (col == n_.x) {
-    col = 0;
-  }
-  return col;
-}
-
-inline int CellListBase_2::get_row(int my_row, int row_offset) const {
-  auto row = my_row + row_offset;
-  if (row < 0) {
-    row += n_.y;
-  } else if (row >= n_.y) {
-    row -= n_.y;
-  }
-  return row;
-}
-
-inline int CellListBase_2::get_col(int my_col, int col_offset) const {
-  auto col = my_col + col_offset;
-  if (col < 0) {
-    col += n_.x;
-  } else if (col >= n_.x) {
-    col -= n_.x;
-  }
-  return col;
-}
-
-template<typename UniFunc>
-void CellListBase_2::visit_nearby_cell(int my_row, int my_col, UniFunc f) const {
-  for (int drow = -1; drow <= 1; drow++) {
-    const auto row = get_row(my_row, drow);
-    for (int dcol = -1; dcol <= 1; dcol++) {
-      const auto col = get_col(my_col, dcol);
-      f(col + row * n_.x);
-    }
-  }
-}
-
-template<typename TContainer>
-template<typename TPar>
-void CellListIdx_2<TContainer>::create(const std::vector<TPar> & p_arr) {
-  for (unsigned int i = 0; i < p_arr.size(); i++) {
-    int ic = get_ic(p_arr[i]);
-    head_[ic].push_front(i);
-  } 
-}
-
-template<typename TContainer>
-template<typename TPar, typename BiFunc>
-void CellListIdx_2<TContainer>::for_nearby_par(const TPar * p,
-                                               const std::vector<TPar>& p_arr,
-                                               BiFunc f_ij) const {
-  auto lambda = [this, p, &p_arr, f_ij](int ic) {
-    if (!head_[ic].empty()) {
-      const auto end = head_[ic].cend();
-      for (auto it = head_[ic].cbegin(); it != end; ++it) {
-        const TPar* pj = &p_arr[*it];
-        if (p != pj) {
-          f_ij(p, pj);
-        }
-      }
-    }
-  };
-  visit_nearby_cell(get_row(p->y), get_col(p->x), lambda);
-}
 
 template <typename TNode>
 template <typename BiFunc>

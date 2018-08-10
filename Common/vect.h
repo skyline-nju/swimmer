@@ -1,6 +1,8 @@
 #ifndef VECT_H
 #define VECT_H
+#include <iostream>
 #include <cmath>
+#include "rand.h"
 
 template <typename T>
 struct Vec_2 {
@@ -30,6 +32,11 @@ struct Vec_2 {
   double square() const;
   Vec_2 inverse() const;
   void rotate(double theta);
+
+  friend std::ostream & operator << (std::ostream &out, const Vec_2<T> & obj) {
+    out << obj.x << "\t" << obj.y;
+    return out;
+  }
 };
 
 
@@ -175,12 +182,24 @@ struct Vec_3 {
   Vec_3<T> operator *(double rhs) const;
   Vec_3<T> operator /(double rhs) const;
 
+  Vec_3<T> operator *(const Vec_3<T> & rhs) const;
+
   double dot(const Vec_3<T>& a) const;
   Vec_3<T> cross(const Vec_3<T>& a) const;
   void normalize();
   double square() const;
+  double module() const;
   Vec_3 inverse() const;
   void rotate(double theta);
+  void rotate(double theta, const Vec_3<double> &a);
+  void rotate(double c, double s, const Vec_3<double> &a);
+  template <class TRan>
+  void rand_perp_ax(Vec_3<double> &ax, TRan &myran) const;
+
+  friend std::ostream & operator << (std::ostream &out, const Vec_3<T> & obj) {
+    out << obj.x << "\t" << obj.y << "\t" << obj.z;
+    return out;
+  }
 };
 
 template <typename T>
@@ -270,6 +289,11 @@ Vec_3<T> Vec_3<T>::operator/(double rhs) const {
 }
 
 template <typename T>
+Vec_3<T> Vec_3<T>::operator*(const Vec_3<T>& rhs) const {
+  return Vec_3<T>(x * rhs.x, y * rhs.y, z * rhs.z);
+}
+
+template <typename T>
 Vec_3<T> Vec_3<T>::inverse() const {
   return Vec_3<T>(1 / x, 1 / y, 1 / z);
 }
@@ -277,6 +301,11 @@ Vec_3<T> Vec_3<T>::inverse() const {
 template <typename T>
 double Vec_3<T>::square() const {
   return x * x + y * y + z * z;
+}
+
+template <typename T>
+double Vec_3<T>::module() const {
+  return std::sqrt(square());
 }
 
 template <typename T>
@@ -309,6 +338,40 @@ void Vec_3<T>::rotate(double theta) {
   y = y_new;
 }
 
+template <typename T>
+void Vec_3<T>::rotate(double theta, const Vec_3<double> &a) {
+  const auto c = std::cos(theta);
+  const auto s = std::sin(theta);
+  rotate(c, s, a);
+}
+
+template <typename T>
+void Vec_3<T>::rotate(double c, double s, const Vec_3<double> &a) {
+  const auto bxx = a.x * a.x * (1 - c);
+  const auto bxy = a.x * a.y * (1 - c);
+  const auto bxz = a.x * a.z * (1 - c);
+  const auto byy = a.y * a.y * (1 - c);
+  const auto byz = a.y * a.z * (1 - c);
+  const auto bzz = a.z * a.z * (1 - c);
+  const auto x_new = (bxx + c) * x + (bxy - a.z * s) * y + (bxz + a.y * s) * z;
+  const auto y_new = (bxy + a.z * s) * x + (byy + c) * y + (byz - a.x * s) * z;
+  const auto z_new = (bxz - a.y * s) * x + (byz + a.x * s) * y + (bzz + c) * z;
+  x = x_new;
+  y = y_new;
+  z = z_new;
+}
+
+template <typename T>
+template <class TRan>
+void Vec_3<T>::rand_perp_ax(Vec_3<double> &ax, TRan &myran) const {
+  Vec_3<double> b(y, -x, 0);
+  b.normalize();
+  double c = z;
+  double s = std::sqrt(1 - z * z);
+  circle_point_picking(ax.x, ax.y, myran);
+  ax.z = 0;
+  ax.rotate(c, -s, b);
+}
 #endif
 
 
