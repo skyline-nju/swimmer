@@ -4,6 +4,22 @@
 #include "vect.h"
 #include "node.h"
 
+const int cell_offset_3[13][3] = {
+  {0, 0, 1},
+  {0, 1, 0},
+  {0, 1, 1},
+  {1, 0, 0},
+  {1, 0, 1},
+  {1, 1, 0},
+  {1, 1, 1},
+  {0, 1, -1},
+  {1, 0, -1},
+  {1, 1, -1},
+  {1, -1, 0},
+  {1, -1, 1},
+  {1, -1, -1}
+};
+
 class CellListBase_3 {
 public:
   typedef Vec_3<double> Vec3d;
@@ -56,6 +72,9 @@ public:
   void for_each_pair(BiFunc f_ij, const Vec_3<int> &ic_beg, const Vec_3<int> &ic_end);
 
   template <typename BiFunc>
+  void for_each_pair2(BiFunc f_ij, const Vec_3<int> &ic_beg, const Vec_3<int> &ic_end);
+
+  template <typename BiFunc>
   void for_each_pair(BiFunc f_ij);
 
   void create(std::vector<TNode> &p_arr);
@@ -69,9 +88,14 @@ protected:
 template <typename TNode>
 template <typename BiFunc>
 void CellListNode_3<TNode>::for_each_pair(BiFunc f_ij,
-                                          const Vec_3<int>& ic_beg,
-                                          const Vec_3<int>& ic_end) {
-  for(int z0 = ic_beg.z; z0 < ic_end.z; z0++) {
+  const Vec_3<int>& ic_beg,
+  const Vec_3<int>& ic_end) {
+  auto cell_cell = [f_ij, this](int i1, int i2) {
+    if (this->head_[i2]) {
+      for_each_node_pair(this->head_[i1], this->head_[i2], f_ij);
+    }
+  };
+  for (int z0 = ic_beg.z; z0 < ic_end.z; z0++) {
     auto z1 = z0 + 1;
     if (z1 >= n_.z)
       z1 -= n_.z;
@@ -87,63 +111,73 @@ void CellListNode_3<TNode>::for_each_pair(BiFunc f_ij,
         auto x1 = x0 + 1;
         if (x1 >= n_.x)
           x1 -= n_.x;
-        int ic[2][2][2] = {
-          x0 + y0_nx + z0_nxny,
-          x1 + y0_nx + z0_nxny,
-          x0 + y1_nx + z0_nxny,
-          x1 + y1_nx + z0_nxny,
-          x0 + y0_nx + z1_nxny,
-          x1 + y0_nx + z1_nxny,
-          x0 + y1_nx + z1_nxny,
-          x1 + y1_nx + z1_nxny
-        };
-        if (head_[ic[0][0][0]]) {
-          for_each_node_pair(head_[ic[0][0][0]], f_ij);
+        int i0 = x0 + y0_nx + z0_nxny;
+        int i1 = x1 + y0_nx + z0_nxny;
+        int i2 = x0 + y1_nx + z0_nxny;
+        int i3 = x1 + y1_nx + z0_nxny;
+        int i4 = x0 + y0_nx + z1_nxny;
+        int i5 = x1 + y0_nx + z1_nxny;
+        int i6 = x0 + y1_nx + z1_nxny;
+        int i7 = x1 + y1_nx + z1_nxny;
+        if (head_[i0]) {
+          for_each_node_pair(head_[i0], f_ij);
+          cell_cell(i0, i1);
+          cell_cell(i0, i2);
+          cell_cell(i0, i3);
+          cell_cell(i0, i4);
+          cell_cell(i0, i5);
+          cell_cell(i0, i6);
+          cell_cell(i0, i7);
+        }
+        if (head_[i1]) {
+          cell_cell(i1, i2);
+          cell_cell(i1, i4);
+          cell_cell(i1, i6);
+        }
+        if (head_[i2]) {
+          cell_cell(i2, i4);
+          cell_cell(i2, i5);
+        }
+        if (head_[i3]) {
+          cell_cell(i3, i4);
+        }
+      }
+    }
+  }
+}
 
-          if (head_[ic[0][0][1]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[0][0][1]], f_ij);
-            if (head_[ic[0][1][0]]) {
-              for_each_node_pair(head_[ic[0][0][1]], head_[ic[0][1][0]], f_ij);
+template <typename TNode>
+template <typename BiFunc>
+void CellListNode_3<TNode>::for_each_pair2(BiFunc f_ij,
+                                           const Vec_3<int>& ic_beg,
+                                           const Vec_3<int>& ic_end) {
+  for (int z0 = ic_beg.z; z0 < ic_end.z; z0++) {
+    for (int y0 = ic_beg.y; y0 < ic_end.y; y0++) {
+      for (int x0 = ic_beg.x; x0 < ic_end.x; x0++) {
+        int i0 = x0 + y0 * n_.x + z0 * nxny_;
+        if (head_[i0]) {
+          for_each_node_pair(head_[i0], f_ij);
+          for (int j = 0; j < 13; j++) {
+            int z1 = z0 + cell_offset_3[j][0];
+            int y1 = y0 + cell_offset_3[j][1];
+            int x1 = x0 + cell_offset_3[j][2];
+            if (z1 >= n_.z) {
+              z1 = 0;
             }
-            if (head_[ic[1][0][0]]) {
-              for_each_node_pair(head_[ic[0][0][1]], head_[ic[1][0][0]], f_ij);
+            if (y1 >= n_.y) {
+              y1 = 0;
+            } else if (y1 < 0) {
+              y1 += n_.y;
             }
-            if (head_[ic[1][1][0]]) {
-              for_each_node_pair(head_[ic[0][0][1]], head_[ic[1][1][0]], f_ij);
+            if (x1 >= n_.x) {
+              x1 = 0;
+            } else if (x1 < 0) {
+              x1 += n_.x;
             }
-          }
-
-          if (head_[ic[0][1][0]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[0][1][0]], f_ij);
-            if (head_[ic[1][0][0]]) {
-              for_each_node_pair(head_[ic[0][1][0]], head_[ic[1][0][0]], f_ij);
+            int i1 = x1 + y1 * n_.x + z1 * nxny_;
+            if (head_[i1]) {
+              for_each_node_pair(head_[i0], head_[i1], f_ij);
             }
-            if (head_[ic[1][0][1]]) {
-              for_each_node_pair(head_[ic[0][1][0]], head_[ic[1][0][1]], f_ij);
-            }
-          }
-
-          if (head_[ic[0][1][1]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[0][1][1]], f_ij);
-            if (head_[ic[1][0][0]]) {
-              for_each_node_pair(head_[ic[0][1][1]], head_[ic[1][0][0]], f_ij);
-            }
-          }
-
-          if (head_[ic[1][0][0]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[1][0][0]], f_ij);
-          }
-
-          if (head_[ic[1][0][1]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[1][0][1]], f_ij);
-          }
-
-          if (head_[ic[1][1][0]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[1][1][0]], f_ij);
-          }
-
-          if (head_[ic[1][1][1]]) {
-            for_each_node_pair(head_[ic[0][0][0]], head_[ic[1][1][1]], f_ij);
           }
         }
       }
