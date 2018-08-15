@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include "vect.h"
 
 /*************************************************************************//**
  *                      Global constans
@@ -23,7 +24,9 @@ const std::string delimiter("/");
 #endif
 
 /*************************************************************************//**
- *              Periodic boundary condition in 1d
+ *
+ *                      Periodic boundary condition
+ *                      
  *****************************************************************************/
 
 /*
@@ -44,6 +47,20 @@ void tangle_1(T1 &x, T2 x_min, T2 x_max, T2 len) {
   }
 }
 
+template <typename T1, typename T2>
+void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &x_min, const Vec_3<T2> &x_max, const Vec_3<T2> &len) {
+  tangle_1(x.x, x_min.x, x_max.x, len.x);
+  tangle_1(x.y, x_min.y, x_max.y, len.y);
+  tangle_1(x.z, x_min.z, x_max.z, len.z);
+}
+
+template <typename T1, typename T2>
+void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &x_min, const Vec_3<T2> &x_max, const Vec_3<T2> &len, const Vec_3<bool> &flag_ext) {
+  if (!flag_ext.x) tangle_1(x.x, x_min.x, x_max.x, len.x);
+  if (!flag_ext.y) tangle_1(x.y, x_min.y, x_max.y, len.y);
+  if (!flag_ext.z) tangle_1(x.z, x_min.z, x_max.z, len.z);
+}
+
 /**
  * \brief Cal nearest distance under the periodic boundary condition
  * \tparam T       Template type
@@ -58,6 +75,20 @@ void untangle_1(T &dx, T len, T half_len) {
   } else if (dx > half_len) {
     dx -= len;
   }
+}
+
+template <typename T>
+void untangle_3(Vec_3<T> &dis, const Vec_3<T> &len, const Vec_3<T> &half_len) {
+  untangle_1(dis.x, len.x, half_len.x);
+  untangle_1(dis.y, len.y, half_len.y);
+  untangle_1(dis.z, len.z, half_len.z);
+}
+
+template <typename T>
+void untangle_3(Vec_3<T> &dis, const Vec_3<T> &len, const Vec_3<T> &half_len, const Vec_3<bool> &flag_ext) {
+  if (!flag_ext.x) untangle_1(dis.x, len.x, half_len.x);
+  if (!flag_ext.y) untangle_1(dis.y, len.y, half_len.y);
+  if (!flag_ext.z) untangle_1(dis.z, len.z, half_len.z);
 }
 
 /*************************************************************************//**

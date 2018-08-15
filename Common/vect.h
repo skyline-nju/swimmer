@@ -13,6 +13,9 @@ struct Vec_2 {
   Vec_2(T x0, T y0) : x(x0), y(y0) {}
   Vec_2(const Vec_2<T> &a) : x(a.x), y(a.y) {}
 
+  T operator[](int i) const { return *(&x + i); }
+  T& operator [](int i) { return *(&x + i); }
+
   Vec_2<T>& operator =(const Vec_2<T>& rhs);
   Vec_2<T> operator -() const;
   void operator +=(const Vec_2<T>& rhs);
@@ -26,6 +29,9 @@ struct Vec_2 {
   Vec_2<T> operator *(double rhs) const;
   Vec_2<T> operator /(double rhs) const;
 
+  template <typename T2>
+  Vec_2<T> operator * (const Vec_2<T2>& rhs) const;
+
   double dot(const Vec_2<T>& a) const;
   double cross(const Vec_2<T>& a) const;
   void normalize();
@@ -38,7 +44,6 @@ struct Vec_2 {
     return out;
   }
 };
-
 
 template <typename T>
 Vec_2<T>& Vec_2<T>::operator=(const Vec_2<T>& rhs) {
@@ -123,6 +128,12 @@ Vec_2<T> Vec_2<T>::operator/(double rhs) const {
 }
 
 template <typename T>
+template <typename T2>
+Vec_2<T> Vec_2<T>::operator * (const Vec_2<T2>& rhs) const {
+  return Vec_2<T>(x * rhs.x, y * rhs.y);
+}
+
+template <typename T>
 Vec_2<T> Vec_2<T>::inverse() const {
   return Vec_2<T>(1 / x, 1 / y);
 }
@@ -165,9 +176,12 @@ struct Vec_3 {
   T y;
   T z;
 
-  Vec_3(): x(0), y(0), z(0) {}
+  Vec_3() = default;
   Vec_3(T x0, T y0, T z0) : x(x0), y(y0), z(z0) {}
   Vec_3(const Vec_3<T> &a) : x(a.x), y(a.y), z(a.z) {}
+
+  T operator[](int i) const { return *(&x + i); }
+  T& operator [](int i) { return *(&x + i); }
 
   Vec_3<T>& operator =(const Vec_3<T>& rhs);
   Vec_3<T> operator -()const;
@@ -182,7 +196,8 @@ struct Vec_3 {
   Vec_3<T> operator *(double rhs) const;
   Vec_3<T> operator /(double rhs) const;
 
-  Vec_3<T> operator *(const Vec_3<T> & rhs) const;
+  template <typename T2>
+  Vec_3<T> operator *(const Vec_3<T2> & rhs) const;
 
   double dot(const Vec_3<T>& a) const;
   Vec_3<T> cross(const Vec_3<T>& a) const;
@@ -289,7 +304,8 @@ Vec_3<T> Vec_3<T>::operator/(double rhs) const {
 }
 
 template <typename T>
-Vec_3<T> Vec_3<T>::operator*(const Vec_3<T>& rhs) const {
+template <typename T2>
+Vec_3<T> Vec_3<T>::operator*(const Vec_3<T2>& rhs) const {
   return Vec_3<T>(x * rhs.x, y * rhs.y, z * rhs.z);
 }
 

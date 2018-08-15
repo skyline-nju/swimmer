@@ -17,16 +17,10 @@ class UniNode : public TPar {
 public:
   UniNode() : TPar(), next(nullptr) {}
 
-  explicit UniNode(const TPar &p) : TPar(p), next(nullptr) {}
+  UniNode(const TPar &p) : TPar(p), next(nullptr) {}
 
-  /**
-   * \brief         Construct with random values
-   * \tparam TRan   Template of random number generator
-   * \tparam TVec   Template of vector: Vec_2<double> or Vec_3<double>
-   * \param myran   Random number generator 
-   * \param l       Domain lengths
-   * \param origin  Origin point of the domain
-   */
+  UniNode(const double *buf) : TPar(buf), next(nullptr) {}
+
   template <typename TRan, typename TVec>
   UniNode(TRan &myran, const TVec &l, const TVec &origin)
     : TPar(myran, l, origin), next(nullptr) {}
@@ -58,16 +52,11 @@ class BiNode : public TPar {
 public:
   BiNode() : TPar(), prev(nullptr), next(nullptr) {}
 
-  BiNode(const TPar &p): TPar(p), prev(nullptr), next(nullptr) {}
+  BiNode(const TPar &p) : TPar(p), prev(nullptr), next(nullptr) {}
 
-  /**
-  * \brief         Construct with random values
-  * \tparam TRan   Template of random number generator
-  * \tparam TVec   Template of vector: Vec_2<double> or Vec_3<double>
-  * \param myran   Random number generator
-  * \param l       Domain lengths
-  * \param origin  Origin point of the domain
-  */
+  BiNode(const double *buf) : TPar(buf), prev(nullptr), next(nullptr) {}
+
+
   template <typename TRan, typename TVec>
   BiNode(TRan &myran, const TVec &l, const TVec &origin)
     : TPar(myran, l, origin), prev(nullptr), next(nullptr) {}
@@ -157,4 +146,12 @@ void for_each_node_pair(TNode* head1, TNode* head2, BiFunc f_ij) {
   } while (node1);
 }
 
+template <class TNode, class UniFunc>
+void for_each_node(const TNode* head, UniFunc f) {
+  TNode *cur_node = head;
+  while(cur_node) {
+    f(*cur_node);
+    cur_node = cur_node->next;
+  }
+}
 #endif
