@@ -146,12 +146,27 @@ void for_each_node_pair(TNode* head1, TNode* head2, BiFunc f_ij) {
   } while (node1);
 }
 
-template <class TNode, class UniFunc>
-void for_each_node(const TNode* head, UniFunc f) {
-  TNode *cur_node = head;
+template <class TNode, class TriFunc>
+void for_each_node_pair(TNode *head1, TNode *head2, const Vec_3<double> &offset, TriFunc f_ij) {
+  TNode *node1 = head1;
+  do {
+    TNode *node2 = head2;
+    do {
+      f_ij(node1, node2, offset);
+      node2 = node2->next;
+    } while (node2);
+    node1 = node1->next;
+  } while (node1);
+}
+
+template<typename TNode>
+int count_node(TNode *head) {
+  TNode * cur_node = head;
+  int count = 0;
   while(cur_node) {
-    f(*cur_node);
+    count++;
     cur_node = cur_node->next;
   }
+  return count;
 }
 #endif

@@ -48,10 +48,26 @@ void tangle_1(T1 &x, T2 x_min, T2 x_max, T2 len) {
 }
 
 template <typename T1, typename T2>
+void tangle_1(T1 &x, T2 len) {
+  if (x < 0) {
+    x += len;
+  } else if (x >= len) {
+    x -= len;
+  }
+}
+
+template <typename T1, typename T2>
 void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &x_min, const Vec_3<T2> &x_max, const Vec_3<T2> &len) {
   tangle_1(x.x, x_min.x, x_max.x, len.x);
   tangle_1(x.y, x_min.y, x_max.y, len.y);
   tangle_1(x.z, x_min.z, x_max.z, len.z);
+}
+
+template <typename T1, typename T2>
+void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &len) {
+  tangle_1(x.x, len.x);
+  tangle_1(x.y, len.y);
+  tangle_1(x.z, len.z);
 }
 
 template <typename T1, typename T2>
@@ -61,6 +77,12 @@ void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &x_min, const Vec_3<T2> &x_max, cons
   if (!flag_ext.z) tangle_1(x.z, x_min.z, x_max.z, len.z);
 }
 
+template <typename T1, typename T2>
+void tangle_3(Vec_3<T1> &x, const Vec_3<T2> &len, const Vec_3<bool> &flag_ext) {
+  if (!flag_ext.x) tangle_1(x.x, len.x);
+  if (!flag_ext.y) tangle_1(x.y, len.y);
+  if (!flag_ext.z) tangle_1(x.z, len.z);
+}
 /**
  * \brief Cal nearest distance under the periodic boundary condition
  * \tparam T       Template type
