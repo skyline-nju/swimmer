@@ -43,15 +43,15 @@ public:
     return get_nx(p.pos.x) + get_ny(p.pos.y) * n_.x + get_nz(p.pos.z) * nxny_;
   }
 
-  void show_para() const;
 
   int ncells() const { return ncells_; }
   const Vec3d& origin() const { return origin_; }
   const Vec3d& l() const { return l_; }
+  const Vec3d& gl_l() const { return gl_l_; }
   const Vec_3<bool>& flag_ext() const { return flag_ext_; }
   const Vec_3<int>& cells_size() const { return n_; }
 
-  Vec_3<double> get_offset(const Vec3d &pos);
+  Vec_3<double> get_offset(const Vec3d &pos) const;
 protected:
   int ncells_;
   int nxny_;
@@ -100,6 +100,9 @@ public:
 
   template <typename BiFunc, typename TriFunc>
   void for_each_pair_fast(BiFunc f1, TriFunc f2) const;
+
+  template <typename BiFunc>
+  void for_each_pair_slow(BiFunc f_ij) const;
 
   void create(std::vector<TNode> &p_arr);
 
@@ -371,6 +374,20 @@ void CellListNode_3<TNode>::for_each_pair_fast(BiFunc f1, TriFunc f2) const {
   for_each_pair_fast(f1, f2, Vec_3<int>(), end);
 }
 
+template <typename TNode>
+template <typename BiFunc>
+void CellListNode_3<TNode>::for_each_pair_slow(BiFunc f_ij) const {
+  Vec_3<int> end(n_);
+  if (flag_ext_.x)
+    end.x -= 1;
+  if (flag_ext_.y)
+    end.y -= 1;
+  if (flag_ext_.z)
+    end.z -= 1;
+
+  for_each_pair_slow(f_ij, Vec_3<int>(), end);
+}
+
 template<typename TNode>
 void CellListNode_3<TNode>::create(std::vector<TNode>& p_arr) {
   auto end = p_arr.end();
@@ -475,4 +492,29 @@ int CellListNode_3<TNode>::get_par_num(const Vec_3<int>& beg, const Vec_3<int>& 
 template <typename TNode>
 int CellListNode_3<TNode>::get_par_num() const {
   return get_par_num(Vec_3<int>(), n_);
+}
+
+/**
+ * @brief Get a vector that offsets the periodic boundary condition
+ * 
+ * This function works well, however, CellListBase_3::get_offset fails to give
+ * expected results, for unknown reasons.
+ * 
+ * @tparam TCellList     Temlate for cell list
+ * @param pos            Positon of a particle 
+ * @param cl             Cell list
+ * @return Vec_3<double> 
+ */
+template <typename TCellList>
+Vec_3<double> get_offset(const Vec_3<double> &pos, const TCellList &cl) {
+  Vec_3<double> offset{};
+  Vec_3<double> dR = pos - cl.origin();
+  for (int dim = 0; dim < 3; dim++) {
+    if (dR[dim] < 0) {
+      offset[dim] = cl.gl_l()[dim];
+    } else if (dR[dim] > cl.l()[dim]) {
+      offset[dim] = -cl.gl_l()[dim];
+    }
+  }
+  return offset;
 }

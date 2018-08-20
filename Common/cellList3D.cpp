@@ -64,14 +64,20 @@ void CellListBase_3::partition(const Vec_3<double>& l, double r_cut,
   }
 }
 
-void CellListBase_3::show_para() const{
-  std::cout << "cell origin: " << origin_ << std::endl;
-  std::cout << "cell size: " << n_ << std::endl;
-}
-
-Vec_3<double> CellListBase_3::get_offset(const Vec3d& pos) {
+/**
+ * @brief Get a vector to offset the periodic boundary condition
+ * 
+ * @param pos             Position of a particle
+ * @return Vec_3<double>  
+ */
+Vec_3<double> CellListBase_3::get_offset(const Vec3d& pos) const {
   Vec_3<double> offset{};
   Vec_3<double> dR = pos - origin_;
+
+  //! If canceling the annotation of the following line, the function can give
+  //! right results.
+  // std::cout << dR << std::endl;
+
   for (int dim = 0; dim < 3; dim++) {
     if (dR[dim] < 0) {
       offset[dim] = gl_l_[dim];

@@ -2,7 +2,6 @@
 #define VECT_H
 #include <iostream>
 #include <cmath>
-#include "rand.h"
 
 template <typename T>
 struct Vec_2 {
