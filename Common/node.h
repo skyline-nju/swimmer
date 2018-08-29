@@ -1,13 +1,13 @@
 /**
  * @brief Node wrapper
  * 
- * @file rand.h
+ * @file node.h
  * @author skyline-nju
  * @date 2018-04-24
  */
 #ifndef NODE_H
 #define NODE_H
-
+#include "vect.h"
 /*************************************************************************//**
  * \brief Unidirectional node wrapper
  * \tparam TPar Template for particles.

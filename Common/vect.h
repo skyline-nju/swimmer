@@ -2,6 +2,7 @@
 #define VECT_H
 #include <iostream>
 #include <cmath>
+#include "rand.h"
 
 template <typename T>
 struct Vec_2 {
@@ -207,8 +208,13 @@ struct Vec_3 {
   void rotate(double theta);
   void rotate(double theta, const Vec_3<double> &a);
   void rotate(double c, double s, const Vec_3<double> &a);
-  template <class TRan>
-  void rand_perp_ax(Vec_3<double> &ax, TRan &myran) const;
+
+  template <typename TRan>
+  void get_perp_vec(Vec_3<T> &v_perp, TRan &myran) const;
+
+  template <typename TRan>
+  void rotate_rand(double theta, TRan &myran);
+
 
   friend std::ostream & operator << (std::ostream &out, const Vec_3<T> & obj) {
     out << obj.x << "\t" << obj.y << "\t" << obj.z;
@@ -343,7 +349,13 @@ void Vec_3<T>::normalize() {
   z *= one_over_r;
 }
 
-template <typename T> // this is just a 2D rotation
+/**
+ * @brief Rotate around the z axis (0, 0, 1) by theta
+ * 
+ * @tparam T      
+ * @param theta   The angle need to rotate
+ */
+template <typename T>
 void Vec_3<T>::rotate(double theta) {
   const auto c = std::cos(theta);
   const auto s = std::sin(theta);
@@ -353,6 +365,13 @@ void Vec_3<T>::rotate(double theta) {
   y = y_new;
 }
 
+/**
+ * @brief Rotate around a vector by a given angle
+ * 
+ * @tparam T 
+ * @param theta  Thg angle to rotate
+ * @param a      Rotation axis
+ */
 template <typename T>
 void Vec_3<T>::rotate(double theta, const Vec_3<double> &a) {
   const auto c = std::cos(theta);
@@ -360,13 +379,21 @@ void Vec_3<T>::rotate(double theta, const Vec_3<double> &a) {
   rotate(c, s, a);
 }
 
+/**
+ * @brief    Rotate aound a vector by a given angle
+ * 
+ * @tparam T 
+ * @param c   cos theta
+ * @param s   sin theta
+ * @param a   Rotaton axis, should be normalized.
+ */
 template <typename T>
 void Vec_3<T>::rotate(double c, double s, const Vec_3<double> &a) {
   const auto bxx = a.x * a.x * (1 - c);
   const auto bxy = a.x * a.y * (1 - c);
   const auto bxz = a.x * a.z * (1 - c);
   const auto byy = a.y * a.y * (1 - c);
-  const auto byz = a.y * a.z * (1 - c);
+  const auto byz = a.y * a.z * (1 - c); 
   const auto bzz = a.z * a.z * (1 - c);
   const auto x_new = (bxx + c) * x + (bxy - a.z * s) * y + (bxz + a.y * s) * z;
   const auto y_new = (bxy + a.z * s) * x + (byy + c) * y + (byz - a.x * s) * z;
@@ -377,16 +404,35 @@ void Vec_3<T>::rotate(double c, double s, const Vec_3<double> &a) {
 }
 
 template <typename T>
-template <class TRan>
-void Vec_3<T>::rand_perp_ax(Vec_3<double> &ax, TRan &myran) const {
-  Vec_3<double> b(y, -x, 0);
-  b.normalize();
+template <typename TRan>
+void Vec_3<T>::get_perp_vec(Vec_3<T>& v_perp, TRan& myran) const {
+  double s = std::sqrt(x * x + y * y);
+  Vec_3<T> rot_axis(-y / s, x / s, 0.);
   double c = z;
-  double s = std::sqrt(1 - z * z);
-  circle_point_picking(ax.x, ax.y, myran);
-  ax.z = 0;
-  ax.rotate(c, -s, b);
+
+  circle_point_picking(v_perp.x, v_perp.y, myran);
+  v_perp.z = 0;
+  v_perp.rotate(c, s, rot_axis);
 }
+
+/**
+ * @brief Rotate around a random axis by angle theta
+ * 
+ * The vector to be rotated should be normalized.
+ * 
+ * @tparam T     
+ * @tparam TRan  Template for random number generator.
+ * @param theta  Angle to rotate.
+ * @param myran  Random number generator
+ */
+template <typename T>
+template <typename TRan>
+void Vec_3<T>::rotate_rand(double theta, TRan& myran) {
+  Vec_3<double> v_perp{};
+  get_perp_vec(v_perp, myran);
+  rotate(theta, v_perp);
+}
+
 #endif
 
 

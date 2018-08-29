@@ -7,7 +7,7 @@
  */
 #include "latticeExporter.h"
 #include <iomanip>
-#include <netcdf.h>
+#include "netcdf.h"
 
 int lx;
 int ly;
@@ -380,7 +380,7 @@ ProfileExporter::ProfileExporter(const cmdline::parser& cmd) //NOLINT
   int row_dim;
   int left_right_dim;
 
-  /* define dimenstions */
+  /* define dimentions */
   stat = nc_def_dim(ncid_, "frame", frame_len_, &frame_dim);
   check_err(stat, __LINE__, __FILE__);
   stat = nc_def_dim(ncid_, "row", row_len_, &row_dim);

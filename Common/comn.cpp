@@ -129,8 +129,8 @@ BaseLogExporter::~BaseLogExporter() {
   // ReSharper restore CppDeprecatedEntity
   fout_ << "Finished simulation at " << str << "\n";
   std::chrono::duration<double> elapsed_seconds = t_now - t_start_;
-  fout_ << "speed=" << n_step_ * double(n_par_) / elapsed_seconds.count()
-    << " particle time step per seconds\n";
+  fout_ << "speed=" << std::scientific << n_step_ * double(n_par_) / elapsed_seconds.count()
+    << " particle time step per second per core\n";
   fout_.close();
 }
 
