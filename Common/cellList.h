@@ -64,8 +64,7 @@ protected:
 };
 
 inline CellListBase_2::CellListBase_2(const Vec_2<double>& l, double r_cut,
-  const Vec_2<double> &origin)
-  : origin_(origin) {
+                                      const Vec_2<double> &origin): origin_(origin) {
   n_.x = int(l.x / r_cut);
   n_.y = int(l.y / r_cut);
   inverse_lc_.x = n_.x / l.x;
@@ -184,8 +183,8 @@ void CellListIdx_2<TContainer>::create(const std::vector<TPar> & p_arr) {
 template<typename TContainer>
 template<typename TPar, typename BiFunc>
 void CellListIdx_2<TContainer>::for_nearby_par(const TPar * p,
-  const std::vector<TPar>& p_arr,
-  BiFunc f_ij) const {
+                                               const std::vector<TPar>& p_arr,
+                                               BiFunc f_ij) const {
   auto lambda = [this, p, &p_arr, f_ij](int ic) {
     if (!head_[ic].empty()) {
       const auto end = head_[ic].cend();
@@ -246,14 +245,16 @@ public:
     for_each_pair(f_ij, 0, n_.y, 0, n_.x);
   }
 
-  /**
-  * \brief Visit nearby particles surronding one particle
-  * \tparam BiFunc Template function: void(TPar*, TPar*)
-  * \param p       Pointer of the target particle
-  * \param f_ij A  Function acting on the target particle and its' neighbor.
+ /**
+  * @brief Visit nearby particles surronding one particle
+  * 
+  * @tparam BiFunc Template function: void(TPar*, TPar*)
+  * @param p       Pointer of the target particle
+  * @param f_ij    Function acting on the target particle and its' neighbor.
+  * @return int    Index of the cell where the particle is.
   */
   template <typename BiFunc>
-  void for_nearby_par(const TNode *p, BiFunc f_ij) const;
+  int for_nearby_par(TNode *p, BiFunc f_ij) const;
 
   /**
   * \brief Create cell list
@@ -322,6 +323,8 @@ public:
   template <typename UniFunc>
   void update_by_row(UniFunc move);
 
+  void update(TNode *p, int old_cell_idx, int new_cell_idx);
+
 protected:
   std::vector<TNode*> head_;
 };
@@ -364,10 +367,13 @@ void CellListNode_2<TNode>::for_each_pair(BiFunc f_ij, int row_beg, int row_end,
 
 template <typename TNode>
 template <typename BiFunc>
-void CellListNode_2<TNode>::for_nearby_par(const TNode* p, BiFunc f_ij) const {
-  visit_nearby_cell(get_row(p->y), get_col(p->x), [this, p, f_ij](int ic) {
+int CellListNode_2<TNode>::for_nearby_par(TNode* p, BiFunc f_ij) const {
+  int my_row = get_row(p->y);
+  int my_col = get_col(p->x);
+  int cell_idx = my_col + my_row * n_.x;
+  visit_nearby_cell(my_row, my_col, [this, p, f_ij](int ic) {
     if (head_[ic]) {
-      const TNode *cur_node = head_[ic];
+      TNode *cur_node = head_[ic];
       do {
         if (p != cur_node)
           f_ij(p, cur_node);
@@ -375,6 +381,7 @@ void CellListNode_2<TNode>::for_nearby_par(const TNode* p, BiFunc f_ij) const {
       } while (cur_node);
     }
   });
+  return cell_idx;
 }
 
 template<typename TNode>
@@ -454,4 +461,12 @@ void CellListNode_2<TNode>::update_by_row(UniFunc move) {
   update(move, (n_.y - 1) * n_.x, pre_row);
 }
 
+template <typename TNode>
+void CellListNode_2<TNode>::update(TNode *p, int old_cell_idx, int new_cell_idx) {
+  if (new_cell_idx != old_cell_idx) {
+    p->break_away(&head_[old_cell_idx]);
+    p->append_at_front(&head_[new_cell_idx]);
+  }
+
+}
 #endif

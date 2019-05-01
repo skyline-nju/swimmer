@@ -9,7 +9,7 @@ struct Vec_2 {
   T x;
   T y;
 
-  Vec_2(): x(0), y(0) {}
+  Vec_2() = default;
   Vec_2(T x0, T y0) : x(x0), y(y0) {}
   Vec_2(const Vec_2<T> &a) : x(a.x), y(a.y) {}
 
@@ -36,6 +36,7 @@ struct Vec_2 {
   double cross(const Vec_2<T>& a) const;
   void normalize();
   double square() const;
+  double module() const { return std::sqrt(square()); }
   Vec_2 inverse() const;
   void rotate(double theta);
 

@@ -146,8 +146,8 @@ void for_each_node_pair(TNode* head1, TNode* head2, BiFunc f_ij) {
   } while (node1);
 }
 
-template <class TNode, class TriFunc>
-void for_each_node_pair(TNode *head1, TNode *head2, const Vec_3<double> &offset, TriFunc f_ij) {
+template <class TNode, class TriFunc, class TVec>
+void for_each_node_pair(TNode *head1, TNode *head2, const TVec &offset, TriFunc f_ij) {
   TNode *node1 = head1;
   do {
     TNode *node2 = head2;

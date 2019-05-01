@@ -2,7 +2,7 @@
  * @brief 3d linked-cell list
  * 
  * @file cellList3D.h
- * @author your name
+ * @author skyline-nju
  * @date 2018-08-17
  */
 #pragma once
@@ -189,7 +189,7 @@ void CellListNode_3<TNode>::for_each_pair(BiFunc1 f1, BiFunc2 f2, const Vec3i& i
       y[1] = y[0] + 1;
       if (y[1] >= n_.y)
         y[1] -= n_.y;
-      const int y_nx[2] = { y[0] * n_.x, y[1] * n_.y };
+      const int y_nx[2] = { y[0] * n_.x, y[1] * n_.x };
       for (x[0] = ic_beg.x; x[0] < ic_end.x; x[0]++) {
         x[1] = x[0] + 1;
         if (x[1] >= n_.x)
@@ -277,7 +277,7 @@ void CellListNode_3<TNode>::for_each_pair_fast(BiFunc f1, TriFunc f2,
         y[1] -= n_.y;
         ly = gl_l_.y;
       }
-      const int y_nx[2] = { y[0] * n_.x, y[1] * n_.y };
+      const int y_nx[2] = { y[0] * n_.x, y[1] * n_.x };
       for (x[0] = ic_beg.x; x[0] < ic_end.x; x[0]++) {
         double lx = 0;
         x[1] = x[0] + 1;

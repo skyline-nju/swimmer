@@ -1,6 +1,7 @@
 #include "cellList3D.h"
 
 const int CellListBase_3::cell_offset[13][3] = {
+  // {z, y, x}
   { 0,  0,  1 },
   { 0,  1,  0 },
   { 0,  1,  1 },

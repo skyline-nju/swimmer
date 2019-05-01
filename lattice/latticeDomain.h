@@ -404,9 +404,8 @@ private:
  * @param myran     random number generator
  */
 template <typename TPar, typename TRan>
-UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd,
-                               std::vector<TPar>& p_arr, TRan& myran)
-  : UniDomain_2(cmd, p_arr, myran, false), prob_arr_{} {
+UniDomain_AB_2::UniDomain_AB_2(const cmdline::parser& cmd, std::vector<TPar>& p_arr, TRan& myran) :
+    UniDomain_2(cmd, p_arr, myran, false), prob_arr_{} {
   const auto nu_f = cmd.get<double>("nu_f");
   const auto nu_b = cmd.get<double>("nu_b");
   const auto nu_t = cmd.get<double>("nu_t");
