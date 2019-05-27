@@ -256,6 +256,9 @@ public:
   template <typename BiFunc>
   int for_nearby_par(TNode *p, BiFunc f_ij) const;
 
+  template <typename BiFunc>
+  bool for_nearby_par(TNode& p, BiFunc u_ij, int* cell_idx = nullptr) const;
+
   /**
   * \brief Create cell list
   * \tparam TPar Template particle.
@@ -382,6 +385,45 @@ int CellListNode_2<TNode>::for_nearby_par(TNode* p, BiFunc f_ij) const {
     }
   });
   return cell_idx;
+}
+
+template <typename TNode>
+template <typename BiFunc>
+bool CellListNode_2<TNode>::for_nearby_par(TNode& p, BiFunc u_ij, int* ptr_ic0) const {
+  int my_row = get_row(p.y);
+  int my_col = get_col(p.x);
+  if (ptr_ic0) {
+    *ptr_ic0 = my_col + my_row * n_.x;
+  }
+
+  bool success = true;
+  for (int drow = -1; drow <= 1; drow++) {
+    const auto row = get_row(my_row, drow);
+    for (int dcol = -1; dcol <= 1; dcol++) {
+      const auto col = get_col(my_col, dcol);
+      int ic = col + row * n_.x;
+      if (head_[ic]) {
+        TNode* cur_node = head_[ic];
+        do {
+          if (&p != cur_node) {
+            if (!u_ij(p, *cur_node)) {
+              success = false;
+              break;
+            }
+          }
+          cur_node = cur_node->next;
+        } while (cur_node);
+        
+      }
+      if (!success) {
+        break;
+      }
+    }
+    if (!success) {
+      break;
+    }
+  }
+  return success;
 }
 
 template<typename TNode>
